@@ -1,0 +1,668 @@
+// src/constants.ts
+
+export const catalogCategories = [
+  { id: "numbers", name: "Цифры"},
+  { id: "girls", name: "Для девочек" },
+  { id: "boys", name: "Для мальчиков" },
+  { id: "women", name: "Для девушек" },
+  { id: "men", name: "Для мужчин" },
+  { id: "latex", name: "Латексные шары" },
+  { id: "foil", name: "Фольгированные шары" },
+  { id: "bubbles", name: "Баблс" },
+  { id: "theme", name: "Тематические композиции" },
+];
+
+export const serviceItems = [
+  { name: "Фотосессии", key: "photosessions" },
+  { name: "Съемки в детсадах и школах", key: "schoolShoots" },
+  { name: "Выпускные альбомы", key: "albums" },
+  { name: "Ведущий на праздник", key: "host" },
+  { name: "Торты и пирожные", key: "desserts" },
+  { name: "Реквизит для съемок", key: "props" },
+  { name: "Стилист-визажист", key: "stylist" },
+  { name: "Съемка рилсов", key: "reels" },
+];
+
+export const themeSubcategories = [
+  { id: "theme_newborn", name: "Шары в честь рождения и выписки малыша" },
+  { id: "theme_8march", name: "8 Марта" },
+  { id: "theme_23feb", name: "23 Февраля" },
+  { id: "theme_valentines", name: "День всех влюбленных" },
+  { id: "theme_newyear", name: "Новый год" },
+  { id: "theme_graduation", name: "Выпускные (школа/садик)" },
+  { id: "theme_school", name: "Школьная тематика" },
+  { id: "theme_gender", name: "Гендерпати" },
+];
+
+export const productsData = [
+  // --- ЦИФРЫ ---
+  {
+    id: 101,
+    categoryId: "numbers",
+    title: 'Цифра 4 серия "Пончики"',
+    price: 1300,
+    images: ["/assets/num_1300.jpg"],
+  },
+  {
+    id: 102,
+    categoryId: "numbers",
+    title: 'Цифра 1 "Волшебные единороги"',
+    price: 2100,
+    images: ["/assets/num_2100.jpg"],
+  },
+  {
+    id: 103,
+    categoryId: "numbers",
+    title: "Композиция с цифрой 5",
+    price: 2150,
+    images: ["/assets/num_2150_1.jpg", "/assets/num_2150_2.jpg"],
+  },
+  {
+    id: 104,
+    categoryId: "numbers",
+    title: "Композиция цифра 9",
+    price: 2200,
+    images: ["/assets/num_2200.jpg"],
+  },
+  {
+    id: 105,
+    categoryId: "numbers",
+    title: "Композиция цифра 4",
+    price: 3350,
+    oldPrice: 3800,
+    images: ["/assets/num_3350.jpg"],
+  },
+  {
+    id: 106,
+    categoryId: "numbers",
+    title: "Композиция Цифра 10",
+    price: 3680,
+    images: ["/assets/num_3680.jpg"],
+  },
+  {
+    id: 107,
+    categoryId: "numbers",
+    title: "Композиция с цифрой 3",
+    price: 2650,
+    images: ["/assets/num_2650_1.jpg", "/assets/num_2650_2.jpg"],
+  },
+  {
+    id: 108,
+    categoryId: "numbers",
+    title: "Композиция цифра 6",
+    price: 2450,
+    images: ["/assets/num_2450.jpg"],
+  },
+  {
+    id: 109,
+    categoryId: "numbers",
+    title: "Композиция с цифрой 4",
+    price: 1810,
+    images: ["/assets/num_1810.jpg"],
+  },
+  {
+    id: 110,
+    categoryId: "numbers",
+    title: "Композиция цифра 7",
+    price: 2150,
+    images: ["/assets/num_2150_b.jpg"],
+  },
+
+  // --- ДЛЯ ДЕВОЧЕК ---
+  {
+    id: 201,
+    categoryId: "girls",
+    title: "Шары латекс",
+    price: 130,
+    images: ["/assets/girl_130.jpg"],
+  },
+  {
+    id: 202,
+    categoryId: "girls",
+    title: "Волшебный лес",
+    price: 900,
+    images: [
+      "/assets/girl_900_1.jpg",
+      "/assets/girl_900_2.jpg",
+      "/assets/girl_900_3.jpg",
+      "/assets/girl_900_4.jpg",
+      "/assets/girl_900_5.jpg",
+    ],
+  },
+  {
+    id: 203,
+    categoryId: "girls",
+    title: "Котёнок Единорог",
+    price: 900,
+    images: ["/assets/girl_900_cat.jpg"],
+  },
+  {
+    id: 204,
+    categoryId: "girls",
+    title: 'Композиция "Котёнок Единорог"',
+    price: 1980,
+    images: ["/assets/girl_1980.jpg"],
+  },
+  {
+    id: 205,
+    categoryId: "girls",
+    title: 'Композиция "Чёрный кот"',
+    price: 3000,
+    oldPrice: 3500,
+    images: ["/assets/girl_3000_1.jpg"],
+  },
+  {
+    id: 206,
+    categoryId: "girls",
+    title: 'Композиция "Фея Бабочка"',
+    price: 3000,
+    images: ["/assets/girl_3000_2.jpg"],
+  },
+  {
+    id: 208,
+    categoryId: "girls",
+    title: "Композиция с цифрой 3",
+    price: 2650,
+    images: ["/assets/num_2650_1.jpg", "/assets/num_2650_2.jpg"],
+  },
+  {
+    id: 209,
+    categoryId: "girls",
+    title: "Динозаврик в колпачке",
+    price: 1000,
+    images: ["/assets/girl_1000.jpg"],
+  },
+  {
+    id: 210,
+    categoryId: "girls",
+    title: 'Композиция "Осенние листья"',
+    price: 2350,
+    images: [
+      "/assets/girl_2350_1.jpg",
+      "/assets/girl_2350_2.jpg",
+      "/assets/girl_2350_3.jpg",
+    ],
+  },
+  {
+    id: 211,
+    categoryId: "girls",
+    title: 'Композиция "Фиолетовый микс"',
+    price: 1850,
+    images: [
+      "/assets/girl_1850_1.jpg",
+      "/assets/girl_1850_2.jpg",
+      "/assets/girl_1850_3.jpg",
+      "/assets/girl_1850_4.jpg",
+      "/assets/girl_1850_5.jpg",
+    ],
+  },
+  {
+    id: 212,
+    categoryId: "girls",
+    title: 'Композиция "Цветок"',
+    price: 3000,
+    images: ["/assets/girl_3000_3.jpg"],
+  },
+
+  // --- ДЛЯ МАЛЬЧИКОВ ---
+  {
+    id: 301,
+    categoryId: "boys",
+    title: 'Цифра 4 серия "Пончики"',
+    price: 1300,
+    images: ["/assets/num_1300.jpg"],
+  },
+  {
+    id: 302,
+    categoryId: "boys",
+    title: "Шары латекс",
+    price: 130,
+    images: ["/assets/girl_130.jpg"],
+  },
+  {
+    id: 303,
+    categoryId: "boys",
+    title: "Волшебный лес",
+    price: 900,
+    images: [
+      "/assets/girl_900_1.jpg",
+      "/assets/girl_900_2.jpg",
+      "/assets/girl_900_3.jpg",
+      "/assets/girl_900_4.jpg",
+      "/assets/girl_900_5.jpg",
+    ],
+  },
+  {
+    id: 304,
+    categoryId: "boys",
+    title: 'Композиция "Человек паук"',
+    price: 1700,
+    images: ["/assets/boy_1700.jpg"],
+  },
+  {
+    id: 305,
+    categoryId: "boys",
+    title: "Композиция Цифра 10",
+    price: 3680,
+    images: ["/assets/num_3680.jpg"],
+  },
+  {
+    id: 306,
+    categoryId: "boys",
+    title: 'Композиция "Космос"',
+    price: 2300,
+    images: [
+      "/assets/boy_2300_1.jpg",
+      "/assets/boy_2300_2.jpg",
+      "/assets/boy_2300_3.jpg",
+    ],
+  },
+  {
+    id: 307,
+    categoryId: "boys",
+    title: "Ракета",
+    price: 800,
+    images: ["/assets/boy_800.jpg"],
+  },
+  {
+    id: 308,
+    categoryId: "boys",
+    title: "Динозаврик в колпачке",
+    price: 1000,
+    images: ["/assets/girl_1000.jpg"],
+  },
+  {
+    id: 309,
+    categoryId: "boys",
+    title: 'Композиция "Сине-зеленый микс"',
+    price: 1300,
+    images: ["/assets/boy_1300_2.jpg"],
+  },
+  {
+    id: 310,
+    categoryId: "boys",
+    title: "Композиция цифра 6",
+    price: 2450,
+    images: ["/assets/num_2450.jpg"],
+  },
+  {
+    id: 311,
+    categoryId: "boys",
+    title: 'Композиция "Осенние листья"',
+    price: 2350,
+    images: [
+      "/assets/girl_2350_1.jpg",
+      "/assets/girl_2350_2.jpg",
+      "/assets/girl_2350_3.jpg",
+    ],
+  },
+  {
+    id: 312,
+    categoryId: "boys",
+    title: 'Композиция "Ретро Машинка"',
+    price: 2400,
+    images: [
+      "/assets/boy_2400_1.jpg",
+      "/assets/boy_2400_2.jpg",
+      "/assets/boy_2400_3.jpg",
+    ],
+  },
+  {
+    id: 313,
+    categoryId: "boys",
+    title: 'Композиция "Гоночная машина"',
+    price: 1940,
+    images: ["/assets/boy_1940.jpg"],
+  },
+
+  // --- ДЛЯ ДЕВУШЕК ---
+  {
+    id: 401,
+    categoryId: "women",
+    title: "Шары латекс",
+    price: 130,
+    images: ["/assets/girl_130.jpg"],
+  },
+  {
+    id: 402,
+    categoryId: "women",
+    title: "8 Марта Весенние цветы",
+    price: 1100,
+    images: ["/assets/women_1100.jpg"],
+  },
+  {
+    id: 403,
+    categoryId: "women",
+    title: 'Композиция "Леденцы цвета фуксии"',
+    price: 2800,
+    images: ["/assets/women_2800.jpg"],
+  },
+  {
+    id: 404,
+    categoryId: "women",
+    title: "Композиция Цифра 10",
+    price: 3680,
+    images: ["/assets/num_3680.jpg"],
+  },
+  {
+    id: 405,
+    categoryId: "women",
+    title: "Мини фотозона в розовом",
+    price: 2650,
+    images: ["/assets/women_2650.jpg"],
+  },
+  {
+    id: 406,
+    categoryId: "women",
+    title: 'Композиция "Разноцветные перья"',
+    price: 1890,
+    images: [
+      "/assets/women_1890_1.jpg",
+      "/assets/women_1890_2.jpg",
+      "/assets/women_1890_3.jpg",
+      "/assets/women_1890_4.jpg",
+      "/assets/women_1890_5.jpg",
+    ],
+  },
+  {
+    id: 407,
+    categoryId: "women",
+    title: 'Композиция "Симфония точек"',
+    price: 2300,
+    images: [
+      "/assets/women_2300_1.jpg",
+      "/assets/women_2300_2.jpg",
+      "/assets/women_2300_3.jpg",
+      "/assets/women_2300_4.jpg",
+    ],
+  },
+  {
+    id: 408,
+    categoryId: "women",
+    title: 'Композиция "Фиолетовый микс"',
+    price: 1850,
+    images: [
+      "/assets/girl_1850_1.jpg",
+      "/assets/girl_1850_2.jpg",
+      "/assets/girl_1850_3.jpg",
+      "/assets/girl_1850_4.jpg",
+      "/assets/girl_1850_5.jpg",
+    ],
+  },
+
+  // --- ДЛЯ МУЖЧИН ---
+  {
+    id: 501,
+    categoryId: "men",
+    title: "Шары латекс",
+    price: 130,
+    images: ["/assets/girl_130.jpg"],
+  },
+  {
+    id: 502,
+    categoryId: "men",
+    title: "Композиция цифра 10",
+    price: 3680,
+    images: ["/assets/num_3680.jpg"],
+  },
+
+  // --- ЛАТЕКСНЫЕ, ФОЛЬГИРОВАННЫЕ, БАБЛС ---
+  {
+    id: 601,
+    categoryId: "latex",
+    title: "Латексные шары ассорти",
+    price: 150,
+    images: ["/assets/latex_placeholder.jpg"],
+  },
+  {
+    id: 701,
+    categoryId: "foil",
+    title: "Фольгированная звезда",
+    price: 350,
+    images: ["/assets/foil_placeholder.jpg"],
+  },
+  {
+    id: 801,
+    categoryId: "bubbles",
+    title: "Шар Баблс с перьями",
+    price: 1200,
+    images: ["/assets/bubbles_placeholder.jpg"],
+  },
+
+  // --- ТЕМАТИЧЕСКИЕ ---
+  {
+    id: 901,
+    categoryId: "theme_newborn",
+    title: "Выписка из роддома",
+    price: 2500,
+    images: ["/assets/theme_newborn.jpg"],
+  },
+  {
+    id: 902,
+    categoryId: "theme_8march",
+    title: "Набор на 8 Марта",
+    price: 1800,
+    images: ["/assets/theme_8march.jpg"],
+  },
+  {
+    id: 903,
+    categoryId: "theme_23feb",
+    title: "Шары на 23 Февраля",
+    price: 1500,
+    images: ["/assets/theme_23feb.jpg"],
+  },
+  {
+    id: 904,
+    categoryId: "theme_valentines",
+    title: "Сердца для любимой",
+    price: 2100,
+    images: ["/assets/theme_valentines.jpg"],
+  },
+  {
+    id: 905,
+    categoryId: "theme_newyear",
+    title: "Новогодний набор",
+    price: 3000,
+    images: ["/assets/theme_newyear.jpg"],
+  },
+  {
+    id: 906,
+    categoryId: "theme_graduation",
+    title: "Шары на выпускной",
+    price: 1900,
+    images: ["/assets/theme_graduation.jpg"],
+  },
+  {
+    id: 907,
+    categoryId: "theme_school",
+    title: "1 Сентября",
+    price: 1200,
+    images: ["/assets/theme_school.jpg"],
+  },
+  {
+    id: 908,
+    categoryId: "theme_gender",
+    title: "Гендерный шар-гигант",
+    price: 2800,
+    images: ["/assets/theme_gender.jpg"],
+  },
+];
+
+// Отзывы клиентов. У отзыва может быть несколько фотографий — тогда внутри
+// карточки появляется своя перелистывалка.
+export const reviews = [
+  {
+    text: `«Шары для души» — это всегда гарантия качества и настоящего праздничного настроения! Мы не первый раз обращаемся и всегда остаёмся в восторге от работы. С удовольствием будем заказывать снова!
+
+В этот раз получилась яркая и праздничная композиция: большая цифра «4», которая идеально соответствовала тематике мероприятия, и букет с трогательными надписями «Сыночек», «Любим», «Поздравляем».
+
+Нам всё очень понравилось 😊
+
+— Насыщенные цвета и красивые надписи стали отличным фоном для фотосессии.
+— Шарики оказались очень прочными и долго не сдувались.
+— Нина оперативно связалась с нами по поводу доставки и учла все наши пожелания.
+
+Ребёнок был в полном восторге от праздника! Мы благодарны за то, что вы помогли сделать его ярким и душевным!`,
+    author: "Карина Фролова",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/1.jpg"],
+  },
+  {
+    text: "Заказали оформление фото зоны и зала для нашего события. Нам всё понравилось.",
+    author: "Таня Денисьева",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/2.jpg"],
+  },
+  {
+    text: "Хочу выразить огромную благодарность студии «Шары для души»! Нина профессионал своего дела! Очень внимательная к деталям! Всегда всё подобрано со вкусом! Нет перегруза. Ярко, празднично, красиво! Большое спасибо за прекрасно проделанную работу, качественный товар и счастливые моменты! ❤️❤️❤️",
+    author: "Светлана Витальевна",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/3.jpg"],
+  },
+  {
+    text: "Хотим сказать спасибо нашим спонсорам — два фонтана шаров стали отличным подарком для победителей. Ребята были в восторге, эмоции искренние и очень яркие. Шары качественные, стойкие, весь вечер радовали глаз и создавали праздничную атмосферу. Отличная идея для поощрения — красиво, необычно и запоминается надолго!",
+    author: "Александра Борисова",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/4.jpg"],
+  },
+  {
+    text: "Выражаю огромную благодарность студии «Шары Для Души» за красивые, яркие шары для нашей фотосессии 🥰😍❤️ Шарики радуют нас дома уже больше двух недель! Обратная связь, советы в выборе композиции, всё на высоте! Однозначно рекомендую данную студию 👍 Большое спасибо за качественный товар 🙏",
+    author: "Анна Нетрусова",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/5.jpg"],
+  },
+  {
+    text: "Шары отличные 😌 Держатся очень хорошо, всё понравилось, спасибо 😊",
+    author: "Милана Захарикова",
+    role: "Клиент студии",
+    photos: ["/assets/reviews/6.jpg"],
+  },
+  {
+    text: "Хочу выразить огромную благодарность Нине и её команде профессионалов за их чудесные проекты, которые при их отлаженной работе получаются живыми и яркими. А также хочу поблагодарить саму Нину за то, что она всегда придёт на помощь и подберёт шикарные шары на любой праздник. И может составить прекрасный букет из шаров, который не раз меня выручал.",
+    author: "Алена Флоря",
+    role: "Постоянный клиент студии",
+    photos: ["/assets/reviews/10.jpg"],
+  },
+];
+
+/**
+ * Картинки памятки. У каждой снята геометрия по альфа-каналу:
+ *   f* — доля реального содержимого в кадре (вокруг прозрачные поля),
+ *   ar — пропорции содержимого (ширина / высота).
+ * Поля у файлов разные (от 47% до 100% кадра), поэтому масштабируем не сам
+ * файл, а его содержимое — тогда все иконки выглядят одного размера.
+ */
+type MemoImage = {
+  src: string;
+  /** доля содержимого в кадре: смещение и размер по X/Y */
+  fx: number;
+  fy: number;
+  fw: number;
+  fh: number;
+  /** пропорции содержимого (ширина / высота) */
+  ar: number;
+  /** выпуск за края карточки */
+  bleed?: "top" | "bottom";
+  /** для bleed:"bottom" — какую долю высоты занимает сам шар (остальное лента) */
+  headFrac?: number;
+};
+
+const memo: Record<string, MemoImage> = {
+  iceballon: { src: "/assets/memo/iceballon.png", fx: 0.1377, fy: 0.0597, fw: 0.7195, fh: 0.8909, ar: 0.8076 },
+  fireballon: { src: "/assets/memo/fireballon.png", fx: 0.138, fy: 0.0667, fw: 0.7157, fh: 0.8852, ar: 0.8086 },
+  // bleed "top" — шар прижат к верхней кромке карточки во всю её ширину,
+  // будто основная связка спрятана выше края
+  downballon: { src: "/assets/memo/downballon.png", fx: 0.0491, fy: 0, fw: 0.9361, fh: 0.5194, ar: 1.8021, bleed: "top" as const },
+  sharp: { src: "/assets/memo/sharp.png", fx: 0.2639, fy: 0.2241, fw: 0.4722, fh: 0.5519, ar: 0.8557 },
+  sunballon: { src: "/assets/memo/sunballon.png", fx: 0.1389, fy: 0.0593, fw: 0.7204, fh: 0.8935, ar: 0.8062 },
+  catballon: { src: "/assets/memo/catballon.png", fx: 0.1192, fy: 0.1436, fw: 0.7664, fh: 0.708, ar: 1.0825 },
+  carballon: { src: "/assets/memo/carballon.png", fx: 0.088, fy: 0.3787, fw: 0.6444, fh: 0.5037, ar: 1.2794 },
+  // bleed "bottom" — шар крупный по центру, а лента уходит вниз за текст
+  // headFrac снят по профилю альфа-канала: шар занимает верхние 67% содержимого
+  cloud: { src: "/assets/memo/cloud.png", fx: 0.0843, fy: 0.037, fw: 0.8315, fh: 0.963, ar: 0.8635, bleed: "bottom" as const, headFrac: 0.667 },
+};
+
+// Памятка по обращению с шарами. У карточки может быть два изображения —
+// тогда они встают парой и слегка наклонены друг к другу.
+export const careCards = [
+  {
+    images: [memo.iceballon, memo.fireballon],
+    title: "Температурный режим",
+    description:
+      "Шары боятся и мороза, и жары: на холоде сжимаются, у батареи и на солнце могут лопнуть.",
+  },
+  {
+    images: [memo.downballon],
+    title: "Бережное обращение",
+    description:
+      "Держите шар за ленту, не тяните за узел и берегите от острых углов и мишуры.",
+  },
+  {
+    images: [memo.sunballon],
+    title: "Солнечные лучи",
+    description:
+      "Прямой свет выгоняет цвет и нагревает гелий — в тени шары держатся заметно дольше.",
+  },
+  {
+    images: [memo.catballon],
+    title: "Домашние животные",
+    description:
+      "Питомцу шар кажется игрушкой. Держите композицию повыше и вне зоны прыжка.",
+  },
+  {
+    images: [memo.carballon],
+    title: "Транспортировка",
+    description:
+      "Везите в закрытом салоне без сквозняка. В жару не оставляйте шары в машине.",
+  },
+  {
+    images: [memo.cloud],
+    title: "Не отпускайте в небо",
+    description:
+      "Красивый кадр оборачивается мусором в полях и реках. Сдуйте шар и выбросьте в урну.",
+  },
+];
+
+// Часто задаваемые вопросы
+export const faq = [
+  {
+    q: "Как долго летают воздушные шары?",
+    a: "Латексные шары мы обрабатываем составом Hi-Float — он создаёт внутри плёнку и не даёт гелию уходить. Такие шары живут от 3 дней до двух недель. Фольгированные держатся дольше всего: от двух недель до месяца, а потом их можно поднадуть заново.",
+  },
+  {
+    q: "За сколько дней нужно делать заказ?",
+    a: "Комфортнее всего за 2–4 дня: успеваем согласовать палитру, надписи и время доставки. Если шары нужны сегодня — всё равно напишите, часть композиций мы собираем день в день.",
+  },
+  {
+    q: "Вы доставляете по Ярославлю?",
+    a: "Да, доставляем по всему городу и в ближайшие пригороды. Везём в защитном транспортировочном пакете к нужному времени, при заказе от 3 000 ₽ доставка по городу бесплатная.",
+  },
+  {
+    q: "Можно ли забрать заказ самому?",
+    a: "Конечно. Расскажем, как довезти композицию без потерь: гелиевые шары перевозят в салоне, а не в багажнике, и не при включённом кондиционере в лицо. Крупные фотозоны лучше доверить нашей доставке.",
+  },
+  {
+    q: "Сделаете композицию по моей картинке?",
+    a: "Да, работа по референсу — наш обычный формат. Пришлите фото в мессенджер, мы подберём максимально близкие оттенки и честно скажем, если что-то технически повторить не выйдет.",
+  },
+  {
+    q: "Сколько стоит композиция?",
+    a: "Всё зависит от количества шаров, размера и сложности декора. Связка от 1 000 ₽, цифра от 1 300 ₽, фотозона считается индивидуально. Опишите задачу — посчитаем смету бесплатно и без обязательств.",
+  },
+  {
+    q: "Организуете ли вы выездные фотосессии?",
+    a: "Да, и берём на себя всё: идею, подбор локации, декор из шаров, работу фотографа и финальную обработку кадров. Через 7–10 дней вы получаете готовую галерею.",
+  },
+  {
+    q: "Оформляете большие мероприятия?",
+    a: "Да — свадьбы, юбилеи, корпоративы, выпускные и открытия. Делаем арки, фотозоны, потолочные композиции и оформление сцены. Приезжаем на площадку заранее, монтируем сами.",
+  },
+  {
+    q: "Как происходит оплата?",
+    a: "Предоплата 50% при подтверждении заказа, остальное — при получении. Принимаем перевод и наличные, по запросу оформляем документы для организаций.",
+  },
+  {
+    q: "Что делать, если шар сдулся раньше срока?",
+    a: "Напишите нам и приложите фото. Если дело в браке материала, а не в кошке, морозе или батарее — заменим или вернём деньги за этот шар. Такое случается редко, но мы всегда на связи.",
+  },
+];

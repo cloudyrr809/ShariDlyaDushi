@@ -1,0 +1,367 @@
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ArrowRight, ShoppingCart } from "lucide-react";
+import { useCart } from "./CartContext";
+import {
+  catalogCategories,
+  themeSubcategories,
+  productsData,
+} from "./constants";
+
+const ProductCard = ({ product }: { product: any }) => {
+  const { addToCart } = useCart();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+
+  const images = product.images || [];
+  const imagesCount = images.length;
+  const hasMultiple = imagesCount > 1;
+
+  // АНИМАЦИЯ ПОЛЕТА В КОРЗИНУ
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    addToCart(product);
+
+    const card = e.currentTarget.closest(".group");
+    const img = card?.querySelector("img");
+    const cartIcon = document.getElementById("cart-icon-header");
+
+    if (img && cartIcon) {
+      const imgRect = img.getBoundingClientRect();
+      const cartRect = cartIcon.getBoundingClientRect();
+
+      const flyingImg = img.cloneNode(true) as HTMLImageElement;
+      flyingImg.style.position = "fixed";
+      flyingImg.style.top = `${imgRect.top}px`;
+      flyingImg.style.left = `${imgRect.left}px`;
+      flyingImg.style.width = `${imgRect.width}px`;
+      flyingImg.style.height = `${imgRect.height}px`;
+      flyingImg.style.borderRadius = "16px";
+      flyingImg.style.zIndex = "9999";
+      flyingImg.style.transition = "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
+      flyingImg.style.pointerEvents = "none";
+      document.body.appendChild(flyingImg);
+
+      requestAnimationFrame(() => {
+        flyingImg.style.top = `${cartRect.top + 10}px`;
+        flyingImg.style.left = `${cartRect.left + 10}px`;
+        flyingImg.style.width = "20px";
+        flyingImg.style.height = "20px";
+        flyingImg.style.opacity = "0";
+        flyingImg.style.transform = "scale(0.1) rotate(15deg)";
+      });
+
+      setTimeout(() => {
+        flyingImg.remove();
+        cartIcon.classList.add("scale-125");
+        setTimeout(() => cartIcon.classList.remove("scale-125"), 200);
+      }, 400);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-3xl p-3 md:p-4 border border-[#E8DEEE] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col relative">
+      <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-[#F0E8F4] mb-4 relative flex items-center justify-center">
+        {imagesCount > 0 ? (
+          <img
+            src={images[activeIndex]}
+            alt={product.title}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              imgErrors[activeIndex] ? "hidden" : "block"
+            }`}
+            onError={() =>
+              setImgErrors((prev) => ({ ...prev, [activeIndex]: true }))
+            }
+          />
+        ) : (
+          <span className="text-[#A093AB] text-xs">Нет фото</span>
+        )}
+
+        {imgErrors[activeIndex] && imagesCount > 0 && (
+          <span className="absolute text-[#A093AB] font-medium text-xs pointer-events-none">
+            Фото {activeIndex + 1}
+          </span>
+        )}
+
+        {hasMultiple && (
+          <div className="absolute inset-0 flex">
+            {images.map((_: any, idx: number) => (
+              <div
+                key={idx}
+                className="flex-1 h-full z-10"
+                onMouseEnter={() => setActiveIndex(idx)}
+              />
+            ))}
+          </div>
+        )}
+
+        {hasMultiple && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-20 pointer-events-none">
+            {images.map((_: any, idx: number) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === activeIndex
+                    ? "w-4 bg-white shadow-sm"
+                    : "w-1.5 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-end gap-2 mb-2 px-1">
+        <span className="font-serif font-bold text-lg md:text-xl text-[#2D2433]">
+          {product.price} ₽
+        </span>
+        {product.oldPrice && (
+          <span className="text-xs md:text-sm text-[#A093AB] line-through mb-1">
+            {product.oldPrice} ₽
+          </span>
+        )}
+      </div>
+
+      <h3 className="text-sm md:text-base font-medium text-[#5A4D66] leading-snug px-1 flex-grow mb-4">
+        {product.title}
+      </h3>
+
+      <button
+        onClick={handleAddToCart}
+        className="w-full bg-[#F8F4F9] text-[#6B4E81] border border-[#E8DEEE] py-2.5 rounded-xl text-xs font-semibold hover:bg-[#6B4E81] hover:text-white hover:border-[#6B4E81] transition-all flex items-center justify-center gap-2 cursor-pointer"
+      >
+        <ShoppingCart className="w-3.5 h-3.5" />В корзину
+      </button>
+    </div>
+  );
+};
+
+export default function Catalog() {
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("numbers");
+
+  useEffect(() => {
+    const hash = location.hash.replace("#", "");
+    if (hash && catalogCategories.some((c) => c.id === hash)) {
+      setActiveTab(hash);
+    }
+  }, [location.hash]);
+
+  const handleTabClick = (id: string) => {
+    setActiveTab(id);
+    window.history.pushState(null, "", `/catalog#${id}`);
+  };
+
+  return (
+    <div className="bg-[#FDFBFD] text-[#2D2433] scroll-smooth">
+      {/* 
+        Шапка (Header) отсюда удалена. 
+        Она теперь рендерится глобально в файле main.tsx 
+      */}
+
+      {/* ШАПКА СТРАНИЦЫ — один в один со страницей «Услуги».
+          Убраны фотофон с тёмным оверлеем, рукописная надпись «Наши
+          композиции» и вырезанная SVG-плашка «КАТАЛОГ». Вместе с плашкой
+          из проекта ушло последнее использование шрифта Bebas Neue. */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-purple-50 to-slate-50 py-12 md:py-16">
+        {/* Фоновое свечение — те же два круга, что на «Услугах» */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 right-10 z-0 h-72 w-72 rounded-full bg-pink-200/50 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-1/4 z-0 h-72 w-72 rounded-full bg-purple-200/50 blur-3xl"
+        />
+
+        <div className="relative z-10 mx-auto w-full max-w-[79rem] px-6">
+          {/* items-start, а не items-center. При центрировании текстовая
+              колонка выравнивалась относительно фото (256px), и её верх
+              зависел от длины подзаголовка: в Каталоге он в две строки, в
+              Услугах в три, поэтому крошки стояли на 175px против 162px —
+              при переходе между вкладками надписи прыгали на 13px.
+              С выравниванием по верху обе шапки совпадают пиксель в пиксель
+              независимо от того, сколько строк займёт текст. */}
+          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
+            {/* ЛЕВАЯ КОЛОНКА — текст */}
+            <div>
+              <nav aria-label="Хлебные крошки">
+                <ol className="flex items-center gap-2 text-sm">
+                  <li>
+                    <Link
+                      to="/"
+                      className="text-[#756583] transition-colors hover:text-[#513A6B]"
+                    >
+                      Главная
+                    </Link>
+                  </li>
+                  <li aria-hidden="true" className="text-[#C9B4D6]">
+                    /
+                  </li>
+                  <li
+                    aria-current="page"
+                    className="font-medium text-[#513A6B]"
+                  >
+                    Каталог
+                  </li>
+                </ol>
+              </nav>
+
+              <h1 className="mt-5 text-5xl font-extrabold tracking-[-0.02em] text-[#513A6B] uppercase md:mt-6 md:text-6xl">
+                Каталог
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-[15px] leading-relaxed font-normal text-[#5A4D66] md:mt-6 md:text-base">
+                Выберите идеальную композицию или соберите свой уникальный сет
+                для любого повода.
+              </p>
+            </div>
+
+            {/* ПРАВАЯ КОЛОНКА — снимок. Скругление и обрезка на обёртке,
+                увеличение на картинке: иначе при наведении она вылезла бы
+                за скруглённый угол прямоугольником. */}
+            <div className="group h-48 w-full overflow-hidden rounded-3xl shadow-sm md:h-64">
+              <img
+                src="/assets/catalog-hero-bg.jpg"
+                alt="Композиции из воздушных шаров"
+                // Не lazy: картинка на первом экране и она здесь самая крупная
+                fetchPriority="high"
+                decoding="async"
+                className="w-full h-full object-cover object-[50%_25%] group-hover:scale-105 transition duration-500"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ).
+          scrollbar-hide вместо инлайновых стилей: те закрывали Firefox и
+          старый IE, но не WebKit, и в Chrome полоса всё равно оставалась. */}
+      <div
+        id="catalog-content"
+        // mb-8, а не прежние mb-12/16: тот отступ ставился, когда под
+        // вкладками ещё шла линия border-b и он читался как поле под ней.
+        // Линию убрали — и 64px превратились в пустоту между категориями и
+        // товарами. У блока товаров верхнего отступа нет, так что эти 32px и
+        // есть весь зазор.
+        className="scrollbar-hide w-full overflow-x-auto pt-6 mb-8"
+      >
+        {/* 79rem = 76rem контента + 2×24px (px-6): внутренний край совпадает
+            с логотипом/кнопкой шапки, у которой padding снаружи контейнера */}
+        <div className="max-w-[79rem] mx-auto px-6">
+          {/* gap-4, а не gap-8 как на «Услугах»: тут девять категорий, и их
+              суммарная ширина 1073px из 1216 доступных. На больший зазор
+              строка не влезает, последняя категория уходит за край. w-full +
+              justify-between дораспределяют остаток, поэтому фактический
+              просвет получается ~18px — это физический максимум для такого
+              набора названий. */}
+          <div className="flex justify-between items-center min-w-max w-full gap-4">
+            {catalogCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleTabClick(cat.id)}
+                // Кегль и разрядка поджаты, чтобы девять длинных категорий
+                // уместились в строку при gap-8 и не включали горизонтальную
+                // прокрутку на десктопе. Подробности — в Services.tsx.
+                className={`text-xs uppercase tracking-wider font-semibold transition-colors duration-300 pb-4 border-b-2 cursor-pointer whitespace-nowrap ${
+                  activeTab === cat.id
+                    ? "text-[#2D2433] border-[#2D2433]"
+                    : "text-[#7E6E8A] border-transparent hover:text-[#2D2433] hover:border-[#D9C6E4]"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* РЕНДЕР ТОВАРОВ ВЫБРАННОЙ ВКЛАДКИ */}
+      <div className="max-w-[79rem] mx-auto px-6 pb-12 min-h-[40vh]">
+        {activeTab === "theme" ? (
+          <div className="space-y-16">
+            {themeSubcategories.map((subCat) => {
+              const subCatProducts = productsData.filter(
+                (p) => p.categoryId === subCat.id,
+              );
+              return (
+                <div key={subCat.id} id={subCat.id} className="scroll-mt-24">
+                  <h3 className="font-serif text-xl md:text-2xl font-medium text-[#6B4E81] mb-6 border-l-4 border-[#6B4E81] pl-4">
+                    {subCat.name}
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    {subCatProducts.length > 0 ? (
+                      subCatProducts.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))
+                    ) : (
+                      <p className="text-sm text-[#A093AB] italic">
+                        Здесь скоро появятся новинки...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {productsData
+              .filter((p) => p.categoryId === activeTab)
+              .map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+          </div>
+        )}
+      </div>
+
+      {/* ПРИЗЫВ К ДЕЙСТВИЮ — «абсолютная чистота»: ни плашки, ни заливки,
+          ни скруглений. Блок отделён от товаров одной тонкой линией.
+
+          Линия идёт по всей ширине контента (max-w-[79rem]), а текст сужен
+          до max-w-2xl: так черта читается как разделитель секции, а не как
+          короткий штрих над абзацем, и строки при этом не растягиваются.
+
+          Цвет линии — сайтовый #E8DEEE, а не нейтральный gray-200: этой же
+          рамкой обведены все карточки товаров выше, и серая выбивалась бы
+          из фиолетовой гаммы. */}
+      <section className="px-6 pb-8">
+        <div className="mx-auto w-full max-w-[79rem] border-t border-[#E8DEEE] py-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-[-0.02em] text-[#513A6B] uppercase md:text-4xl">
+              Не нашли идеальный вариант?
+            </h2>
+
+            <p className="mt-5 mb-8 text-lg leading-relaxed font-normal text-[#5A4D66]">
+              Расскажите нам о своей идее, и мы соберем для вас персональную
+              композицию из шаров под любой бюджет и повод.
+            </p>
+
+            {/* inline-flex + mx-auto: кнопка занимает ширину своего текста и
+                стоит по центру, а не растягивается на всю колонку.
+
+                Заливка сохранена намеренно — см. пояснение в ответе: белый
+                текст и hover:bg работают только поверх фона. Пропорции
+                поджаты (py-3 вместо py-4), чтобы убрать громоздкость.
+
+                Стрелка чуть уезжает вправо при наведении — тот самый
+                микро-жест, ради которого она и добавлена. */}
+            <a
+              href="https://vk.ru/sharydlyadushi"
+              target="_blank"
+              rel="noreferrer"
+              className="group mx-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#6B4E91] px-8 py-3 font-medium text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#513A6B]"
+            >
+              Напишите нам
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 
+        Футер (Footer) и Корзина (CartDrawer) отсюда удалены. 
+        Они теперь рендерятся глобально в файле main.tsx 
+      */}
+    </div>
+  );
+}
