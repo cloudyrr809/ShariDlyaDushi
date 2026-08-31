@@ -376,20 +376,35 @@ export default function Promotions() {
         <div className="absolute bottom-[-2%] right-[6%] h-[520px] w-[520px] rounded-full bg-[#6B4E81]/14 blur-[130px]" />
       </div>
 
-      {/* ═══════════ 1. СЕТКА АКЦИЙ — три ряда по две плитки ═══════════ */}
-      <section
-        aria-labelledby="promo-grid-title"
-        className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pt-14 pb-8 md:pt-20"
-      >
-        {/* Заголовок нужен только структуре. Видимой шапки у страницы нет —
-            плитки начинаются сразу, — но без h1 документ остаётся без имени:
-            вкладка в поиске, оглавление для скринридера и переход по
-            заголовкам опираются именно на него. Плитки идут уровнем h3,
-            поэтому здесь h1, а не h2: иначе был бы перескок уровня. */}
-        <h1 id="promo-grid-title" className="sr-only">
-          Акции студии «Шары для души»
+      {/* ═══════════ 1. ШАПКА — только типографика ═══════════
+          Ни фото, ни плашек, ни крошек: два наших шрифта и воздух. Фон
+          прозрачный, поэтому сквозь шапку просвечивают цветные пятна выше.
+
+          Рукописная надстрочка намеренно садится вплотную к капсу и слегка
+          на него заходит: пара читается как одна композиция, а не как две
+          отдельные строки. Заход делает отрицательный mt у заголовка —
+          у рукописного шрифта под базовой линией длинный росчерк, и
+          pb-[0.5em] резервирует под него место, иначе он лёг бы на буквы. */}
+      <header className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pt-16 pb-14 text-center md:pt-24 md:pb-16">
+        <p className="font-miana pb-[0.5em] text-3xl leading-none text-[#C46B8A] md:text-5xl">
+          выгодно и приятно
+        </p>
+
+        <h1 className="text-[3.5rem] leading-[0.85] font-extrabold tracking-[-0.04em] text-[#2D2433] uppercase md:text-[7rem]">
+          Акции
         </h1>
 
+        <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
+          Шесть поводов заказать выгоднее: подарок к заказу, бесплатная
+          доставка, скидки ко дню рождения и за отзыв.
+        </p>
+      </header>
+
+      {/* ═══════════ 2. СЕТКА АКЦИЙ — три ряда по две плитки ═══════════ */}
+      <section
+        aria-label="Действующие акции студии"
+        className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pb-8"
+      >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           {promotionsList.map((promo, i) => (
             <PromoTile key={promo.id} promo={promo} index={i} />
@@ -397,7 +412,7 @@ export default function Promotions() {
         </div>
       </section>
 
-      {/* ═══════════ 2. КАК ПОЛУЧИТЬ — в стиле разделов «О нас» ═══════════
+      {/* ═══════════ 3. КАК ПОЛУЧИТЬ — в стиле разделов «О нас» ═══════════
           Рукописная розовая надстрочка + заголовок строчными весом 600,
           без линий-разделителей. Шаги — карточки на белом, как в блоке
           «наш подход» на Услугах. */}
