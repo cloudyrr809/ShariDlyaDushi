@@ -194,14 +194,8 @@ export const Header = () => {
             </div>
           </div>
 
-          <Link
-            to="/photoprojects"
-            className={getNavLinkClass("/photoprojects")}
-          >
-            ФОТОПРОЕКТЫ
-          </Link>
-          <Link to="/gallery" className={getNavLinkClass("/gallery")}>
-            НАШИ РАБОТЫ
+          <Link to="/feed" className={getNavLinkClass("/feed")}>
+            ЛЕНТА
           </Link>
           <Link to="/promotions" className={getNavLinkClass("/promotions")}>
             АКЦИИ

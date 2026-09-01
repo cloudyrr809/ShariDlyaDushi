@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { WorkHeader } from "./components/ui/PageHeader";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { useCart } from "./CartContext";
 import {
@@ -158,80 +159,19 @@ export default function Catalog() {
         Она теперь рендерится глобально в файле main.tsx 
       */}
 
-      {/* ШАПКА СТРАНИЦЫ — один в один со страницей «Услуги».
-          Убраны фотофон с тёмным оверлеем, рукописная надпись «Наши
-          композиции» и вырезанная SVG-плашка «КАТАЛОГ». Вместе с плашкой
-          из проекта ушло последнее использование шрифта Bebas Neue. */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-purple-50 to-slate-50 py-12 md:py-16">
-        {/* Фоновое свечение — те же два круга, что на «Услугах» */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 right-10 z-0 h-72 w-72 rounded-full bg-pink-200/50 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-1/4 z-0 h-72 w-72 rounded-full bg-purple-200/50 blur-3xl"
-        />
-
-        <div className="relative z-10 mx-auto w-full max-w-[79rem] px-6">
-          {/* items-start, а не items-center. При центрировании текстовая
-              колонка выравнивалась относительно фото (256px), и её верх
-              зависел от длины подзаголовка: в Каталоге он в две строки, в
-              Услугах в три, поэтому крошки стояли на 175px против 162px —
-              при переходе между вкладками надписи прыгали на 13px.
-              С выравниванием по верху обе шапки совпадают пиксель в пиксель
-              независимо от того, сколько строк займёт текст. */}
-          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
-            {/* ЛЕВАЯ КОЛОНКА — текст */}
-            <div>
-              <nav aria-label="Хлебные крошки">
-                <ol className="flex items-center gap-2 text-sm">
-                  <li>
-                    <Link
-                      to="/"
-                      className="text-[#756583] transition-colors hover:text-[#513A6B]"
-                    >
-                      Главная
-                    </Link>
-                  </li>
-                  <li aria-hidden="true" className="text-[#C9B4D6]">
-                    /
-                  </li>
-                  <li
-                    aria-current="page"
-                    className="font-medium text-[#513A6B]"
-                  >
-                    Каталог
-                  </li>
-                </ol>
-              </nav>
-
-              <h1 className="mt-5 text-5xl font-extrabold tracking-[-0.02em] text-[#513A6B] uppercase md:mt-6 md:text-6xl">
-                Каталог
-              </h1>
-
-              <p className="mt-5 max-w-2xl text-[15px] leading-relaxed font-normal text-[#5A4D66] md:mt-6 md:text-base">
-                Выберите идеальную композицию или соберите свой уникальный сет
-                для любого повода.
-              </p>
-            </div>
-
-            {/* ПРАВАЯ КОЛОНКА — снимок. Скругление и обрезка на обёртке,
-                увеличение на картинке: иначе при наведении она вылезла бы
-                за скруглённый угол прямоугольником. */}
-            <div className="group h-48 w-full overflow-hidden rounded-3xl shadow-sm md:h-64">
-              <img
-                src="/assets/catalog-hero-bg.jpg"
-                alt="Композиции из воздушных шаров"
-                // Не lazy: картинка на первом экране и она здесь самая крупная
-                fetchPriority="high"
-                decoding="async"
-                className="w-full h-full object-cover object-[50%_25%] group-hover:scale-105 transition duration-500"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ШАПКА СТРАНИЦЫ — тип «рабочая», общий компонент со страницей
+          «Услуги». Раньше та же разметка была написана здесь и там по
+          отдельности, и заголовки начали расходиться в цвете и кегле. */}
+      <WorkHeader
+        crumbs={[{ label: "Главная", to: "/" }, { label: "Каталог" }]}
+        title="Каталог"
+        lead="Выберите идеальную композицию или соберите свой уникальный сет для любого повода."
+        photo={{
+          src: "/assets/catalog-hero-bg.jpg",
+          alt: "Композиции из воздушных шаров",
+          position: "object-[50%_25%]",
+        }}
+      />
 
       {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ).
           scrollbar-hide вместо инлайновых стилей: те закрывали Firefox и

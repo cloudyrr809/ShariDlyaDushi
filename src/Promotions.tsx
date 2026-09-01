@@ -1,4 +1,6 @@
 import { Gift, Percent, Truck, Cake, Camera, Users } from "lucide-react";
+import { CoverHeader } from "./components/ui/PageHeader";
+import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 
 /* ─────────────────────────────────────────────────────────────────────────
    ДАННЫЕ АКЦИЙ
@@ -24,6 +26,9 @@ type Promo = {
   cond: string;
   icon: typeof Gift;
   art: string;
+  /** множитель к размеру шара: ломает одинаковость плиток.
+      Считается ОТ --art-h, поэтому адаптивность сохраняется. */
+  artScale?: number;
 };
 
 const promotionsList: Promo[] = [
@@ -40,6 +45,7 @@ const promotionsList: Promo[] = [
     cond: "Начисляется автоматически при сумме от 1 000 ₽",
     icon: Gift,
     art: "/assets/ballon2.png",
+    artScale: 1.1,
   },
   {
     id: 2,
@@ -51,6 +57,7 @@ const promotionsList: Promo[] = [
     cond: "Покажите отзыв при повторном заказе",
     icon: Percent,
     art: "/assets/ballon6.png",
+    artScale: 0.92,
   },
   {
     id: 3,
@@ -62,6 +69,7 @@ const promotionsList: Promo[] = [
     cond: "В черте города, время согласуем заранее",
     icon: Truck,
     art: "/assets/ballon5.png",
+    artScale: 1.15,
   },
   {
     id: 4,
@@ -73,6 +81,7 @@ const promotionsList: Promo[] = [
     cond: "Действует за 3 дня до и 3 дня после даты",
     icon: Cake,
     art: "/assets/ballon1.png",
+    artScale: 0.95,
   },
   {
     id: 5,
@@ -84,6 +93,7 @@ const promotionsList: Promo[] = [
     cond: "При бронировании комплексного оформления",
     icon: Camera,
     art: "/assets/ballon3.png",
+    artScale: 0.88,
   },
   {
     id: 6,
@@ -95,6 +105,7 @@ const promotionsList: Promo[] = [
     cond: "Друг называет ваше имя при заказе",
     icon: Users,
     art: "/assets/ballon4.png",
+    artScale: 1.05,
   },
 ];
 
@@ -232,7 +243,7 @@ function PromoTile({ promo, index }: { promo: Promo; index: number }) {
      компенсируем прозрачное поле, затем добавляем сам вынос. */
   const pc = (n: number) => `${(n * 100).toFixed(2)}%`;
   const artStyle = {
-    height: `calc(100% * var(--art-h) / ${g.fh})`,
+    height: `calc(100% * var(--art-h) * ${promo.artScale ?? 1} / ${g.fh})`,
     transform: `translate(
       calc(${pc(1 - g.fx - g.fw)} + var(--art-bx) * ${pc(g.fw)}),
       calc(${pc(1 - g.fy - g.fh)} + var(--art-by) * ${pc(g.fh)})
@@ -363,42 +374,19 @@ const steps = [
 export default function Promotions() {
   return (
     <div className="relative overflow-x-clip bg-[#FDFBFD] text-[#2D2433]">
-      {/* ФОНОВЫЕ ПЯТНА (BLOBS) — тот же приём, что на «О нас» и «Услугах»:
-          убирают стерильную белизну, не добавляя ни одной линии.
-          Лежат на z-0, все секции ниже идут с relative z-10. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0"
-      >
-        <div className="absolute top-[8%] left-[-10%] h-[560px] w-[560px] rounded-full bg-[#FFB6C1]/28 blur-[120px]" />
-        <div className="absolute top-[30%] right-[-8%] h-[540px] w-[540px] rounded-full bg-[#6B4E81]/14 blur-[140px]" />
-        <div className="absolute top-[58%] left-[-6%] h-[580px] w-[580px] rounded-full bg-[#D4839A]/20 blur-[150px]" />
-        <div className="absolute bottom-[-2%] right-[6%] h-[520px] w-[520px] rounded-full bg-[#6B4E81]/14 blur-[130px]" />
-      </div>
+      <SkyBackdrop />
 
       {/* ═══════════ 1. ШАПКА — только типографика ═══════════
           Ни фото, ни плашек, ни крошек: два наших шрифта и воздух. Фон
           прозрачный, поэтому сквозь шапку просвечивают цветные пятна выше.
 
-          Рукописная надстрочка намеренно садится вплотную к капсу и слегка
-          на него заходит: пара читается как одна композиция, а не как две
-          отдельные строки. Заход делает отрицательный mt у заголовка —
-          у рукописного шрифта под базовой линией длинный росчерк, и
-          pb-[0.5em] резервирует под него место, иначе он лёг бы на буквы. */}
-      <header className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pt-16 pb-14 text-center md:pt-24 md:pb-16">
-        <p className="font-miana pb-[0.5em] text-3xl leading-none text-[#C46B8A] md:text-5xl">
-          выгодно и приятно
-        </p>
-
-        <h1 className="text-[3.5rem] leading-[0.85] font-extrabold tracking-[-0.04em] text-[#2D2433] uppercase md:text-[7rem]">
-          Акции
-        </h1>
-
-        <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
-          Шесть поводов заказать выгоднее: подарок к заказу, бесплатная
-          доставка, скидки ко дню рождения и за отзыв.
-        </p>
-      </header>
+          Текст подзаголовка — без счёта акций: список будет пополняться, а
+          «шесть поводов» пришлось бы править каждый раз и однажды забыть. */}
+      <CoverHeader
+        eyebrow="выгодно и приятно"
+        title="Акции"
+        lead="Радуем бонусами в день рождения, дарим подарки к заказам и ценим ваши отзывы. Всё просто: расскажите о своем событии, а выгоду мы посчитаем сами."
+      />
 
       {/* ═══════════ 2. СЕТКА АКЦИЙ — три ряда по две плитки ═══════════ */}
       <section
@@ -421,7 +409,7 @@ export default function Promotions() {
           {/* У рукописного «д» длинный росчерк ниже базовой линии: при
               leading-none он лёг бы на заголовок. pb-[0.5em] подкладывает
               недостающее место, в em — чтобы работало и на мобильном кегле. */}
-          <p className="font-miana pb-[0.5em] text-2xl leading-none text-[#C46B8A] md:text-3xl">
+          <p className="font-miana pb-[0.5em] text-2xl leading-none text-[#A64D6C] md:text-3xl">
             всё просто
           </p>
 
@@ -457,7 +445,6 @@ export default function Promotions() {
           ))}
         </div>
       </section>
-
-          </div>
+    </div>
   );
 }
