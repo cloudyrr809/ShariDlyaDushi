@@ -197,8 +197,10 @@ export default function App() {
                 Как оформить заказ
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Выберите понравившуюся композицию или пришлите свой референс в
-                мессенджер.
+                Соберите корзину на сайте или пришлите свой референс — заказ
+                уйдёт нам во ВКонтакте. Ответим, уточним детали и назовём
+                точную стоимость. Цены на сайте предварительные: итог зависит
+                от размера, состава и даты.
               </p>
             </div>
             <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
@@ -209,8 +211,10 @@ export default function App() {
                 Доставка и сроки
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Доставляем бережно в специальном защитном пакете точно к нужному
-                времени.
+                Доставляем по Ярославлю в защитном пакете ко времени, о котором
+                договоримся. Композицию собираем под заказ, поэтому лучше
+                написать заранее — срок и стоимость доставки подтвердим в
+                переписке.
               </p>
             </div>
             <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
@@ -221,10 +225,55 @@ export default function App() {
                 Оплата и возврат
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Предоплата 50%, остаток при получении. Гарантия качества на весь
-                период полёта.
+                Предоплата 50%, остаток при получении. Онлайн-оплаты на сайте
+                нет. Если шар сдулся или пришёл повреждённым — заменим или
+                вернём деньги: напишите нам в день получения.
               </p>
             </div>
+          </div>
+
+          {/* КТО ПРОДАВЕЦ.
+
+              Закон о защите прав потребителей требует, чтобы покупатель мог
+              узнать, с кем имеет дело, до заказа. Блок намеренно стоит
+              здесь, рядом с условиями, а не только в подвале.
+
+              ⚠️ ЗАПОЛНИТЬ ПЕРЕД ЗАПУСКОМ: вместо «Нина …» поставить полное
+              имя, а после определения статуса (самозанятая или ИП) добавить
+              строку с ИНН. Без ИНН блок остаётся честным, но неполным. */}
+          <div className="mt-12 rounded-3xl border border-white/25 bg-white/10 p-6 text-center backdrop-blur-sm md:p-8">
+            <p className="text-[15px] leading-relaxed font-medium text-white/90 md:text-base">
+              Композиции собирает студия «Шары Для Души», Ярославль.
+              Связаться:{" "}
+              <a
+                href="https://vk.com/sharydlyadushi"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
+              >
+                ВКонтакте
+              </a>
+              ,{" "}
+              <a
+                href="tel:+79806616888"
+                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
+              >
+                8 (980) 661-6888
+              </a>
+              ,{" "}
+              <a
+                href="mailto:info@sharidlyadushi.com"
+                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
+              >
+                info@sharidlyadushi.com
+              </a>
+              .
+            </p>
+            <p className="mt-3 text-[15px] leading-relaxed font-medium text-white/75">
+              Сведения на сайте носят справочный характер и не являются
+              публичной офертой. Состав, стоимость и сроки согласуются в
+              переписке до оплаты.
+            </p>
           </div>
         </div>
       </section>

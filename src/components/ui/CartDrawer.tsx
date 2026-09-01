@@ -148,18 +148,31 @@ export const CartDrawer = () => {
                 onClick={handleOrder}
                 className="w-full cursor-pointer bg-[#6B4E81] text-white py-4 rounded-xl text-sm font-bold tracking-wide uppercase hover:bg-[#5A4D66] transition flex items-center justify-center gap-2"
               >
-                {copied ? (
-                  <>
-                    <Check className="w-5 h-5" />
-                    Скопировано — вставьте во ВКонтакте
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-5 h-5" />
-                    Заказать во ВКонтакте
-                  </>
-                )}
+                {/* Подпись НЕ МЕНЯЕТСЯ после нажатия.
+
+                    Раньше она превращалась в «Скопировано — вставьте во
+                    ВКонтакте»: строка не помещалась, переносилась на две,
+                    и галочка оставалась висеть слева от этого блока —
+                    кнопка выглядела сломанной. Подтверждение теперь
+                    отдельной строкой под кнопкой, и её ширина ни от чего
+                    не зависит.
+
+                    shrink-0 у значка — чтобы он не сплющивался, если
+                    подпись всё-таки перенесётся на узком телефоне. */}
+                <Copy className="h-5 w-5 shrink-0" />
+                Заказать во ВКонтакте
               </button>
+
+              {/* Подтверждение: что произошло и что делать дальше. */}
+              {copied && (
+                <p className="mt-3 flex items-start justify-center gap-2 text-center text-[15px] leading-snug font-semibold text-[#6B4E81]">
+                  <Check className="mt-0.5 h-5 w-5 shrink-0" />
+                  <span>
+                    Заказ скопирован. Вставьте его в открывшийся диалог —
+                    Ctrl+V, на телефоне долгое нажатие и «Вставить».
+                  </span>
+                </p>
+              )}
 
               {/* Браузер не дал доступ к буферу — показываем текст заявки,
                   чтобы её можно было скопировать вручную. Молча потерять
