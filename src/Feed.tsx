@@ -49,6 +49,13 @@ function formatDate(iso: string): string {
   return `${Number(m[3])} ${month} ${m[1]}`;
 }
 
+/** Приклеивает последнее слово заголовка к предыдущему неразрывным
+    пробелом: заголовок не обрывается одиноким словом на новой строке
+    («…с цифрой» / «1»). CSS text-wrap:pretty делает то же в свежих
+    браузерах — это подстраховка для остальных и на будущее. */
+const NBSP = " ";
+const noOrphan = (t: string) => t.replace(/\s+(\S+)\s*$/, NBSP + "$1");
+
 /** Мета-строка: дата — первый из трёх уровней набора поста. */
 function Meta({ post }: { post: Post }) {
   const date = formatDate(post.date);
@@ -106,26 +113,25 @@ function PostCard({
         <Meta post={post} />
 
         {post.title && (
-          <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]">
-            {post.title}
+          <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433] [text-wrap:pretty]">
+            {noOrphan(post.title)}
           </h3>
         )}
 
-        {/* ПРОКРУЧИВАЕТСЯ ТОЛЬКО ТЕКСТ, и не выше своей высоты — длинный
-            пост не растягивает страницу. Короткий текст остаётся коротким,
-            и ссылка идёт сразу под ним.
+        {/* ПРОКРУЧИВАЕТСЯ ТОЛЬКО ТЕКСТ, и не выше 38vh — длинный пост не
+            растягивает страницу. Короткий текст остаётся короткой высоты,
+            и ссылка идёт вплотную под ним.
 
-            lg:pb-10 в паре с маской: затухание в 2.5rem у нижней кромки
-            должно приходиться на пустой отступ, иначе последняя строка
-            оставалась бы полупрозрачной и после прокрутки до упора.
+            Ни маски-затухания, ни большого нижнего отступа: раньше они
+            добавляли ~64px пустоты под коротким текстом, и ссылка
+            «Собрать такую же» выглядела оторванной. Что текст
+            прокручивается — видно по тонкой сиреневой полосе (как на
+            «Услугах»), затухание для этого не нужно.
 
-            Полоса прокрутки тонкая и сиреневая, как на «Услугах» —
-            системная рядом со спокойной лентой выглядела вырви-глаз.
-
-            whitespace-pre-line — в текстах бывают переносы и пустые строки
-            между абзацами, они должны сохраняться. */}
+            whitespace-pre-line — переносы и пустые строки между абзацами
+            в тексте должны сохраняться. */}
         {post.text && (
-          <div className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-10 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin] lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
+          <div className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]">
             <p className="text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
               {post.text}
             </p>
