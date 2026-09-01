@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // <-- ВЕРНУЛИ useLocation
 import { Menu, X, Phone, ChevronDown, ShoppingCart } from "lucide-react";
 
@@ -71,41 +71,6 @@ export const Header = () => {
         : "hover:text-[#6B4E81]"
     }`;
   };
-
-  // Состояния для модального окна
-  const [modalName, setModalName] = useState("");
-  const [modalPhone, setModalPhone] = useState("");
-  const [modalComment, setModalComment] = useState("");
-  const [isModalSubmitting, setIsModalSubmitting] = useState(false);
-
-  const handleModalPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let inputNumbersValue = e.target.value.replace(/\D/g, "");
-    let formattedInputValue = "";
-
-    if (!inputNumbersValue) {
-      setModalPhone("");
-      return;
-    }
-
-    if (["7", "8", "9"].includes(inputNumbersValue[0])) {
-      if (inputNumbersValue[0] === "9")
-        inputNumbersValue = "7" + inputNumbersValue;
-      formattedInputValue = "+7 ";
-      if (inputNumbersValue.length > 1)
-        formattedInputValue += "(" + inputNumbersValue.substring(1, 4);
-      if (inputNumbersValue.length >= 5)
-        formattedInputValue += ") " + inputNumbersValue.substring(4, 7);
-      if (inputNumbersValue.length >= 8)
-        formattedInputValue += "-" + inputNumbersValue.substring(7, 9);
-      if (inputNumbersValue.length >= 10)
-        formattedInputValue += "-" + inputNumbersValue.substring(9, 11);
-    } else {
-      formattedInputValue = "+" + inputNumbersValue.substring(0, 15);
-    }
-    setModalPhone(formattedInputValue);
-  };
-
-  const isModalPhoneValid = modalPhone.replace(/\D/g, "").length === 11;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#E8DEEE]/80 bg-[#FDFBFD]/90 backdrop-blur-md px-6 py-4">
@@ -233,102 +198,23 @@ export const Header = () => {
                   Оформить заказ
                 </DialogTitle>
               </DialogHeader>
-              <form
-                className="mt-4 space-y-4"
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <div>
-                  <label className="text-[13px] text-[#5A4D66] uppercase font-semibold tracking-wider">
-                    Ваше имя
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Анна"
-                    value={modalName}
-                    onChange={(e) => setModalName(e.target.value)}
-                    className="mt-1 w-full font-medium rounded-2xl border border-[#E8DEEE] px-4 py-3 text-[15px] focus:outline-none focus:border-[#6B4E81] transition bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-[13px] text-[#5A4D66] uppercase font-semibold tracking-wider">
-                    Телефон
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+7 (999) 000-00-00"
-                    value={modalPhone}
-                    onChange={handleModalPhoneChange}
-                    maxLength={18}
-                    className="mt-1 w-full rounded-2xl font-medium border border-[#E8DEEE] px-4 py-3 text-[15px] focus:outline-none focus:border-[#6B4E81] transition bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-[13px] text-[#5A4D66] uppercase font-semibold tracking-wider">
-                    Пожелание к заказу
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Дата, тип шаров или нужные цвета..."
-                    value={modalComment}
-                    onChange={(e) => setModalComment(e.target.value)}
-                    className="mt-1 w-full font-medium rounded-2xl border border-[#E8DEEE] px-4 py-3 text-[15px] focus:outline-none focus:border-[#6B4E81] transition resize-none bg-white"
-                  />
-                </div>
-                <button
-                  disabled={!modalName.trim() || !isModalPhoneValid}
-                  onClick={async () => {
-                    setIsModalSubmitting(true);
-                    const BOT_TOKEN =
-                      "8755216041:AAEXPq2wM9uW5hXJyHlDCPx9WVPnfcfxxb0";
-                    const CHAT_ID = "1206262308";
-                    const message = `🚀 <b>Быстрая заявка из модального окна!</b>\n\n👤 <b>Имя:</b> ${modalName}\n📞 <b>Телефон:</b> ${modalPhone}\n💬 <b>Пожелания:</b> ${modalComment || "нет"}`;
+              {/* ФОРМЫ ЗДЕСЬ БОЛЬШЕ НЕТ.
 
-                    try {
-                      await fetch(
-                        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            chat_id: CHAT_ID,
-                            text: message,
-                            parse_mode: "HTML",
-                          }),
-                        },
-                      );
-                      alert(
-                        "Заявка успешно отправлена! Мы скоро вам позвоним.",
-                      );
-                      setModalName("");
-                      setModalPhone("");
-                      setModalComment("");
-                    } catch (err) {
-                      alert(
-                        "Ошибка отправки. Пожалуйста, позвоните нам напрямую.",
-                      );
-                    } finally {
-                      setIsModalSubmitting(false);
-                    }
-                  }}
-                  className="w-full rounded-full bg-[#6B4E81] py-3.5 text-sm font-bold uppercase tracking-wide text-white hover:opacity-90 transition cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isModalSubmitting ? "Отправка..." : "Отправить заявку"}
-                </button>
-              </form>
+                  Раньше окно собирало имя и телефон и слало их в
+                  телеграм-бота, чей токен лежал прямо в коде сайта — то
+                  есть был доступен кому угодно. Заодно это делало студию
+                  оператором персональных данных со всеми обязанностями.
 
-              {/* Разделитель с ИЛИ */}
-              <div className="relative my-6 flex items-center justify-center">
-                <div className="w-full border-t border-[#E8DEEE]" />
-                <span className="absolute bg-white px-3 text-xs font-semibold uppercase tracking-widest text-[#7E6E8A]">
-                  ИЛИ
-                </span>
-              </div>
+                  Теперь окно просто ведёт туда, где Нина и так отвечает:
+                  ВКонтакте, телефон, почта. Сайт при этом не собирает и не
+                  передаёт ничего. */}
+              <p className="mt-4 text-center text-[15px] leading-relaxed font-medium text-[#5A4D66]">
+                Напишите нам удобным способом — ответим, подберём композицию
+                и рассчитаем стоимость с доставкой.
+              </p>
 
               {/* Прямые контакты и соцсети */}
               <div className="space-y-4 text-center">
-                <p className="text-sm text-[#5A4D66] font-medium">
-                  Свяжитесь с нами прямо сейчас:
-                </p>
                 <a
                   href="tel:+79806616888"
                   className="inline-flex items-center justify-center gap-2 text-lg font-medium text-[#6B4E81] hover:opacity-80 transition"

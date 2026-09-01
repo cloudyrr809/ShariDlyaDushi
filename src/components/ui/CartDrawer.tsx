@@ -1,11 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCart, type CartItem } from "../../CartContext";
-import { Minus, Plus, ShoppingCart, Loader2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Copy } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./sheet";
-
-// --- ВСТАВЬ СВОИ ДАННЫЕ ИЗ BOTFATHER СЮДА ---
-const BOT_TOKEN = "8755216041:AAEXPq2wM9uW5hXJyHlDCPx9WVPnfcfxxb0";
-const CHAT_ID = "1206262308";
+import { buildOrderText, copyText, openVkChat } from "../../lib/order";
 
 export const CartDrawer = () => {
   const {
@@ -15,108 +12,42 @@ export const CartDrawer = () => {
     isCartOpen,
     setIsCartOpen,
     totalPrice,
-    clearCart,
   } = useCart();
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  /* Ни имени, ни телефона: сайт персональные данные не собирает.
+     Пожелания — свободный текст, который уезжает только в буфер обмена
+     самого посетителя и никуда больше. */
   const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
+  /* Заполняется, если браузер не дал доступ к буферу: тогда показываем
+     текст заявки прямо в окне, чтобы её можно было скопировать руками. */
+  const [manual, setManual] = useState("");
 
-  // --- УМНАЯ МАСКА ДЛЯ ТЕЛЕФОНА ---
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let inputNumbersValue = e.target.value.replace(/\D/g, "");
-    let formattedInputValue = "";
+  /* ЗАЯВКА УХОДИТ ЧЕРЕЗ ВКОНТАКТЕ, а не через нашу отправку.
 
-    if (!inputNumbersValue) {
-      setPhone("");
-      return;
-    }
+     Собираем текст, кладём в буфер обмена и открываем диалог со студией.
+     Отправляет человек сам — значит сайт ничего не передаёт и не хранит,
+     а Нина получает заявку там, где и так работает, вместе с профилем
+     отправителя. */
+  const handleOrder = async () => {
+    const text = buildOrderText(
+      cart.map((i: CartItem) => ({
+        title: i.title,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      comment,
+    );
 
-    if (["7", "8", "9"].includes(inputNumbersValue[0])) {
-      if (inputNumbersValue[0] === "9")
-        inputNumbersValue = "7" + inputNumbersValue;
-
-      formattedInputValue = "+7 ";
-      if (inputNumbersValue.length > 1) {
-        formattedInputValue += "(" + inputNumbersValue.substring(1, 4);
-      }
-      if (inputNumbersValue.length >= 5) {
-        formattedInputValue += ") " + inputNumbersValue.substring(4, 7);
-      }
-      if (inputNumbersValue.length >= 8) {
-        formattedInputValue += "-" + inputNumbersValue.substring(7, 9);
-      }
-      if (inputNumbersValue.length >= 10) {
-        formattedInputValue += "-" + inputNumbersValue.substring(9, 11);
-      }
+    const ok = await copyText(text);
+    if (ok) {
+      setCopied(true);
+      setManual("");
     } else {
-      formattedInputValue = "+" + inputNumbersValue.substring(0, 15);
+      // Буфер недоступен — показываем текст, чтобы скопировать вручную
+      setManual(text);
     }
-
-    setPhone(formattedInputValue);
-  };
-
-  const isPhoneValid = phone.replace(/\D/g, "").length === 11;
-
-  const handleSubmitOrder = async () => {
-    if (!name || !isPhoneValid) {
-      alert("Пожалуйста, заполните имя и корректный номер телефона!");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    let message = `🚀 <b>Новая заявка с сайта!</b>\n\n`;
-    message += `👤 <b>Имя:</b> ${name}\n`;
-    message += `📞 <b>Телефон:</b> ${phone}\n`;
-    if (comment) message += `💬 <b>Комментарий:</b> ${comment}\n\n`;
-
-    message += `🛍 <b>ПРЕДВАРИТЕЛЬНЫЙ ВЫБОР:</b>\n`;
-    cart.forEach((item: CartItem, index: number) => {
-      message += `${index + 1}. ${item.title} — ${item.quantity} шт. (по ${item.price} ₽)\n`;
-    });
-
-    message += `\n💰 <b>ПРИМЕРНАЯ СУММА: ${totalPrice} ₽</b>`;
-
-    try {
-      const response = await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message,
-            parse_mode: "HTML",
-          }),
-        },
-      );
-
-      if (response.ok) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          setIsCartOpen(false);
-          clearCart();
-          setIsSuccess(false);
-          setName("");
-          setPhone("");
-          setComment("");
-        }, 4000); // Увеличил время показа успешного окна до 4 секунд, чтобы успели прочитать
-      } else {
-        alert(
-          "Произошла ошибка при отправке. Попробуйте еще раз или позвоните нам.",
-        );
-      }
-    } catch (error) {
-      console.error("Ошибка Telegram API:", error);
-      alert("Ошибка сети. Попробуйте позже.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    openVkChat();
   };
 
   return (
@@ -128,21 +59,7 @@ export const CartDrawer = () => {
           </SheetTitle>
         </SheetHeader>
 
-        {isSuccess ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 bg-[#F0E8F4] rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">✨</span>
-            </div>
-            {/* Обновленный текст успеха */}
-            <h3 className="font-serif text-2xl text-[#6B4E81] mb-3">
-              Заявка получена!
-            </h3>
-            <p className="text-[#5A4D66] text-[15px] font-medium leading-relaxed max-w-xs mx-auto">
-              Мы увидели, какие шарики вам понравились. Скоро мы свяжемся с
-              вами, чтобы обсудить все детали, доставку и точную стоимость.
-            </p>
-          </div>
-        ) : cart.length === 0 ? (
+        {cart.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-[#7E6E8A]">
             <ShoppingCart className="w-12 h-12 mb-4 opacity-50" />
             <p className="text-base font-semibold">Список пуст</p>
@@ -196,30 +113,14 @@ export const CartDrawer = () => {
 
             <div className="border-t border-[#E8DEEE] p-6 bg-[#FDFBFD]">
               <p className="text-sm font-medium text-[#5A4D66] bg-[#F0E8F4]/50 p-3 rounded-xl border border-[#E8DEEE] mb-5 text-center leading-relaxed">
-                Отправьте заявку, и мы свяжемся с вами для согласования деталей
-                заказа и условий доставки.
+                Список заказа скопируется, и откроется наш диалог во
+                ВКонтакте — останется вставить его и отправить. Ответим и
+                согласуем детали, доставку и точную стоимость.
               </p>
 
-              <div className="space-y-3 mb-6">
-                <input
-                  type="text"
-                  placeholder="Ваше имя *"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 font-medium rounded-xl border border-[#E8DEEE] text-[15px] focus:outline-none focus:border-[#6B4E81] bg-white"
-                />
-
-                <input
-                  type="tel"
-                  placeholder="+7 (___) ___-__-__ *"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  maxLength={18}
-                  className="w-full px-4 py-3 rounded-xl font-medium border border-[#E8DEEE] text-[15px] focus:outline-none focus:border-[#6B4E81] bg-white"
-                />
-
+              <div className="mb-6">
                 <textarea
-                  placeholder="Комментарий (дата, пожелания)"
+                  placeholder="Пожелания: дата, цвета, повод"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl font-medium border border-[#E8DEEE] text-[15px] focus:outline-none focus:border-[#6B4E81] bg-white resize-none h-20"
@@ -244,16 +145,38 @@ export const CartDrawer = () => {
               </div>
 
               <button
-                onClick={handleSubmitOrder}
-                disabled={isSubmitting || !name.trim() || !isPhoneValid}
-                className="w-full bg-[#6B4E81] text-white py-4 rounded-xl text-sm font-bold tracking-wide uppercase hover:bg-[#5A4D66] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={handleOrder}
+                className="w-full cursor-pointer bg-[#6B4E81] text-white py-4 rounded-xl text-sm font-bold tracking-wide uppercase hover:bg-[#5A4D66] transition flex items-center justify-center gap-2"
               >
-                {isSubmitting ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                {copied ? (
+                  <>
+                    <Check className="w-5 h-5" />
+                    Скопировано — вставьте во ВКонтакте
+                  </>
                 ) : (
-                  "Отправить заявку"
+                  <>
+                    <Copy className="w-5 h-5" />
+                    Заказать во ВКонтакте
+                  </>
                 )}
               </button>
+
+              {/* Браузер не дал доступ к буферу — показываем текст заявки,
+                  чтобы её можно было скопировать вручную. Молча потерять
+                  заказ нельзя. */}
+              {manual && (
+                <div className="mt-4">
+                  <p className="mb-2 text-sm font-semibold text-[#A64D6C]">
+                    Скопируйте текст заявки и отправьте нам во ВКонтакте:
+                  </p>
+                  <textarea
+                    readOnly
+                    value={manual}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="h-40 w-full resize-none rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-[15px] font-medium"
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
