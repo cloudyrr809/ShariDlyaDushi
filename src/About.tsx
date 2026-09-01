@@ -123,7 +123,19 @@ export default function About() {
   const [activeIndex, setActiveIndex] = useState(2);
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const [progress, setProgress] = useState(0);
+  /* Полоса воспроизведения двигается ЧЕРЕЗ REF, а не через состояние.
+
+     Раньше здесь был useState, а onTimeUpdate вызывал setProgress —
+     то есть браузер перерисовывал всю страницу «О нас» (1783 узла, пять
+     тегов video, карусель и счётчики) по четыре раза в секунду, пока
+     играет ролик. Это и была основная причина проседания кадров.
+
+     Ширину полосы теперь пишем прямо в стиль элемента: видео играет,
+     полоса едет, React в этом не участвует вообще. */
+  const progressRef = useRef<HTMLDivElement | null>(null);
+  const setProgress = (pct: number) => {
+    if (progressRef.current) progressRef.current.style.width = `${pct}%`;
+  };
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -412,6 +424,18 @@ export default function About() {
                   src={reel.videoUrl}
                   muted={isMuted}
                   playsInline
+                  /* Неактивные ролики не подгружаем заранее: их пять, и
+                     вместе они весят 45 МБ. Браузер по умолчанию тянул их
+                     все сразу — страница «О нас» съедала весь канал и
+                     подтормаживала. Активный грузится целиком, соседние —
+                     только первый кадр, чтобы переключение не мигало. */
+                  preload={
+                    idx === activeIndex
+                      ? "auto"
+                      : Math.abs(idx - activeIndex) === 1
+                        ? "metadata"
+                        : "none"
+                  }
                   onEnded={handleNext}
                   onTimeUpdate={() => handleTimeUpdate(idx)}
                   className="pointer-events-none h-full w-full object-cover"
@@ -456,8 +480,9 @@ export default function About() {
                   >
                     <div className="relative h-1 w-full bg-white/30 hover:h-1.5">
                       <div
+                        ref={progressRef}
                         className="h-full bg-white transition-all duration-75"
-                        style={{ width: `${progress}%` }}
+                        style={{ width: 0 }}
                       />
                     </div>
                   </div>
