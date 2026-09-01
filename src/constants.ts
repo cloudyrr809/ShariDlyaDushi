@@ -35,6 +35,12 @@ export const themeSubcategories = [
 ];
 
 export const productsData = [
+  /* Карточки-заглушки для «Латексных», «Фольгированных», «Баблс» и всех
+     тематических подразделов удалены: выдуманные названия, выдуманные
+     цены и ссылки на фотографии, которых в проекте нет — 11 штук
+     (latex_placeholder.jpg, theme_8march.jpg и другие). В каталоге они
+     показывались надписью «Нет фото», а на живом сайте по ним можно
+     было бы оформить заказ. Настоящие карточки заводятся в админке. */
   // --- ЦИФРЫ ---
   {
     id: 101,
@@ -406,86 +412,7 @@ export const productsData = [
     images: ["/assets/num_3680.jpg"],
   },
 
-  // --- ЛАТЕКСНЫЕ, ФОЛЬГИРОВАННЫЕ, БАБЛС ---
-  {
-    id: 601,
-    categoryId: "latex",
-    title: "Латексные шары ассорти",
-    price: 150,
-    images: ["/assets/latex_placeholder.jpg"],
-  },
-  {
-    id: 701,
-    categoryId: "foil",
-    title: "Фольгированная звезда",
-    price: 350,
-    images: ["/assets/foil_placeholder.jpg"],
-  },
-  {
-    id: 801,
-    categoryId: "bubbles",
-    title: "Шар Баблс с перьями",
-    price: 1200,
-    images: ["/assets/bubbles_placeholder.jpg"],
-  },
-
-  // --- ТЕМАТИЧЕСКИЕ ---
-  {
-    id: 901,
-    categoryId: "theme_newborn",
-    title: "Выписка из роддома",
-    price: 2500,
-    images: ["/assets/theme_newborn.jpg"],
-  },
-  {
-    id: 902,
-    categoryId: "theme_8march",
-    title: "Набор на 8 Марта",
-    price: 1800,
-    images: ["/assets/theme_8march.jpg"],
-  },
-  {
-    id: 903,
-    categoryId: "theme_23feb",
-    title: "Шары на 23 Февраля",
-    price: 1500,
-    images: ["/assets/theme_23feb.jpg"],
-  },
-  {
-    id: 904,
-    categoryId: "theme_valentines",
-    title: "Сердца для любимой",
-    price: 2100,
-    images: ["/assets/theme_valentines.jpg"],
-  },
-  {
-    id: 905,
-    categoryId: "theme_newyear",
-    title: "Новогодний набор",
-    price: 3000,
-    images: ["/assets/theme_newyear.jpg"],
-  },
-  {
-    id: 906,
-    categoryId: "theme_graduation",
-    title: "Шары на выпускной",
-    price: 1900,
-    images: ["/assets/theme_graduation.jpg"],
-  },
-  {
-    id: 907,
-    categoryId: "theme_school",
-    title: "1 Сентября",
-    price: 1200,
-    images: ["/assets/theme_school.jpg"],
-  },
-  {
-    id: 908,
-    categoryId: "theme_gender",
-    title: "Гендерный шар-гигант",
-    price: 2800,
-    images: ["/assets/theme_gender.jpg"],
-  },
+  // --- ЛАТЕКСНЫЕ, ФОЛЬГИРОВАННЫЕ, БАБЛС ---
 ];
 
 // Отзывы клиентов. У отзыва может быть несколько фотографий — тогда внутри

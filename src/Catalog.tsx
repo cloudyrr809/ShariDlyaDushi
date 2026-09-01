@@ -265,15 +265,33 @@ export default function Catalog() {
             })}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-            {/* «Все» — весь ассортимент разом, включая карточки, которым
-                разделов не назначили: иначе они нигде бы не показались. */}
-            {products
-              .filter((p) => inCategory(p, activeTab))
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-          </div>
+          /* «Все» — весь ассортимент разом, включая карточки, которым
+             разделов не назначили: иначе они нигде бы не показались. */
+          (() => {
+            const shown = products.filter((p) => inCategory(p, activeTab));
+
+            /* Пустой раздел объясняет себя словами. Раньше здесь оставалась
+               голая сетка без единой карточки, и это читалось как поломка —
+               особенно после того, как из кода убрали одиннадцать карточек
+               с выдуманными ценами и несуществующими фотографиями. */
+            if (shown.length === 0) {
+              return (
+                <p className="text-[17px] leading-relaxed font-medium text-[#5A4D66]">
+                  В этом разделе пока пусто — скоро добавим. А пока
+                  посмотрите вкладку «Все» или напишите нам: соберём
+                  композицию под ваш повод.
+                </p>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                {shown.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            );
+          })()
         )}
       </div>
 

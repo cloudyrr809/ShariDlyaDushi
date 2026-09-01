@@ -75,15 +75,22 @@ type Flight = {
   popped: boolean;
 };
 
+/* Наборы по умолчанию. Раньше каждая страница передавала свои списки, но
+   шарики нужны одинаковые везде, и четыре одинаковых массива по файлам —
+   это заготовка для расхождения. Разные наборы у сторон только чтобы
+   соседние шарики не оказались одинаковыми. */
+const LEFT = ["/assets/ballon2.png", "/assets/ballon4.png"];
+const RIGHT = ["/assets/ballon6.png", "/assets/ballon3.png"];
+
 export function PopBalloons({
-  left,
-  right,
+  left = LEFT,
+  right = RIGHT,
 }: {
   /** картинки для левой стороны */
-  left: string[];
+  left?: string[];
   /** картинки для правой стороны */
-  right: string[];
-}) {
+  right?: string[];
+} = {}) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const timers = useRef<number[]>([]);
   const nextId = useRef(1);

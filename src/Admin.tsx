@@ -9,7 +9,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { isConfigured, supabase } from "./lib/supabase";
+import { explain, isConfigured, supabase } from "./lib/supabase";
 import { uploadImage, removeImage } from "./lib/media";
 import {
   blankPost,
@@ -273,7 +273,7 @@ function Gallery({
         setUploading((n) => n - 1);
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось загрузить");
+      setErr(explain(e, "фотографии"));
     } finally {
       setUploading(0);
     }
@@ -561,6 +561,9 @@ function ListPane<T extends { id: string }>({
 
 /* ─────────────────────── ФОРМА ПОСТА «ЛЕНТЫ» ─────────────────────── */
 
+/** Название раздела для понятных сообщений об ошибках базы. */
+const SECTION_FEED = "Лента";
+
 function PostEditor({
   post,
   onSaved,
@@ -590,7 +593,7 @@ function PostEditor({
       await savePost({ ...draft, published: draft.published && canPublish });
       onSaved();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось сохранить");
+      setErr(explain(e, SECTION_FEED));
     } finally {
       setBusy(false);
     }
@@ -603,7 +606,7 @@ function PostEditor({
       await deletePost(draft.id);
       onDeleted();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось удалить");
+      setErr(explain(e, SECTION_FEED));
       setBusy(false);
     }
   };
@@ -703,6 +706,9 @@ function PostEditor({
 
 /* ─────────────────── ФОРМА КАРТОЧКИ КАТАЛОГА ─────────────────── */
 
+/** Название раздела для понятных сообщений об ошибках базы. */
+const SECTION_CATALOG = "Каталог";
+
 function ProductEditor({
   product,
   onSaved,
@@ -728,7 +734,7 @@ function ProductEditor({
       await saveProduct(draft);
       onSaved();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось сохранить");
+      setErr(explain(e, SECTION_CATALOG));
     } finally {
       setBusy(false);
     }
@@ -741,7 +747,7 @@ function ProductEditor({
       await deleteProduct(draft.id);
       onDeleted();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось удалить");
+      setErr(explain(e, SECTION_CATALOG));
       setBusy(false);
     }
   };
@@ -880,6 +886,9 @@ function ProductEditor({
 
 /* ─────────────────────── ФОРМА УСЛУГИ ─────────────────────── */
 
+/** Название раздела для понятных сообщений об ошибках базы. */
+const SECTION_SERVICES = "Услуги";
+
 function ServiceEditor({
   service,
   onSaved,
@@ -924,7 +933,7 @@ function ServiceEditor({
       await deleteService(draft.id);
       onDeleted();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось удалить");
+      setErr(explain(e, SECTION_SERVICES));
       setBusy(false);
     }
   };
@@ -1121,7 +1130,7 @@ function SeedButton({
           try {
             await onSeed();
           } catch (e) {
-            setErr(e instanceof Error ? e.message : "Не удалось перенести");
+            setErr(explain(e, what));
           } finally {
             setBusy(false);
           }
@@ -1150,7 +1159,7 @@ function FeedPane() {
     try {
       setItems(await fetchPosts(true)); // с черновиками
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось прочитать посты");
+      setErr(explain(e, "Лента"));
       setItems([]);
     }
   }, []);
@@ -1207,7 +1216,7 @@ function CatalogPane() {
     try {
       setItems(await fetchProducts(true));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось прочитать каталог");
+      setErr(explain(e, "Каталог"));
       setItems([]);
     }
   }, []);
@@ -1289,7 +1298,7 @@ function ServicesPane() {
     try {
       setItems(await fetchServices(true));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Не удалось прочитать услуги");
+      setErr(explain(e, "Услуги"));
       setItems([]);
     }
   }, []);

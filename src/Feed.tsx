@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
-import { PopBalloons } from "./components/ui/PopBalloon";
 import { Lightbox } from "./components/ui/Lightbox";
 import { Collage } from "./components/ui/PhotoCollage";
 import {
@@ -221,15 +220,6 @@ export default function Feed() {
   return (
     <div className="relative overflow-x-clip bg-[#FDFBFD] text-[#2D2433]">
       <SkyBackdrop />
-
-      {/* Пасхалка в пустом поле по бокам ленты. Ниже xl поля нет —
-          компонент там сам себя скрывает. Шарики идут по очереди:
-          справа → слева → справа, каждый следующий после того, как
-          предыдущий прошёл середину экрана. */}
-      <PopBalloons
-        left={["/assets/ballon2.png", "/assets/ballon4.png"]}
-        right={["/assets/ballon6.png", "/assets/ballon3.png"]}
-      />
 
       <CoverHeader
         eyebrow="жизнь студии"

@@ -18,7 +18,26 @@ import { CartProvider } from "./CartContext.tsx";
 import { Header } from "./components/ui/Header.tsx";
 import { Footer } from "./components/ui/Footer.tsx";
 import { CartDrawer } from "./components/ui/CartDrawer.tsx";
+import { PopBalloons } from "./components/ui/PopBalloon.tsx";
 import "./index.css";
+
+/* ШАРИКИ-ПАСХАЛКА — на всех внутренних страницах сразу.
+
+   Подключены здесь, а не в каждой странице по отдельности: пять
+   одинаковых вызовов по файлам — заготовка для расхождения, а один
+   компонент вдобавок не перезапускает цепочку при переходе между
+   разделами, и шарик продолжает лететь.
+
+   Главная не участвует: там свой первый экран с шарами, и ещё один,
+   летающий поверх, спорил бы с ним. Админка тоже — это рабочий
+   инструмент, игрушкам там не место. */
+const NO_BALLOONS = ["/", "/admin"];
+
+function Balloons() {
+  const { pathname } = useLocation();
+  if (NO_BALLOONS.includes(pathname)) return null;
+  return <PopBalloons />;
+}
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -45,6 +64,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <CartProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <Balloons />
         <div className="min-h-screen bg-[#FDFBFD] text-[#2D2433] flex flex-col">
           <Header />
           
