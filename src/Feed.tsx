@@ -91,51 +91,52 @@ function PostCard({
 
       {/* ТЕКСТОВАЯ КОЛОНКА.
 
-          flex-1 — колонка тянется до правого края строки, поэтому отступ
-          справа от поста равен отступу слева (раньше справа зияло до 400px).
-          max-w-[42rem] держит длину строки читаемой на самых узких
-          коллажах; min-w-0 нужен flex-детям с overflow внутри.
+          flex-1 — тянется до правого края строки, поэтому отступ справа от
+          поста равен отступу слева. max-w держит длину строки читаемой на
+          узких коллажах; min-w-0 нужен flex-детям с overflow внутри.
 
-          lg:max-h / flex-col / overflow — текст, который длиннее коллажа,
-          прокручивается ВНУТРИ своей высоты, а не утягивает пост вниз.
-          Ссылка «Собрать такую же» вынесена из прокрутки и закреплена
-          снизу — её видно сразу, не долистывая. */}
-      <div className="flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem] lg:max-h-[62vh]">
-        {/* Затухание у нижней кромки — знак, что текст продолжается за
-            прокруткой. Только на lg: ниже текст не в прокрутке, и маска
-            съедала бы последнюю строку.
+          НЕ flex-col с flex-1 у текста и без max-h у самой колонки: раньше
+          прокручиваемая область забирала всю высоту до 62vh, и у короткого
+          поста ссылка «Собрать такую же» проваливалась к нижней кромке —
+          между текстом и ссылкой зиял пустой блок. Теперь всё идёт
+          потоком: дата, заголовок, текст, ссылка сразу под ним. */}
+      <div className="flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem]">
+        {/* ШАПКА ПОСТА — дата и заголовок стоят на месте, не уезжают с
+            прокруткой текста. */}
+        <Meta post={post} />
 
-            lg:pb-10 обязателен вместе с маской. Без него последняя строка
-            упиралась в зону затухания и оставалась полупрозрачной даже
-            после прокрутки до упора — читать её было нечем и некуда
-            листать. Отступ ровно в высоту маски: домотав до конца,
-            текст встаёт выше неё и виден целиком.
+        {post.title && (
+          <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]">
+            {post.title}
+          </h3>
+        )}
 
-            Полоса прокрутки — тонкая и сиреневая, как на «Услугах»: рядом
-            со спокойной лентой системная выглядела вырви-глаз. */}
-        <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-3 lg:pb-10 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin] lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
-          <Meta post={post} />
+        {/* ПРОКРУЧИВАЕТСЯ ТОЛЬКО ТЕКСТ, и не выше своей высоты — длинный
+            пост не растягивает страницу. Короткий текст остаётся коротким,
+            и ссылка идёт сразу под ним.
 
-          {post.title && (
-            <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]">
-              {post.title}
-            </h3>
-          )}
+            lg:pb-10 в паре с маской: затухание в 2.5rem у нижней кромки
+            должно приходиться на пустой отступ, иначе последняя строка
+            оставалась бы полупрозрачной и после прокрутки до упора.
 
-          {/* whitespace-pre-line — в текстах бывают переносы и пустые
-              строки между абзацами, они должны сохраняться. */}
-          {post.text && (
-            <p className="mt-3 text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
+            Полоса прокрутки тонкая и сиреневая, как на «Услугах» —
+            системная рядом со спокойной лентой выглядела вырви-глаз.
+
+            whitespace-pre-line — в текстах бывают переносы и пустые строки
+            между абзацами, они должны сохраняться. */}
+        {post.text && (
+          <div className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-10 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin] lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
+            <p className="text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
               {post.text}
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Ссылка, а не кнопка: кнопка в спокойной ленте читается как
-            реклама. shrink-0 — не сжимается прокруткой выше, всегда видна. */}
+            реклама. Идёт сразу под текстом на любой высоте поста. */}
         <Link
           to="/catalog"
-          className="group mt-6 inline-flex shrink-0 items-center gap-2 self-start text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B] lg:border-t lg:border-[#E8DEEE]/70 lg:pt-4"
+          className="group mt-6 inline-flex items-center gap-2 self-start text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B]"
         >
           Собрать такую же
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -241,7 +242,13 @@ export default function Feed() {
           </p>
         )}
 
-        <div className="flex flex-col gap-16 md:gap-20">
+        {/* Между постами — тонкая линия. Лента без карточек и рамок,
+            посты разной высоты идут подряд, и граница между ними
+            размывалась. Волосяная черта в сайтовом цвете границы делит их,
+            не превращая в карточки. Отступ поделён пополам сверху и снизу
+            от линии — она ровно посередине промежутка.
+            article+article — у первого поста черты сверху нет. */}
+        <div className="flex flex-col [&>article+article]:mt-14 [&>article+article]:border-t [&>article+article]:border-[#E8DEEE] [&>article+article]:pt-14 md:[&>article+article]:mt-16 md:[&>article+article]:pt-16">
           {renderable === null ? (
             <>
               <PostSkeleton />
