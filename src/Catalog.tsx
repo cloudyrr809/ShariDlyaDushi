@@ -3,13 +3,16 @@ import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { useCart } from "./CartContext";
+import { themeSubcategories } from "./constants";
 import {
-  catalogCategories,
-  themeSubcategories,
-  productsData,
-} from "./constants";
+  ALL_ID,
+  categoriesWithAll,
+  fallbackProducts,
+  fetchProducts,
+  type Product,
+} from "./lib/catalog";
 
-const ProductCard = ({ product }: { product: any }) => {
+const ProductCard = ({ product }: { product: Product }) => {
   const { addToCart } = useCart();
   const [activeIndex, setActiveIndex] = useState(0);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
@@ -85,7 +88,7 @@ const ProductCard = ({ product }: { product: any }) => {
 
         {hasMultiple && (
           <div className="absolute inset-0 flex">
-            {images.map((_: any, idx: number) => (
+            {images.map((_, idx: number) => (
               <div
                 key={idx}
                 className="flex-1 h-full z-10"
@@ -97,7 +100,7 @@ const ProductCard = ({ product }: { product: any }) => {
 
         {hasMultiple && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-20 pointer-events-none">
-            {images.map((_: any, idx: number) => (
+            {images.map((_, idx: number) => (
               <div
                 key={idx}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -138,11 +141,28 @@ const ProductCard = ({ product }: { product: any }) => {
 
 export default function Catalog() {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState("numbers");
+  // Открываем на «Все»: она первая и показывает сразу весь ассортимент
+  const [activeTab, setActiveTab] = useState(ALL_ID);
+
+  /* Товары из базы; пока таблица пуста — те, что зашиты в коде. Не пустой
+     каталог на время загрузки: витрина без товаров читается как поломка. */
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
+
+  useEffect(() => {
+    let alive = true;
+    fetchProducts()
+      .then((p) => {
+        if (alive && p && p.length > 0) setProducts(p);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const hash = location.hash.replace("#", "");
-    if (hash && catalogCategories.some((c) => c.id === hash)) {
+    if (hash && categoriesWithAll.some((c) => c.id === hash)) {
       setActiveTab(hash);
     }
   }, [location.hash]);
@@ -195,7 +215,7 @@ export default function Catalog() {
               просвет получается ~18px — это физический максимум для такого
               набора названий. */}
           <div className="flex justify-between items-center min-w-max w-full gap-4">
-            {catalogCategories.map((cat) => (
+            {categoriesWithAll.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => handleTabClick(cat.id)}
@@ -220,7 +240,7 @@ export default function Catalog() {
         {activeTab === "theme" ? (
           <div className="space-y-16">
             {themeSubcategories.map((subCat) => {
-              const subCatProducts = productsData.filter(
+              const subCatProducts = products.filter(
                 (p) => p.categoryId === subCat.id,
               );
               return (
@@ -245,8 +265,12 @@ export default function Catalog() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-            {productsData
-              .filter((p) => p.categoryId === activeTab)
+            {/* «Все» — весь ассортимент разом, включая карточки, которым
+                категорию не назначили: иначе они нигде бы не показались. */}
+            {products
+              .filter(
+                (p) => activeTab === ALL_ID || p.categoryId === activeTab,
+              )
               .map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

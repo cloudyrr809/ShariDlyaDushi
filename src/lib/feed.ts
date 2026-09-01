@@ -1,5 +1,8 @@
-import type { Shot } from "../components/ui/Lightbox";
-import { supabase, BUCKET } from "./supabase";
+import { supabase } from "./supabase";
+import type { Shot } from "./media";
+
+// Загрузка и удаление картинок — общие для всех разделов сайта
+export { uploadImage, removeImage, type Shot } from "./media";
 
 /* ─────────────────────────── ДАННЫЕ «ЛЕНТЫ» ───────────────────────────
 
@@ -159,125 +162,4 @@ export async function deletePost(id: string): Promise<void> {
   if (!supabase) throw new Error("База не подключена");
   const { error } = await supabase.from("posts").delete().eq("id", id);
   if (error) throw error;
-}
-
-/* ─────────────────────────────── СНИМКИ ─────────────────────────────── */
-
-/** Дальняя сторона кадра после сжатия. 1600px хватает и просмотрщику на
-    десктопе (портрет там показывается ~600px шириной), а вес снимка с
-    телефона падает с 3–5 МБ до ~250 КБ. На бесплатном тарифе это разница
-    между 250 фотографиями и несколькими тысячами. */
-const MAX_SIDE = 1600;
-
-/** Качество JPEG при пересжатии. 0.82 — на фотографиях артефактов не
-    видно, а вес ещё вдвое меньше, чем при 0.92. */
-const QUALITY = 0.82;
-
-/** Уже лёгкие картинки не трогаем: повторное кодирование только портит. */
-const SKIP_UNDER = 600 * 1024;
-
-type Prepared = { body: Blob; w: number; h: number; ext: string; type: string };
-
-/**
- * Готовит снимок к отправке: ужимает до web-размера и снимает пропорции.
- *
- * Пропорции нужны в базе — на них держится раскладка коллажа, и без них
- * страница на мгновение считала бы кадр горизонтальным 3:2. Сжатие и
- * замер идут за один проход по картинке.
- *
- * PNG и другие форматы пересжимаются в JPEG: в «Ленте» одни фотографии,
- * прозрачность там не нужна, а PNG-кадр с телефона весит втрое больше.
- * Если картинку не удалось декодировать (сбой canvas на старом мобильном
- * Safari, редкий формат) — отдаём файл как есть: пусть лучше тяжёлый
- * снимок, чем оборванная загрузка.
- */
-function prepare(file: File): Promise<Prepared> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error(`Не удалось прочитать ${file.name}`));
-    };
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const { naturalWidth: nw, naturalHeight: nh } = img;
-
-      const asIs: Prepared = {
-        body: file,
-        w: nw,
-        h: nh,
-        ext: file.name.split(".").pop()?.toLowerCase() || "jpg",
-        type: file.type || "image/jpeg",
-      };
-
-      const scale = Math.min(1, MAX_SIDE / Math.max(nw, nh));
-      const fits = scale === 1;
-
-      // Маленькая и лёгкая — отправляем оригинал без пересжатия.
-      if (fits && file.size < SKIP_UNDER) {
-        resolve(asIs);
-        return;
-      }
-
-      const w = Math.round(nw * scale);
-      const h = Math.round(nh * scale);
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        resolve(asIs);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, w, h);
-
-      canvas.toBlob(
-        (blob) => {
-          // Не получилось сжать, или при том же размере вышло тяжелее —
-          // берём оригинал.
-          if (!blob || (fits && blob.size >= file.size)) {
-            resolve(asIs);
-          } else {
-            resolve({ body: blob, w, h, ext: "jpg", type: "image/jpeg" });
-          }
-        },
-        "image/jpeg",
-        QUALITY,
-      );
-    };
-
-    img.src = url;
-  });
-}
-
-/** Кладёт снимок в хранилище и возвращает готовый кадр для поста. */
-export async function uploadPhoto(file: File): Promise<Shot> {
-  if (!supabase) throw new Error("База не подключена");
-
-  const { body, w, h, ext, type } = await prepare(file);
-
-  /* Имя файла придумываем сами, а не берём исходное: у снимков с телефона
-     они повторяются (IMG_0001.jpg), и второй затёр бы первый. */
-  const path = `${crypto.randomUUID()}.${ext}`;
-
-  const { error } = await supabase.storage.from(BUCKET).upload(path, body, {
-    cacheControl: "31536000",
-    contentType: type,
-  });
-  if (error) throw error;
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return { src: data.publicUrl, w, h };
-}
-
-/** Убирает файл из хранилища, чтобы удалённые кадры не копились впустую. */
-export async function removePhoto(src: string): Promise<void> {
-  if (!supabase) return;
-  const at = src.indexOf(`/${BUCKET}/`);
-  if (at === -1) return; // не наш файл — например, снимок из папки assets
-  const path = src.slice(at + BUCKET.length + 2);
-  await supabase.storage.from(BUCKET).remove([path]);
 }

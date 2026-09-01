@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 /* ══════════════════════ ШАПКИ СТРАНИЦ ══════════════════════
@@ -43,6 +43,63 @@ const LEAD =
 /** Общий контейнер контента: тот же, что у шапки сайта и у секций страниц,
     поэтому левый край везде совпадает пиксель в пиксель. */
 const BOX = "mx-auto w-full max-w-[79rem] px-6";
+
+/**
+ * ОПТИЧЕСКОЕ ЦЕНТРИРОВАНИЕ РУКОПИСНОЙ НАДСТРОЧКИ.
+ *
+ * text-center ставит по центру ПРЯМОУГОЛЬНИК строки, а глаз считает
+ * центром середину видимых чернил. У обычного шрифта это одно и то же, у
+ * рукописного — нет: росчерки вылезают за начало и конец строки на разную
+ * длину.
+ *
+ * Замерено на «О нас»: у слова «знакомьтесь» росчерк буквы «з» уходит на
+ * 28px левее начала строки, тогда как справа запас всего 8px. Чернила
+ * оказываются на 10px левее середины — и надпись читается сдвинутой влево.
+ * Для сравнения, у «выгодно и приятно» перекос 1px, там всё ровно.
+ *
+ * Поэтому меряем сами: canvas умеет отдать настоящие границы чернил
+ * (actualBoundingBox) для любой строки любым шрифтом. Сдвиг храним в em,
+ * а не в пикселях, — тогда он сам масштабируется вместе с кеглем на
+ * мобильном, и пересчитывать при смене размера окна не нужно.
+ *
+ * Замер откладываем до загрузки шрифта: до неё браузер считает метрики
+ * запасного шрифта, и поправка вышла бы не та.
+ */
+function useOpticalCenter(text: string) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [shiftEm, setShiftEm] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+
+    const measure = () => {
+      const el = ref.current;
+      if (!alive || !el) return;
+      const cs = getComputedStyle(el);
+      const ctx = document.createElement("canvas").getContext("2d");
+      if (!ctx) return;
+
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const m = ctx.measureText(text);
+      const size = parseFloat(cs.fontSize);
+      if (!m.width || !size) return;
+
+      const inkCenter =
+        (-m.actualBoundingBoxLeft + m.actualBoundingBoxRight) / 2;
+      const shift = (m.width / 2 - inkCenter) / size;
+
+      // Меньше сотой em глазу не видно — не трогаем разметку зря
+      setShiftEm(Math.abs(shift) < 0.01 ? 0 : shift);
+    };
+
+    document.fonts?.ready.then(measure).catch(() => measure());
+    return () => {
+      alive = false;
+    };
+  }, [text]);
+
+  return { ref, shiftEm };
+}
 
 export type Crumb = {
   label: string;
@@ -171,6 +228,8 @@ export function CoverHeader({
   title: string;
   lead?: string;
 }) {
+  const optical = useOpticalCenter(eyebrow);
+
   return (
     <header className={`relative z-10 ${BOX} ${TOP} pb-14 text-center md:pb-16`}>
       {/* pb-[0.5em] — место под росчерк рукописного шрифта: у «д» и «у» он
@@ -180,8 +239,18 @@ export function CoverHeader({
 
           Цвет #A64D6C, а не #C46B8A: на Акциях и Ленте надстрочка лежит
           поверх фотофона, где светлый розовый давал 2.5:1 при норме 3.0.
-          Один цвет на все обложки — чтобы не держать в голове, где какой. */}
-      <p className="font-miana pb-[0.5em] text-3xl leading-none text-[#A64D6C] md:text-5xl">
+          Один цвет на все обложки — чтобы не держать в голове, где какой.
+
+          translateX — поправка на росчерки, см. useOpticalCenter выше. */}
+      <p
+        ref={optical.ref}
+        className="font-miana pb-[0.5em] text-3xl leading-none text-[#A64D6C] md:text-5xl"
+        style={
+          optical.shiftEm
+            ? { transform: `translateX(${optical.shiftEm.toFixed(3)}em)` }
+            : undefined
+        }
+      >
         {eyebrow}
       </p>
 

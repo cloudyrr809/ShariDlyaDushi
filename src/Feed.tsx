@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
-import { PopBalloon } from "./components/ui/PopBalloon";
+import { PopBalloons } from "./components/ui/PopBalloon";
 import { Lightbox } from "./components/ui/Lightbox";
 import { Collage } from "./components/ui/PhotoCollage";
 import {
@@ -137,6 +137,35 @@ function PostCard({
   );
 }
 
+/* ─────────────────────── ЗАГЛУШКА НА ВРЕМЯ ЗАГРУЗКИ ───────────────────────
+
+   Посты приезжают из базы уже после того, как страница отрисовалась, и
+   первую секунду лента стояла пустой — это читалось как поломка, а не как
+   ожидание. Серые блоки той же формы, что настоящий пост, честно говорят
+   «сейчас будет»: глаз видит, что раздел не пустой, а грузится.
+
+   aria-hidden — для читалок это шум; о состоянии им скажет aria-busy на
+   самой секции. */
+function PostSkeleton() {
+  return (
+    <article
+      aria-hidden="true"
+      className="flex animate-pulse flex-col gap-7 lg:flex-row lg:items-start lg:gap-10"
+    >
+      <div className="h-[46vh] w-full rounded-[1.5rem] bg-[#E5D8EE] lg:h-[62vh] lg:w-[56%] xl:w-[62%]" />
+      <div className="flex-1 space-y-4 pt-1">
+        <div className="h-4 w-44 rounded bg-[#E5D8EE]" />
+        <div className="h-7 w-3/4 rounded bg-[#E5D8EE]" />
+        <div className="space-y-2.5 pt-2">
+          <div className="h-4 w-full rounded bg-[#E5D8EE]" />
+          <div className="h-4 w-11/12 rounded bg-[#E5D8EE]" />
+          <div className="h-4 w-4/5 rounded bg-[#E5D8EE]" />
+        </div>
+      </div>
+    </article>
+  );
+}
+
 /** По сколько постов показывать за раз.
 
     Лента редакционная, посты высокие: пять штук — это уже шесть экранов
@@ -185,14 +214,12 @@ export default function Feed() {
       <SkyBackdrop />
 
       {/* Пасхалка в пустом поле по бокам ленты. Ниже xl поля нет —
-          компонент там сам себя скрывает. */}
-      <PopBalloon
-        side="left"
-        sources={["/assets/ballon2.png", "/assets/ballon4.png"]}
-      />
-      <PopBalloon
-        side="right"
-        sources={["/assets/ballon6.png", "/assets/ballon3.png"]}
+          компонент там сам себя скрывает. Шарики идут по очереди:
+          справа → слева → справа, каждый следующий после того, как
+          предыдущий прошёл середину экрана. */}
+      <PopBalloons
+        left={["/assets/ballon2.png", "/assets/ballon4.png"]}
+        right={["/assets/ballon6.png", "/assets/ballon3.png"]}
       />
 
       <CoverHeader
@@ -206,6 +233,7 @@ export default function Feed() {
           разъезжались бы рваными хвостами. */}
       <section
         aria-label="Публикации студии"
+        aria-busy={renderable === null}
         className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pb-20 md:pb-28"
       >
         {renderable !== null && renderable.length === 0 && (
@@ -215,13 +243,20 @@ export default function Feed() {
         )}
 
         <div className="flex flex-col gap-16 md:gap-20">
-          {visible.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onOpen={(p, i) => setView({ post: p, i })}
-            />
-          ))}
+          {renderable === null ? (
+            <>
+              <PostSkeleton />
+              <PostSkeleton />
+            </>
+          ) : (
+            visible.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onOpen={(p, i) => setView({ post: p, i })}
+              />
+            ))
+          )}
         </div>
 
         {/* Кнопка, а не бесконечная прокрутка: у бесконечной ленты

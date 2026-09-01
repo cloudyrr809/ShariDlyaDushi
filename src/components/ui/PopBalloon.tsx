@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Пасхалка: шарик вылетает снизу, пересекает экран и уходит за верхний
- * край. По клику лопается. Живёт в пустом поле сбоку от ленты, поэтому
- * ничего не загораживает, и скрыт ниже 2xl — там этого поля нет.
+ * Пасхалка: шарики поочерёдно всплывают в пустых полях по бокам страницы.
+ * По клику лопаются.
  *
- * Каждый вылет СЛУЧАЕН: своя скорость, свой сдвиг вбок, свой размер,
- * свой шарик и своя пауза до следующего. Раньше параметры были жёстко
- * заданы, оба шарика ходили по расписанию, а пауза была встроена в кадры
- * анимации — из-за чего шарик подолгу стоял под кромкой экрана, и это
- * читалось как зависание. Теперь в паузе его просто нет в разметке.
+ * ОЧЕРЕДЬ, А НЕ ДВА НЕЗАВИСИМЫХ ТАЙМЕРА. Раньше слева и справа жили две
+ * копии компонента, каждая со своим расписанием: они то стартовали разом,
+ * то надолго пропадали обе. Теперь шарики идут цепочкой — следующий
+ * вылетает с ПРОТИВОПОЛОЖНОЙ стороны, когда предыдущий прошёл середину
+ * экрана, плюс случайная пауза. Получается разговор двух сторон, а не
+ * два параллельных скрипта.
+ *
+ * Случайно всё: скорость, сдвиг вбок, размер, сам шарик и длина паузы.
+ * Поэтому ритм не читается как расписание.
  *
  * aria-hidden и tabIndex={-1} намеренно НЕ ставим: это интерактивный
  * элемент, и для клавиатуры он тоже должен работать. Но роль у него
@@ -28,161 +31,233 @@ const SHARDS = [
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
+/** Ширина шарика — доля свободного поля сбоку, а не число пикселей.
+
+    Поле считается так: контент сайта 79rem по центру, значит с каждой
+    стороны остаётся (100vw − 79rem)/2, плюс внутренний отступ 1.5rem,
+    который тоже свободен. При 1440px это 112px, при 1920px — 352px.
+
+    Раньше размер был жёстким (86px, потом 118px), и приходилось выбирать:
+    либо шарик мелкий на большом мониторе, либо он заезжает на фотографии
+    на ноутбуке. Доля поля решает обе беды разом. Потолок 150px — чтобы на
+    широком мониторе пасхалка не превратилась в главный объект страницы. */
+const WIDTH = "min(((100vw - 79rem) / 2 + 1.5rem) * 0.85, 150px)";
+
+/* Ниже 1420px поля сбоку почти нет (при 1366px — всего 75px), и шарик
+   размером с ноготь смысла не имеет: там он просто не показывается.
+   Порог стоит классом min-[1420px]:block в разметке ниже. */
+
+/** Пауза после того, как предыдущий шарик прошёл середину экрана. */
+const GAP_MIN = 1200;
+const GAP_MAX = 5200;
+
+type Side = "left" | "right";
+
 type Flight = {
   id: number;
+  side: Side;
   /** секунд на пролёт */
   dur: number;
-  /** сдвиг вбок от края поля, px */
+  /** сдвиг вбок в долях ширины шарика, % — см. пояснение в launch */
   dx: number;
   /** масштаб шарика */
   scale: number;
   /** период покачивания, с */
   sway: number;
   src: string;
+  /** лопнули — показываем осколки */
+  popped: boolean;
 };
 
-export function PopBalloon({
-  side,
-  sources,
+export function PopBalloons({
+  left,
+  right,
 }: {
-  side: "left" | "right";
-  /** из этого набора каждый вылет выбирает шарик случайно */
-  sources: string[];
+  /** картинки для левой стороны */
+  left: string[];
+  /** картинки для правой стороны */
+  right: string[];
 }) {
-  const [flight, setFlight] = useState<Flight | null>(null);
-  const [popped, setPopped] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
-
-  const launch = useCallback(() => {
-    setPopped(false);
-    setFlight({
-      id: Math.random(),
-      dur: rnd(9, 15),
-      /* Сдвиг только к краю экрана, а не вглубь страницы: при разбеге до
-         +40px шарик заходил на контент. Знак задаёт сторона. */
-      dx: (side === "left" ? -1 : 1) * rnd(-8, 26),
-      scale: rnd(0.72, 1.08),
-      sway: rnd(2.6, 4.4),
-      src: sources[Math.floor(Math.random() * sources.length)],
-    });
-  }, [sources, side]);
-
-  /** Убрать шарик и назначить следующий вылет через случайную паузу */
-  const rest = useCallback(() => {
-    setFlight(null);
-    setPopped(false);
-    timer.current = window.setTimeout(launch, rnd(2500, 9000));
-  }, [launch]);
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const timers = useRef<number[]>([]);
+  const nextId = useRef(1);
 
   /* Системная настройка «меньше движения»: пасхалку просто не показываем.
      Гасить анимацию нельзя — компонент ждёт событие её окончания, чтобы
-     назначить следующий вылет, и шарик застрял бы за нижней кромкой. */
+     убрать шарик, и он застрял бы посреди экрана. */
   const [calm] = useState(
     () =>
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
   );
 
-  // Первый вылет — тоже через случайную задержку, чтобы два шарика на
-  // странице не стартовали синхронно
+  const later = useCallback((fn: () => void, ms: number) => {
+    const t = window.setTimeout(fn, ms);
+    timers.current.push(t);
+  }, []);
+
+  /** Запускает шарик с указанной стороны и планирует следующий с другой. */
+  const launch = useCallback(
+    (side: Side) => {
+      const sources = side === "left" ? left : right;
+      if (!sources.length) return;
+
+      const dur = rnd(11, 17);
+      const flight: Flight = {
+        id: nextId.current++,
+        side,
+        dur,
+        /* Сдвиг в ПРОЦЕНТАХ от ширины шарика, а не в пикселях, и только
+           внутрь поля — в сторону контента.
+
+           В пикселях выходило плохо в обе стороны: сдвиг наружу выпихивал
+           шарик за кромку экрана (замерено: на 1440px правый обрезался на
+           13px), а фиксированное число пикселей на широком мониторе было
+           незаметным, на узком — чрезмерным. Проценты масштабируются
+           вместе с шариком, а вместе с потолком ширины 0.85 поля дают
+           сумму меньше единицы: на фотографии он не заедет никогда. */
+        dx: rnd(0, 10),
+        /* Разброс размеров поджат: при 0.78 самый мелкий шарик терялся,
+           а вся полезная ширина поля так и оставалась незанятой. */
+        scale: rnd(0.88, 1.06),
+        sway: rnd(2.6, 4.4),
+        src: sources[Math.floor(Math.random() * sources.length)],
+        popped: false,
+      };
+
+      setFlights((f) => [...f, flight]);
+
+      /* СЕРЕДИНА ЭКРАНА — половина пролёта. Отсюда отсчитываем паузу до
+         вылета с другой стороны: так на экране почти всегда ровно один
+         шарик, а второй появляется как ответ на первый. */
+      later(
+        () => launch(side === "left" ? "right" : "left"),
+        (dur / 2) * 1000 + rnd(GAP_MIN, GAP_MAX),
+      );
+    },
+    [left, right, later],
+  );
+
+  // Первый шарик — справа, как просили, после короткой паузы на прогрузку
   useEffect(() => {
     if (calm) return;
-    timer.current = window.setTimeout(launch, rnd(1, 7) * 1000);
-    return () => window.clearTimeout(timer.current);
-  }, [launch, calm]);
+    later(() => launch("right"), rnd(1200, 3500));
+    const list = timers.current;
+    return () => {
+      list.forEach(window.clearTimeout);
+      list.length = 0;
+    };
+  }, [calm, launch, later]);
 
-  /** Хлопок: даём осколкам разлететься и уходим в паузу */
-  const pop = useCallback(() => {
-    if (!flight || popped) return;
-    setPopped(true);
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(rest, 700);
-  }, [flight, popped, rest]);
+  const pop = (id: number) => {
+    setFlights((f) => f.map((x) => (x.id === id ? { ...x, popped: true } : x)));
+    // Осколкам даём разлететься, потом убираем шарик из разметки
+    later(() => setFlights((f) => f.filter((x) => x.id !== id)), 700);
+  };
 
-  if (calm || !flight) return null;
+  const done = (id: number) =>
+    setFlights((f) => f.filter((x) => x.id !== id));
 
-  const size = Math.round(86 * flight.scale);
+  if (calm) return null;
 
   return (
-    /* fixed, а не absolute: шарик плывёт в поле ЭКРАНА, пока листаешь
-       ленту. Явная ширина обязательна — без неё у fixed-обёртки ширина
-       нулевая, а Tailwind вешает на картинки max-width:100%, то есть
-       100% от нуля, и шарик схлопывается в точку. */
-    <div
-      /* 2xl, а не xl. Поле сбоку есть только там: контент сайта — 79rem
-         (1264px), и на 1280px до края остаётся 8px, то есть шарик летел
-         бы прямо по фотографиям. На 1536px поле уже 136px — свободно. */
-      className={`pointer-events-none fixed inset-y-0 z-20 hidden 2xl:block ${
-        side === "left" ? "left-[2%]" : "right-[2%]"
-      }`}
-      style={{ width: size, transform: `translateX(${flight.dx}px)` }}
-    >
-      <div
-        key={flight.id}
-        className="absolute bottom-0"
-        style={{
-          width: size,
-          animation: `balloon-fly ${flight.dur}s linear forwards`,
-          willChange: "transform",
-        }}
-        // Долетел до верха и его не лопнули — уходим в паузу
-        onAnimationEnd={rest}
-      >
-        <div
-          style={{
-            animation: `balloon-sway ${flight.sway}s ease-in-out infinite`,
-          }}
-        >
-          {!popped ? (
-            <button
-              type="button"
-              onClick={pop}
-              aria-label="Лопнуть шарик"
-              title="Лопни меня"
-              style={{ width: size }}
-              className="pointer-events-auto block cursor-pointer border-0 bg-transparent p-0 transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-[#6B4E81] focus-visible:outline-none"
+    <>
+      {flights.map((f) => {
+        const width = `calc(${WIDTH} * ${f.scale.toFixed(3)})`;
+        return (
+          /* fixed, а не absolute: шарик плывёт в поле ЭКРАНА, пока листаешь
+             страницу. Явная ширина обязательна — без неё у fixed-обёртки
+             ширина нулевая, а Tailwind вешает на картинки max-width:100%,
+             то есть 100% от нуля, и шарик схлопывается в точку.
+
+             Порог 1420px, а не брейкпоинт 2xl (1536): на 2xl пасхалку не
+             видел никто с обычным ноутбуком — именно из-за этого шарики и
+             «пропали» с Ленты. */
+          <div
+            key={f.id}
+            /* 1420px записан строкой, а не переменной: Tailwind собирает
+               классы, читая исходник глазами, и вычисленное имя не найдёт. */
+            className={`pointer-events-none fixed inset-y-0 z-20 hidden min-[1420px]:block ${
+              f.side === "left" ? "left-1" : "right-1"
+            }`}
+            style={{
+              width,
+              // Внутрь поля: слева это вправо, справа — влево
+              transform: `translateX(${f.side === "left" ? f.dx : -f.dx}%)`,
+            }}
+          >
+            <div
+              className="absolute bottom-0 w-full"
+              style={{
+                animation: `balloon-fly ${f.dur}s linear forwards`,
+                willChange: "transform",
+              }}
+              // Долетел до верха и его не лопнули — убираем
+              onAnimationEnd={() => done(f.id)}
             >
-              {/* НЕ lazy: шарик стартует за нижней кромкой, и ленивая
-                  загрузка для него не срабатывает — картинка не грузится,
-                  кнопка остаётся 0×0 и пасхалка просто не видна. */}
-              <img
-                src={flight.src}
-                alt=""
-                width={size}
-                height={Math.round(size * 1.37)}
-                decoding="async"
-                className="w-full opacity-90 drop-shadow-[0_14px_26px_rgba(45,36,56,0.18)]"
-              />
-            </button>
-          ) : (
-            <div className="relative" style={{ width: size, height: size }}>
-              {/* Сам шарик коротко раздувается и гаснет */}
-              <img
-                src={flight.src}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full"
-                style={{ animation: "balloon-burst 260ms ease-out forwards" }}
-              />
-              {SHARDS.map((s, i) => (
-                <span
-                  key={i}
-                  aria-hidden="true"
-                  className="absolute top-1/2 left-1/2 h-2.5 w-2.5 rounded-full"
-                  style={
-                    {
-                      backgroundColor: s.c,
-                      "--dx": s.dx,
-                      "--dy": s.dy,
-                      animation: `shard-fly 620ms cubic-bezier(0.22,1,0.36,1) ${i * 12}ms forwards`,
-                    } as React.CSSProperties
-                  }
-                />
-              ))}
+              <div
+                style={{
+                  animation: `balloon-sway ${f.sway}s ease-in-out infinite`,
+                }}
+              >
+                {!f.popped ? (
+                  <button
+                    type="button"
+                    onClick={() => pop(f.id)}
+                    aria-label="Лопнуть шарик"
+                    title="Лопни меня"
+                    className="pointer-events-auto block w-full cursor-pointer border-0 bg-transparent p-0 transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-[#6B4E81] focus-visible:outline-none"
+                  >
+                    {/* НЕ lazy: шарик стартует за нижней кромкой, и ленивая
+                        загрузка для него не срабатывает — картинка не
+                        грузится, кнопка остаётся 0×0 и пасхалки не видно.
+
+                        width/height — только пропорции кадра: реальную
+                        ширину задаёт обёртка, а эти числа не дают строке
+                        дёрнуться, пока картинка грузится. */}
+                    <img
+                      src={f.src}
+                      alt=""
+                      width={100}
+                      height={137}
+                      decoding="async"
+                      className="h-auto w-full opacity-90 drop-shadow-[0_14px_26px_rgba(45,36,56,0.18)]"
+                    />
+                  </button>
+                ) : (
+                  <div className="relative aspect-square w-full">
+                    {/* Сам шарик коротко раздувается и гаснет */}
+                    <img
+                      src={f.src}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full"
+                      style={{
+                        animation: "balloon-burst 260ms ease-out forwards",
+                      }}
+                    />
+                    {SHARDS.map((s, i) => (
+                      <span
+                        key={i}
+                        aria-hidden="true"
+                        className="absolute top-1/2 left-1/2 h-2.5 w-2.5 rounded-full"
+                        style={
+                          {
+                            backgroundColor: s.c,
+                            "--dx": s.dx,
+                            "--dy": s.dy,
+                            animation: `shard-fly 620ms cubic-bezier(0.22,1,0.36,1) ${i * 12}ms forwards`,
+                          } as React.CSSProperties
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </div>
+        );
+      })}
+    </>
   );
 }

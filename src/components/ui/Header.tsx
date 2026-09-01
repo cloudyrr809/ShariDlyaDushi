@@ -4,7 +4,10 @@ import { Menu, X, Phone, ChevronDown, ShoppingCart } from "lucide-react";
 
 // Поднимаемся на ДВА уровня вверх (../../), потому что файл в папке ui
 import { useCart, type CartItem } from "../../CartContext";
-import { catalogCategories, serviceItems } from "../../constants";
+// «Все» стоит первой и в выпадающем меню, и на самой странице каталога —
+// список берём из lib/catalog, чтобы порядок совпадал в обоих местах.
+import { serviceItems } from "../../constants";
+import { categoriesWithAll } from "../../lib/catalog";
 
 import {
   Dialog,
@@ -150,7 +153,7 @@ export const Header = () => {
             <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 ease-out absolute top-full left-1/2 -translate-x-1/2 pt-3 w-[560px] z-50">
               <div className="rounded-3xl bg-white border border-[#E8DEEE] p-6 shadow-[0_25px_60px_-15px_rgba(107,78,129,0.25)]">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] font-medium normal-case tracking-normal text-[#2D2433]">
-                  {catalogCategories.map((item: any) => (
+                  {categoriesWithAll.map((item) => (
                     <Link
                       key={item.id}
                       to={`/catalog#${item.id}`}
@@ -373,7 +376,7 @@ export const Header = () => {
             Каталог:
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs text-[#4A3E54]">
-            {catalogCategories.map((item: any) => (
+            {categoriesWithAll.map((item) => (
               <Link
                 key={item.id}
                 to={`/catalog#${item.id}`}
