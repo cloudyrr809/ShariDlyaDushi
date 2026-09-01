@@ -232,49 +232,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* КТО ПРОДАВЕЦ.
-
-              Закон о защите прав потребителей требует, чтобы покупатель мог
-              узнать, с кем имеет дело, до заказа. Блок намеренно стоит
-              здесь, рядом с условиями, а не только в подвале.
-
-              ⚠️ ЗАПОЛНИТЬ ПЕРЕД ЗАПУСКОМ: вместо «Нина …» поставить полное
-              имя, а после определения статуса (самозанятая или ИП) добавить
-              строку с ИНН. Без ИНН блок остаётся честным, но неполным. */}
-          <div className="mt-12 rounded-3xl border border-white/25 bg-white/10 p-6 text-center backdrop-blur-sm md:p-8">
-            <p className="text-[15px] leading-relaxed font-medium text-white/90 md:text-base">
-              Композиции собирает студия «Шары Для Души», Ярославль.
-              Связаться:{" "}
-              <a
-                href="https://vk.com/sharydlyadushi"
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
-              >
-                ВКонтакте
-              </a>
-              ,{" "}
-              <a
-                href="tel:+79806616888"
-                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
-              >
-                8 (980) 661-6888
-              </a>
-              ,{" "}
-              <a
-                href="mailto:info@sharidlyadushi.com"
-                className="font-semibold text-white underline underline-offset-4 hover:opacity-80"
-              >
-                info@sharidlyadushi.com
-              </a>
-              .
-            </p>
-            <p className="mt-3 text-[15px] leading-relaxed font-medium text-white/75">
-              Сведения на сайте носят справочный характер и не являются
-              публичной офертой. Состав, стоимость и сроки согласуются в
-              переписке до оплаты.
-            </p>
-          </div>
         </div>
       </section>
 
