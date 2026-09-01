@@ -43,12 +43,12 @@ const InstagramIcon = ({
 export const Footer = () => {
   return (
     <footer className="border-t border-[#E8DEEE] px-6 py-6 bg-white text-sm text-[#5A4D66] mt-auto">
-      <div className="max-w-[76rem] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div className="max-w-[76rem] mx-auto flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
         <div>
           <p className="inline-block font-miana text-2xl text-[#6B4E81]">
             ШарыДляДуши
           </p>
-          <p className="mt-2 font-regular text-[13px] tracking-tight whitespace-nowrap text-[#5A4D66]">
+          <p className="mt-2 text-sm font-medium whitespace-nowrap text-[#5A4D66]">
             Создаем настроение и яркие эмоции
           </p>
         </div>
