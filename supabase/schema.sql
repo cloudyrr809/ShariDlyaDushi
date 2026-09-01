@@ -10,8 +10,6 @@
 create table if not exists public.posts (
   id         uuid primary key default gen_random_uuid(),
   date       date not null default current_date,
-  kind       text not null default 'композиция'
-             check (kind in ('композиция', 'фотосессия')),
   title      text not null default '',
   text       text not null default '',
   -- Массив кадров: [{"src": "...", "w": 1080, "h": 1620, "caption": "..."}]
@@ -20,6 +18,11 @@ create table if not exists public.posts (
   published  boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+-- Если таблицу уже создавали с колонкой kind (её убрали — посты бывают
+-- слишком разные для пары ярлыков) — этой строкой её можно убрать.
+-- Не обязательно: лишняя колонка со значением по умолчанию не мешает.
+alter table public.posts drop column if exists kind;
 
 -- Лента всегда читается «свежее сверху» — под этот запрос и индекс.
 create index if not exists posts_date_idx on public.posts (date desc);

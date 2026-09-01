@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { CoverHeader } from "./components/ui/PageHeader";
+import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 
 // Импортируем видео и фото
 import reel1 from "./assets/reel-1.mp4";
@@ -248,6 +249,12 @@ export default function About() {
 
   return (
     <div className="relative overflow-hidden bg-[#FDFBFD] text-[#2D2433] scroll-smooth">
+      {/* Верхняя полоса неба — та же, что открывает Акции и Ленту, чтобы
+          верхушки всех трёх «обложек» совпадали. Только верх: нижнюю
+          полосу и собственные пятна компонента выключаем — у «О нас»
+          середина и низ держатся на своих пятнах ниже. */}
+      <SkyBackdrop bottom={false} blobs={false} />
+
       {/* ФОНОВЫЕ ПЯТНА (BLOBS).
           Тот же приём, что на Услугах: убирают стерильную белизну, не
           добавляя ни одной линии. Лежат на z-0, все секции ниже идут с
@@ -262,7 +269,10 @@ export default function About() {
           что середина оставалась белой — то есть ровно та стерильность,
           против которой пятна и ставились. Пятен пять, а не четыре:
           пятое закрывает разворот с Ниной, где раньше был провал. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+      >
         <div className="absolute top-[2%] left-[-10%] h-[560px] w-[560px] rounded-full bg-[#FFB6C1]/30 blur-[120px]" />
         <div className="absolute top-[16%] right-[-8%] h-[520px] w-[520px] rounded-full bg-[#6B4E81]/14 blur-[130px]" />
         <div className="absolute top-[34%] left-[-6%] h-[600px] w-[600px] rounded-full bg-[#D4839A]/22 blur-[150px]" />
@@ -280,63 +290,14 @@ export default function About() {
       />
 
       {/* ══════════════════════════════════════════════════════════════════
-          1. СТУДИЯ В ДВИЖЕНИИ — карусель рилсов
+          1. КАРУСЕЛЬ РИЛСОВ
           ══════════════════════════════════════════════════════════════════ */}
       {/* max-w-[79rem] px-6 — тот же контейнер, что у шапки сайта и у секций
-          на Каталоге и Услугах. Страница шире прежнего max-w-6xl на 112px и
-          теперь совпадает с остальным сайтом пиксель в пиксель. */}
-      {/* pt-0: отступ сверху теперь даёт шапка страницы (pb-14/16), и своё
-          прежнее pt-10 секция добавляла бы к нему второй раз. */}
+          на Каталоге и Услугах. */}
+      {/* pt-0: отступ сверху даёт шапка страницы (pb-14/16). Свой заголовок
+          у секции убран — он дублировал бы «О нас» из шапки; карусель
+          начинается сразу, как и на других «обложках». */}
       <section className="relative z-10 mx-auto max-w-[79rem] overflow-x-clip px-6 pt-0 pb-10 md:pb-12">
-        {/* Та же пара, что в призыве к действию внизу и в блоке «наш подход»
-            на Услугах: розовая рукописная надстрочка задаёт тон, под ней —
-            спокойный заголовок строчными. Раньше здесь было наоборот
-            (капсовая надстрочка и рукописный заголовок), из-за чего на одной
-            странице жили три разные схемы заголовка.
-
-            Рукописный роняет у «д» длинный росчерк: замерено, он уходит на
-            0.867em ниже базовой линии, тогда как метрический descent у
-            шрифта всего 0.2em. Браузер резервирует место по метрике, поэтому
-            при leading-none хвост «д» в «кадром» торчал бы за пределы строки
-            и лёг на заголовок. pb-[0.5em] — эта разница, в em, чтобы
-            работало и на мобильном кегле. */}
-        <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between md:gap-16">
-          <div>
-            <p className="font-miana pb-[0.5em] text-2xl leading-none text-[#C46B8A] italic md:text-4xl">
-              наши истории
-            </p>
-
-            {/* h2, а не h1: h1 у страницы теперь свой, в шапке выше. Раньше
-                заголовком всей страницы «О нас» служил заголовок её первой
-                секции — единственная страница сайта без собственного h1.
-                Название сокращено с «О нас в движении», потому что «О нас»
-                теперь стоит прямо над ним и повторялось бы дважды. */}
-            <h2 className="text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
-              Студия в движении
-            </h2>
-          </div>
-
-          {/* Пояснение к разделу. Выключка вправо тянется к правому краю
-              сетки, а items-end у родителя сажает последнюю строку абзаца на
-              базовую линию заголовка — две колонки стоят на одной полке, а не
-              висят каждая сама по себе.
-
-              max-w-sm держит три-четыре строки: без ограничения абзац
-              растянулся бы в одну длинную ленту и выключка вправо перестала
-              бы читаться как приём.
-
-              Счётчик слайдов убран: он жёстко привязывал шапку к числу
-              роликов, и при добавлении ещё одного пришлось бы про него
-              помнить. Позиция и так видна по самому вееру. */}
-          <div className="md:max-w-sm md:shrink-0 md:text-right">
-            <p className="text-base leading-relaxed font-medium text-[#5A4D66]">
-              Мы очень любим то, что делаем, и часто снимаем результат на
-              видео. Это красивые моменты и наша эстетика, которой хочется с
-              вами поделиться.
-            </p>
-          </div>
-        </div>
-
         {/* Сцена с карточками */}
         <div className="relative flex h-[588px] items-center justify-center md:h-[648px]">
           {/* СТРЕЛКИ.
@@ -656,57 +617,57 @@ export default function About() {
         </div>
 
         <div className="relative mx-auto max-w-[79rem] px-6">
-        <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-10">
-          {/* Текст шире цифр: семь колонок против пяти. */}
-          <div className="md:col-span-7">
-            <p className="text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
-              Наша философия
-            </p>
-            <h2 className="mt-4 text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
-              Больше, чем просто воздушные шары
-            </h2>
-            <p className="mt-6 max-w-xl text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
-              Мы верим, что каждый праздник — это уникальная история и тёплые
-              воспоминания, которые остаются на всю жизнь. Мы разрабатываем
-              индивидуальные концепции, подбираем гармоничные палитры и бережно
-              доставляем эмоции точно к вашему событию.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-10">
+            {/* Текст шире цифр: семь колонок против пяти. */}
+            <div className="md:col-span-7">
+              <p className="text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
+                Наша философия
+              </p>
+              <h2 className="mt-4 text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
+                Больше, чем просто воздушные шары
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
+                Мы верим, что каждый праздник — это уникальная история и тёплые
+                воспоминания, которые остаются на всю жизнь. Мы разрабатываем
+                индивидуальные концепции, подбираем гармоничные палитры и
+                бережно доставляем эмоции точно к вашему событию.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4 md:col-span-5">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={stat.label}
-                  className="flex flex-col justify-between rounded-3xl border border-[#E8DEEE] bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(107,78,129,0.08)]"
-                >
-                  <Icon className="h-6 w-6 text-[#6B4E81]" />
-                  <div className="mt-6">
-                    {/* tabular-nums — цифры одинаковой ширины. Без него
+            <div className="grid grid-cols-2 gap-4 md:col-span-5">
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div
+                    key={stat.label}
+                    className="flex flex-col justify-between rounded-3xl border border-[#E8DEEE] bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(107,78,129,0.08)]"
+                  >
+                    <Icon className="h-6 w-6 text-[#6B4E81]" />
+                    <div className="mt-6">
+                      {/* tabular-nums — цифры одинаковой ширины. Без него
                         плашка едва заметно дёргается на каждом кадре
                         отсчёта, пока меняется разряд. */}
-                    <p className="text-3xl font-extrabold tracking-[-0.02em] text-[#2D2433] tabular-nums">
-                      {stat.counter ? (
-                        <>
-                          <span ref={stat.counter.ref}>
-                            {stat.counter.value}
-                          </span>
-                          {stat.suffix}
-                        </>
-                      ) : (
-                        stat.value
-                      )}
-                    </p>
-                    <p className="mt-1.5 text-sm font-medium text-[#5A4D66] md:text-[15px]">
-                      {stat.label}
-                    </p>
+                      <p className="text-3xl font-extrabold tracking-[-0.02em] text-[#2D2433] tabular-nums">
+                        {stat.counter ? (
+                          <>
+                            <span ref={stat.counter.ref}>
+                              {stat.counter.value}
+                            </span>
+                            {stat.suffix}
+                          </>
+                        ) : (
+                          stat.value
+                        )}
+                      </p>
+                      <p className="mt-1.5 text-sm font-medium text-[#5A4D66] md:text-[15px]">
+                        {stat.label}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         </div>
       </section>
 

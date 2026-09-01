@@ -6,7 +6,12 @@ import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 import { PopBalloon } from "./components/ui/PopBalloon";
 import { Lightbox } from "./components/ui/Lightbox";
 import { Collage } from "./components/ui/PhotoCollage";
-import { demoPosts, fetchPosts, type Post } from "./lib/feed";
+import {
+  demoPosts,
+  fetchPosts,
+  isRenderablePost,
+  type Post,
+} from "./lib/feed";
 import { isConfigured } from "./lib/supabase";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -32,25 +37,28 @@ const MONTHS = [
 ];
 
 /** «2026-07-16» → «16 июля 2026». Свой форматтер, а не toLocaleDateString:
-    тот отдаёт «16 июл. 2026 г.» с точками и «г.» — канцелярски. */
-function formatDate(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
+    тот отдаёт «16 июл. 2026 г.» с точками и «г.» — канцелярски.
+
+    Пустую или кривую дату (из админки могло прийти незаполненное поле)
+    отдаём как пустую строку, а не «NaN undefined» — пост не должен
+    ломаться из-за одного поля. */
+function formatDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
+  if (!m) return "";
+  const month = MONTHS[Number(m[2]) - 1];
+  if (!month) return "";
+  return `${Number(m[3])} ${month} ${m[1]}`;
 }
 
-/** Мета-строка: дата и тип поста — первый из трёх уровней набора. */
+/** Мета-строка: дата — первый из трёх уровней набора поста. */
 function Meta({ post }: { post: Post }) {
+  const date = formatDate(post.date);
+  if (!date) return null;
   return (
-    <div className="flex items-center gap-2.5 text-sm font-semibold tracking-widest uppercase">
+    <div className="text-sm font-semibold tracking-widest text-[#A64D6C] uppercase">
       {/* dateTime — машиночитаемая дата: по ней пост понимают поиск и
           читалки, а видимая строка набрана по-русски. */}
-      <time dateTime={post.date} className="text-[#A64D6C]">
-        {formatDate(post.date)}
-      </time>
-      <span aria-hidden="true" className="text-[#C9B4D6]">
-        ·
-      </span>
-      <span className="text-[#6B4E81]">{post.kind}</span>
+      <time dateTime={post.date}>{date}</time>
     </div>
   );
 }
@@ -59,11 +67,7 @@ function Meta({ post }: { post: Post }) {
    Редакционная подача: ни белой подложки, ни тени — фотографии и текст
    лежат прямо на фоне страницы, посты разделяет воздух. Белый
    прямоугольник с тенью читается как элемент интерфейса, а не как
-   разворот журнала.
-
-   Текст сужен относительно снимков: строка во всю ширину колонки
-   читается тяжело, а узкий столбец под широкой фотографией — обычный
-   приём вёрстки. */
+   разворот журнала. */
 function PostCard({
   post,
   onOpen,
@@ -74,50 +78,56 @@ function PostCard({
   return (
     /* ДВЕ КОЛОНКИ НА ШИРОКОМ ЭКРАНЕ: коллаж слева, текст справа.
 
-       Раньше текст лежал ПОД фотографиями и добавлял к посту ещё ~210px.
-       Вместе с неограниченным коллажом пост доходил до 1390px — чтобы
-       рассмотреть его целиком, приходилось листать, и к низу снимка
-       заголовок уже уезжал за верхнюю кромку. Заодно по бокам ленты
-       (колонка была 52rem против 79rem у шапки) пустовало по 216px.
+       Раньше текст лежал ПОД фотографиями и добавлял к посту ещё ~210px —
+       пост переставал помещаться в экран. Сбоку он высоту не добавляет, а
+       заодно занимает пустое поле, которое иначе пустовало бы справа.
 
-       Перенос текста вбок решает обе беды одним движением: пост теряет
-       двести с лишним пикселей высоты, а пустые поля занимает текст.
+       Ниже lg порядок прежний: снимки сверху, текст под ними (на 768px
+       колонка сбоку вышла бы уже 30 знаков в строке — не читается).
 
-       Разделение начинается с lg, а не с md: на 768px правая колонка
-       вышла бы 235px — это ~30 знаков в строке, читать невозможно.
-       Ниже lg порядок прежний: снимки сверху, текст под ними. */
-    /* Не сетка, а flex. У сетки колонки фиксированные, а ширина коллажа у
-       каждого поста своя (от 372 до 800px) — текст стоял бы на месте, и
-       зазор между ним и фотографиями гулял бы от 48 до 350px. Во flex
-       текст встаёт сразу за коллажем: зазор всегда один, а разница уходит
-       в правое поле страницы, где её не видно.
-
-       --collage-w — потолок ширины коллажа. Он разный по брейкпоинтам,
-       иначе на 1024px коллаж и текст вместе не помещались бы в строку. */
-    <article className="flex flex-col gap-7 lg:flex-row lg:items-start lg:gap-12 lg:[--collage-w:52%] xl:[--collage-w:60%]">
+       --collage-w — потолок ширины коллажа в долях строки. Меньше на lg,
+       где рядом ещё колонка текста и всё вместе должно уместиться. */
+    <article className="flex flex-col gap-7 lg:flex-row lg:items-start lg:gap-10 lg:[--collage-w:56%] xl:[--collage-w:62%]">
       <Collage photos={post.photos} onOpen={(i) => onOpen(post, i)} />
 
-      {/* max-w-[34rem] нужен в одноколоночном режиме: там строка иначе
-          растянулась бы на всю ширину ленты. */}
-      <div className="max-w-[34rem] lg:w-[20rem] lg:shrink-0 xl:w-[24rem]">
-        <Meta post={post} />
+      {/* ТЕКСТОВАЯ КОЛОНКА.
 
-        <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]">
-          {post.title}
-        </h3>
+          flex-1 — колонка тянется до правого края строки, поэтому отступ
+          справа от поста равен отступу слева (раньше справа зияло до 400px).
+          max-w-[42rem] держит длину строки читаемой на самых узких
+          коллажах; min-w-0 нужен flex-детям с overflow внутри.
 
-        {/* whitespace-pre-line — в текстах бывают переносы и пустые
-            строки между абзацами, они должны сохраняться. */}
-        <p className="mt-3 text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
-          {post.text}
-        </p>
+          lg:max-h / flex-col / overflow — текст, который длиннее коллажа,
+          прокручивается ВНУТРИ своей высоты, а не утягивает пост вниз.
+          Ссылка «Собрать такую же» вынесена из прокрутки и закреплена
+          снизу — её видно сразу, не долистывая. */}
+      <div className="flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem] lg:max-h-[62vh]">
+        {/* Затухание у нижней кромки — знак, что текст продолжается за
+            прокруткой. Только на lg: ниже текст не в прокрутке, и маска
+            съедала бы последнюю строку. */}
+        <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-3 lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
+          <Meta post={post} />
+
+          {post.title && (
+            <h3 className="mt-4 text-[1.55rem] leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]">
+              {post.title}
+            </h3>
+          )}
+
+          {/* whitespace-pre-line — в текстах бывают переносы и пустые
+              строки между абзацами, они должны сохраняться. */}
+          {post.text && (
+            <p className="mt-3 text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
+              {post.text}
+            </p>
+          )}
+        </div>
 
         {/* Ссылка, а не кнопка: кнопка в спокойной ленте читается как
-            реклама. До этого на странице не было ни одной ссылки —
-            человек смотрел работы и не мог никуда перейти. */}
+            реклама. shrink-0 — не сжимается прокруткой выше, всегда видна. */}
         <Link
           to="/catalog"
-          className="group mt-6 inline-flex items-center gap-2 text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B]"
+          className="group mt-6 inline-flex shrink-0 items-center gap-2 self-start text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B] lg:border-t lg:border-[#E8DEEE]/70 lg:pt-4"
         >
           Собрать такую же
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -162,8 +172,13 @@ export default function Feed() {
     };
   }, []);
 
-  const visible = posts?.slice(0, shown) ?? [];
-  const left = (posts?.length ?? 0) - shown;
+  /* Отсеиваем посты без фотографий ДО показа: пост без кадра нечего
+     показывать в витрине, а раньше он вдобавок ронял раскладку коллажа и
+     с ним всю страницу. Так недозаполненный пост из админки просто не
+     появляется, а не «ломает сайт». */
+  const renderable = posts?.filter(isRenderablePost) ?? null;
+  const visible = renderable?.slice(0, shown) ?? [];
+  const left = (renderable?.length ?? 0) - shown;
 
   return (
     <div className="relative overflow-x-clip bg-[#FDFBFD] text-[#2D2433]">
@@ -193,7 +208,7 @@ export default function Feed() {
         aria-label="Публикации студии"
         className="relative z-10 mx-auto w-full max-w-[79rem] px-6 pb-20 md:pb-28"
       >
-        {posts !== null && posts.length === 0 && (
+        {renderable !== null && renderable.length === 0 && (
           <p className="text-[17px] leading-relaxed font-medium text-[#5A4D66]">
             Здесь скоро появятся наши работы.
           </p>

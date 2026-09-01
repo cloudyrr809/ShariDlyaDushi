@@ -11,10 +11,15 @@
  */
 export function SkyBackdrop({
   bottom = true,
+  blobs = true,
 }: {
   /** Нижняя полоса неба. Выключается, если страница заканчивается
       чем-то плотным — тогда небо под ним всё равно не видно. */
   bottom?: boolean;
+  /** Размытые пятна. Выключаются, когда страница уже держит свои —
+      как на «О нас»: там нужна только верхняя полоса неба, чтобы
+      верхушка совпала с Акциями и Лентой, а пятна свои. */
+  blobs?: boolean;
 }) {
   /* Одна и та же картинка сверху и снизу, но кадрируется по-разному:
      сверху берём верхнюю треть неба, снизу — нижнюю. Иначе на длинной
@@ -26,15 +31,17 @@ export function SkyBackdrop({
   return (
     <>
       {/* Размытые пятна — убирают стерильную белизну без единой линии */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0"
-      >
-        <div className="absolute top-[8%] left-[-10%] h-[560px] w-[560px] rounded-full bg-[#FFB6C1]/28 blur-[120px]" />
-        <div className="absolute top-[30%] right-[-8%] h-[540px] w-[540px] rounded-full bg-[#6B4E81]/14 blur-[140px]" />
-        <div className="absolute top-[58%] left-[-6%] h-[580px] w-[580px] rounded-full bg-[#D4839A]/20 blur-[150px]" />
-        <div className="absolute right-[6%] bottom-[-2%] h-[520px] w-[520px] rounded-full bg-[#6B4E81]/14 blur-[130px]" />
-      </div>
+      {blobs && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0"
+        >
+          <div className="absolute top-[8%] left-[-10%] h-[560px] w-[560px] rounded-full bg-[#FFB6C1]/28 blur-[120px]" />
+          <div className="absolute top-[30%] right-[-8%] h-[540px] w-[540px] rounded-full bg-[#6B4E81]/14 blur-[140px]" />
+          <div className="absolute top-[58%] left-[-6%] h-[580px] w-[580px] rounded-full bg-[#D4839A]/20 blur-[150px]" />
+          <div className="absolute right-[6%] bottom-[-2%] h-[520px] w-[520px] rounded-full bg-[#6B4E81]/14 blur-[130px]" />
+        </div>
+      )}
 
       {/* ВЕРХНЯЯ ПОЛОСА НЕБА.
           Маска на ОБЁРТКЕ, а не на картинке: под ней лежит ещё

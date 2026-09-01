@@ -326,6 +326,11 @@ export function Collage({
   onOpen: (i: number) => void;
 }) {
   const shots = useResolvedSizes(photos);
+  // Без кадров строить нечего, а chooseRow на пустом массиве обращался к
+  // photos[0] и падал — с ним падала вся страница. Вызывающий код (лента,
+  // предпросмотр админки) такие посты и так отсеивает, это второй рубеж.
+  if (shots.length === 0) return null;
+
   const { row, shown, span } = chooseRow(shots);
   const hidden = shots.length - shown;
   let seen = 0;

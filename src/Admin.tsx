@@ -11,14 +11,12 @@ import {
 } from "lucide-react";
 import { isConfigured, supabase } from "./lib/supabase";
 import {
-  KINDS,
   blankPost,
   deletePost,
   fetchPosts,
   removePhoto,
   savePost,
   uploadPhoto,
-  type Kind,
   type Post,
 } from "./lib/feed";
 import { Collage } from "./components/ui/PhotoCollage";
@@ -189,6 +187,10 @@ function Editor({
   const [uploading, setUploading] = useState(0);
   const [err, setErr] = useState("");
 
+  /** Опубликовать можно только пост с фотографией: без неё он на сайте
+      всё равно не покажется (лента такие отсеивает). */
+  const canPublish = draft.photos.length > 0;
+
   // Выбрали другой пост в списке — форма показывает его
   useEffect(() => setDraft(post), [post]);
 
@@ -237,7 +239,12 @@ function Editor({
     setBusy(true);
     setErr("");
     try {
-      onSaved(await savePost(draft));
+      // Пост без фото уходит в базу как черновик, даже если галку не
+      // сняли: на сайте он всё равно не покажется, а в базе «опубликован
+      // без фото» — противоречивое состояние.
+      const clean = { ...draft, published: draft.published && canPublish };
+      setDraft(clean);
+      onSaved(await savePost(clean));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Не удалось сохранить");
     } finally {
@@ -260,37 +267,17 @@ function Editor({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className={LABEL} htmlFor="date">
-            Дата
-          </label>
-          <input
-            id="date"
-            type="date"
-            value={draft.date}
-            onChange={(e) => set("date", e.target.value)}
-            className={FIELD}
-          />
-        </div>
-
-        <div>
-          <label className={LABEL} htmlFor="kind">
-            Тип
-          </label>
-          <select
-            id="kind"
-            value={draft.kind}
-            onChange={(e) => set("kind", e.target.value as Kind)}
-            className={FIELD}
-          >
-            {KINDS.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className={LABEL} htmlFor="date">
+          Дата
+        </label>
+        <input
+          id="date"
+          type="date"
+          value={draft.date}
+          onChange={(e) => set("date", e.target.value)}
+          className={`${FIELD} sm:max-w-[16rem]`}
+        />
       </div>
 
       <div>
@@ -420,7 +407,7 @@ function Editor({
         <div>
           <span className={LABEL}>Как это увидят на сайте</span>
           <div className="rounded-2xl border border-[#E8DEEE] bg-[#F8F4F9] p-4">
-            <div className="max-w-[34rem]">
+            <div className="max-w-[38rem]">
               <Collage photos={draft.photos} onOpen={() => {}} />
             </div>
             {draft.photos.length > 5 && (
@@ -446,15 +433,29 @@ function Editor({
           {busy ? "Сохраняем…" : "Сохранить"}
         </button>
 
-        <label className="flex cursor-pointer items-center gap-2 text-[15px] font-semibold text-[#5A4D66]">
+        <label
+          className={`flex items-center gap-2 text-[15px] font-semibold text-[#5A4D66] ${
+            canPublish ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+          }`}
+        >
           <input
             type="checkbox"
-            checked={draft.published}
+            /* Опубликовать можно только пост с фотографией: без неё он на
+               сайте всё равно не покажется (лента такие отсеивает), а
+               галочка сбивала бы с толку — «поставил, а поста нет». */
+            checked={draft.published && canPublish}
+            disabled={!canPublish}
             onChange={(e) => set("published", e.target.checked)}
             className="h-5 w-5 accent-[#6B4E81]"
           />
-          Опубликован
+          Виден на сайте
         </label>
+
+        {!canPublish && (
+          <span className="text-sm font-medium text-[#7E6E8A]">
+            добавьте фото, чтобы опубликовать
+          </span>
+        )}
 
         <button type="button" onClick={onCancel} className={`${GHOST} ml-auto`}>
           Отмена
