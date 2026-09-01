@@ -4,13 +4,15 @@ import { careCards } from "../../constants";
 
 // Карточки выходят одна за другой. Внутри каждой слои (картинка, заголовок,
 // текст) догоняют её с небольшим запозданием — это и даёт ощущение глубины.
-// Вдвое быстрее прежнего (было 950 / 620 / 150): и сама карточка
-// проявляется за половину времени, и пауза между соседними карточками
-// вдвое короче — вся волна проходит за половину прежнего.
-const REVEAL_MS = 475; // длительность появления карточки
-const STEP_MS = 310; // пауза между стартами соседних карточек
-const LAYER_MS = 75; // сдвиг между слоями внутри карточки
-const EASE = "cubic-bezier(0.16, 1, 0.3, 1)"; // мягкое торможение в самом конце
+// Скорость примерно как в прошлый раз (вдвое быстрее исходных 950/620/150),
+// но движение мягче. «Резко» получалось из-за кривой cubic-bezier(0.16,1,…):
+// она выходила почти на максимум уже к трети времени — элемент влетал и
+// замирал. Кривая ниже разгоняется и тормозит плавно, а сама анимация
+// стала чуть длиннее, чтобы глаз успевал за ней.
+const REVEAL_MS = 720; // длительность появления карточки
+const STEP_MS = 300; // пауза между стартами соседних карточек
+const LAYER_MS = 90; // сдвиг между слоями внутри карточки
+const EASE = "cubic-bezier(0.33, 0, 0.2, 1)"; // плавный старт и плавное торможение
 
 // Габариты области под картинку: содержимое вписывается сюда с сохранением
 // пропорций, поэтому широкая машина и узкий шарик смотрятся соразмерно.
@@ -114,8 +116,8 @@ export const CareCards = () => {
                 className="relative flex flex-col items-center overflow-hidden rounded-3xl border border-[#E8DEEE] bg-white p-7 text-center"
                 style={{
                   opacity: shown ? 1 : 0,
-                  transform: shown ? "none" : "translateY(38px) scale(0.955)",
-                  filter: shown ? "blur(0px)" : "blur(7px)",
+                  transform: shown ? "none" : "translateY(22px) scale(0.975)",
+                  filter: shown ? "blur(0px)" : "blur(3.5px)",
                   boxShadow: shown
                     ? "0 18px 40px -28px rgba(107,78,129,0.45)"
                     : "0 0 0 rgba(107,78,129,0)",
@@ -137,7 +139,7 @@ export const CareCards = () => {
                       className="memo-figure memo-figure--top absolute top-0 left-0 z-0 w-full"
                       style={{
                         aspectRatio: `${top.ar}`,
-                        ...layer(base, LAYER_MS, "translateY(-14px) scale(1.04)"),
+                        ...layer(base, LAYER_MS, "translateY(-9px) scale(1.025)"),
                       }}
                     >
                       <Cropped img={top} />
@@ -156,7 +158,7 @@ export const CareCards = () => {
                       style={{
                         height: MEDIA_H / (bottom.headFrac ?? 0.667),
                         aspectRatio: `${bottom.ar}`,
-                        ...layer(base, LAYER_MS, "translateY(16px) scale(0.93)"),
+                        ...layer(base, LAYER_MS, "translateY(10px) scale(0.955)"),
                       }}
                     >
                       <div className="relative h-full w-full">
@@ -184,7 +186,7 @@ export const CareCards = () => {
                     className="flex items-end justify-center gap-4"
                     style={{
                       height: MEDIA_H,
-                      ...layer(base, LAYER_MS, "translateY(14px) scale(0.9)"),
+                      ...layer(base, LAYER_MS, "translateY(9px) scale(0.94)"),
                     }}
                   >
                     {inline.map((img, i) => {
@@ -223,13 +225,13 @@ export const CareCards = () => {
                 {/* Текст поверх ленты */}
                 <h4
                   className="relative z-10 mt-5 font-serif text-base font-semibold text-[#2D2433]"
-                  style={layer(base, LAYER_MS * 2, "translateY(12px)")}
+                  style={layer(base, LAYER_MS * 2, "translateY(8px)")}
                 >
                   {card.title}
                 </h4>
                 <p
                   className="relative z-10 mt-2 text-sm font-medium leading-relaxed text-[#5A4D66]"
-                  style={layer(base, LAYER_MS * 3, "translateY(12px)")}
+                  style={layer(base, LAYER_MS * 3, "translateY(8px)")}
                 >
                   {card.description}
                 </p>
