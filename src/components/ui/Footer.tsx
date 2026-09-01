@@ -1,6 +1,4 @@
 // src/components/Footer.tsx
-import { useLayoutEffect, useRef, useState } from "react";
-
 /* ═════════════════ ДАННЫЕ ПРОДАВЦА — ЗАПОЛНИТЬ ЗДЕСЬ ═════════════════
 
    Закон о защите прав потребителей (ст. 8–10) требует, чтобы покупатель
@@ -43,39 +41,15 @@ const InstagramIcon = ({
 );
 
 export const Footer = () => {
-  // Фразу под логотипом растягиваем ровно на ширину слова «ШарыДляДуши»:
-  // меряем логотип и задаём фразе ту же ширину + выключку по обоим краям.
-  const logoRef = useRef<HTMLParagraphElement>(null);
-  const [logoWidth, setLogoWidth] = useState<number>();
-
-  useLayoutEffect(() => {
-    const measure = () => setLogoWidth(logoRef.current?.offsetWidth);
-    measure();
-    window.addEventListener("resize", measure);
-    // шрифт логотипа локальный — пересчитываем, когда он догрузится
-    if (document.fonts) document.fonts.ready.then(measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
   return (
     <footer className="border-t border-[#E8DEEE] px-6 py-6 bg-white text-sm text-[#5A4D66] mt-auto">
       <div className="max-w-[76rem] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <p
-            ref={logoRef}
-            className="inline-block font-miana text-2xl text-[#6B4E81]"
-          >
+          <p className="inline-block font-miana text-2xl text-[#6B4E81]">
             ШарыДляДуши
           </p>
-          <p
-            className="mt-2 font-regular leading-snug text-[#5A4D66]"
-            style={{
-              width: logoWidth,
-              textAlign: "justify",
-              textAlignLast: "justify",
-            }}
-          >
-            Создаем настроение и яркие эмоции.
+          <p className="mt-2 font-regular text-[13px] tracking-tight whitespace-nowrap text-[#5A4D66]">
+            Создаем настроение и яркие эмоции
           </p>
         </div>
 
