@@ -51,6 +51,12 @@ const WIDTH = "min(((100vw - 79rem) / 2 + 1.5rem) * 0.85, 150px)";
 const GAP_MIN = 1200;
 const GAP_MAX = 5200;
 
+/** Сколько шариков может быть на экране одновременно.
+
+    Двух хватает на перехлёст: предыдущий ещё уходит вверх, следующий уже
+    показался снизу. Больше — это уже не пасхалка, а стая. */
+const MAX_ON_SCREEN = 2;
+
 type Side = "left" | "right";
 
 type Flight = {
@@ -96,11 +102,27 @@ export function PopBalloons({
     timers.current.push(t);
   }, []);
 
+  /* Сторона, чей вылет отложен до возвращения на вкладку.
+
+     БЕЗ ЭТОГО ШАРИКИ СЛИПАЛИСЬ В СТАЮ. В фоновой вкладке браузер
+     останавливает анимации, но таймеры продолжают идти: цепочка исправно
+     заводила новые шарики, а старые не могли долететь и убраться — событие
+     окончания анимации не приходило. Через пару минут на другой вкладке
+     накапливался десяток, и все они разом стартовали снизу при
+     возвращении. Теперь в скрытой вкладке цепочка встаёт на паузу. */
+  const pending = useRef<Side | null>(null);
+
   /** Запускает шарик с указанной стороны и планирует следующий с другой. */
   const launch = useCallback(
     (side: Side) => {
       const sources = side === "left" ? left : right;
       if (!sources.length) return;
+
+      // Вкладку не смотрят — придержим до возвращения
+      if (document.hidden) {
+        pending.current = side;
+        return;
+      }
 
       const dur = rnd(11, 17);
       const flight: Flight = {
@@ -125,7 +147,9 @@ export function PopBalloons({
         popped: false,
       };
 
-      setFlights((f) => [...f, flight]);
+      // Страховка на случай, если вкладку скрыли ровно между проверкой и
+      // отрисовкой: лишний шарик просто не добавляем.
+      setFlights((f) => (f.length >= MAX_ON_SCREEN ? f : [...f, flight]));
 
       /* СЕРЕДИНА ЭКРАНА — половина пролёта. Отсюда отсчитываем паузу до
          вылета с другой стороны: так на экране почти всегда ровно один
@@ -138,12 +162,25 @@ export function PopBalloons({
     [left, right, later],
   );
 
-  // Первый шарик — справа, как просили, после короткой паузы на прогрузку
+  // Первый шарик — справа, после короткой паузы на прогрузку
   useEffect(() => {
     if (calm) return;
     later(() => launch("right"), rnd(1200, 3500));
+
+    /* Вернулись на вкладку — снимаем с паузы. Задержка случайная и
+       заметная: иначе шарик выпрыгивал бы ровно в момент переключения и
+       читался как реакция на него. */
+    const wake = () => {
+      if (document.hidden || !pending.current) return;
+      const side = pending.current;
+      pending.current = null;
+      later(() => launch(side), rnd(800, 3000));
+    };
+    document.addEventListener("visibilitychange", wake);
+
     const list = timers.current;
     return () => {
+      document.removeEventListener("visibilitychange", wake);
       list.forEach(window.clearTimeout);
       list.length = 0;
     };

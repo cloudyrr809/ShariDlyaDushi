@@ -104,8 +104,17 @@ function PostCard({
       <div className="flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem] lg:max-h-[62vh]">
         {/* Затухание у нижней кромки — знак, что текст продолжается за
             прокруткой. Только на lg: ниже текст не в прокрутке, и маска
-            съедала бы последнюю строку. */}
-        <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-3 lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
+            съедала бы последнюю строку.
+
+            lg:pb-10 обязателен вместе с маской. Без него последняя строка
+            упиралась в зону затухания и оставалась полупрозрачной даже
+            после прокрутки до упора — читать её было нечем и некуда
+            листать. Отступ ровно в высоту маски: домотав до конца,
+            текст встаёт выше неё и виден целиком.
+
+            Полоса прокрутки — тонкая и сиреневая, как на «Услугах»: рядом
+            со спокойной лентой системная выглядела вырви-глаз. */}
+        <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-3 lg:pb-10 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin] lg:[-webkit-mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
           <Meta post={post} />
 
           {post.title && (

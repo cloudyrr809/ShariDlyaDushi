@@ -68,8 +68,10 @@ create policy "админ удаляет"
 
 create table if not exists public.products (
   id          uuid primary key default gen_random_uuid(),
-  -- NULL — карточка вне категорий: видна только во вкладке «Все».
-  category_id text,
+  -- Список разделов, а не один: композиция часто подходит сразу
+  -- нескольким, и с одной колонкой её пришлось бы заводить дважды.
+  -- Пустой список — карточка видна только во вкладке «Все».
+  categories  jsonb not null default '[]'::jsonb,
   title       text not null default '',
   price       integer not null default 0,
   old_price   integer,
@@ -79,7 +81,21 @@ create table if not exists public.products (
   created_at  timestamptz not null default now()
 );
 
-create index if not exists products_cat_idx on public.products (category_id);
+-- Если таблицу успели создать с одиночной колонкой category_id —
+-- переносим её значение в список и убираем. Повторный запуск безвреден.
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'products'
+               and column_name = 'category_id') then
+    alter table public.products
+      add column if not exists categories jsonb not null default '[]'::jsonb;
+    update public.products
+       set categories = jsonb_build_array(category_id)
+     where category_id is not null and categories = '[]'::jsonb;
+    alter table public.products drop column category_id;
+  end if;
+end $$;
 
 create table if not exists public.services (
   id          uuid primary key default gen_random_uuid(),

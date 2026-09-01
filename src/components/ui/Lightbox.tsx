@@ -165,7 +165,17 @@ export function Lightbox({
 
       {/* СНИМОК. min-h-0 обязателен: без него flex-элемент не даёт себя
           сжать, и картинка выдавливает полоску превью за нижний край. */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 md:px-20">
+      {/* ЛИСТАТЬ МОЖНО ВСЕЙ ПУСТОТОЙ ПО БОКАМ, а не только стрелкой.
+
+          Раньше кнопки были кружками 48px — в них надо было попасть. Теперь
+          это две колонки во всю высоту снимка: слева треть, справа треть.
+          Стрелка внутри осталась, но она уже подсказка, а не мишень.
+
+          Снимок лежит выше кнопок (z-20 против z-10), поэтому клик по
+          самой фотографии ничего не листает — там и должно быть тихо.
+          Закрыть по-прежнему можно щелчком выше или ниже снимка, крестиком
+          и клавишей Esc. */}
+      <div className="relative flex min-h-0 flex-1 items-center justify-center">
         {total > 1 && (
           <>
             <button
@@ -175,9 +185,11 @@ export function Lightbox({
                 go(-1);
               }}
               aria-label="Предыдущая фотография"
-              className="absolute left-1 z-10 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white/12 text-white transition hover:bg-white/25 md:left-6"
+              className="group absolute inset-y-0 left-0 z-10 flex w-1/3 cursor-pointer items-center justify-start pl-2 md:pl-6"
             >
-              <ChevronLeft className="h-7 w-7" />
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-white/25">
+                <ChevronLeft className="h-7 w-7" />
+              </span>
             </button>
             <button
               type="button"
@@ -186,9 +198,11 @@ export function Lightbox({
                 go(1);
               }}
               aria-label="Следующая фотография"
-              className="absolute right-1 z-10 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white/12 text-white transition hover:bg-white/25 md:right-6"
+              className="group absolute inset-y-0 right-0 z-10 flex w-1/3 cursor-pointer items-center justify-end pr-2 md:pr-6"
             >
-              <ChevronRight className="h-7 w-7" />
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-white/25">
+                <ChevronRight className="h-7 w-7" />
+              </span>
             </button>
           </>
         )}
@@ -197,11 +211,16 @@ export function Lightbox({
           src={shot.src}
           alt={shot.caption ?? `Фотография ${index + 1} из ${total}`}
           onClick={stop}
-          className="max-h-full rounded-lg object-contain shadow-2xl"
+          className="relative z-20 max-h-full rounded-lg object-contain shadow-2xl"
           /* Не крупнее оригинала, но и не шире экрана: min из двух. Просто
              maxWidth: shot.w перебивал бы max-w-full, и на телефоне снимок
-             вылезал бы за края. */
-          style={{ maxWidth: shot.w ? `min(100%, ${shot.w}px)` : "100%" }}
+             вылезал бы за края. Поля в vw — чтобы по бокам всегда осталась
+             полоса для листания, даже у широкого кадра. */
+          style={{
+            maxWidth: shot.w
+              ? `min(calc(100% - 8rem), ${shot.w}px)`
+              : "calc(100% - 8rem)",
+          }}
         />
       </div>
 

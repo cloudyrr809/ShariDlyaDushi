@@ -9,6 +9,7 @@ import {
   categoriesWithAll,
   fallbackProducts,
   fetchProducts,
+  inCategory,
   type Product,
 } from "./lib/catalog";
 
@@ -240,8 +241,8 @@ export default function Catalog() {
         {activeTab === "theme" ? (
           <div className="space-y-16">
             {themeSubcategories.map((subCat) => {
-              const subCatProducts = products.filter(
-                (p) => p.categoryId === subCat.id,
+              const subCatProducts = products.filter((p) =>
+                inCategory(p, subCat.id),
               );
               return (
                 <div key={subCat.id} id={subCat.id} className="scroll-mt-24">
@@ -266,11 +267,9 @@ export default function Catalog() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {/* «Все» — весь ассортимент разом, включая карточки, которым
-                категорию не назначили: иначе они нигде бы не показались. */}
+                разделов не назначили: иначе они нигде бы не показались. */}
             {products
-              .filter(
-                (p) => activeTab === ALL_ID || p.categoryId === activeTab,
-              )
+              .filter((p) => inCategory(p, activeTab))
               .map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

@@ -9,7 +9,7 @@ export const catalogCategories = [
   { id: "latex", name: "Латексные шары" },
   { id: "foil", name: "Фольгированные шары" },
   { id: "bubbles", name: "Баблс" },
-  { id: "theme", name: "Тематические композиции" },
+  { id: "theme", name: "Тематические" },
 ];
 
 export const serviceItems = [

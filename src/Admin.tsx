@@ -806,27 +806,44 @@ function ProductEditor({
       </div>
 
       <div>
-        <label className={LABEL} htmlFor="p-cat">
-          Категория
-        </label>
-        <select
-          id="p-cat"
-          value={draft.categoryId}
-          onChange={(e) => set("categoryId", e.target.value)}
-          className={`${FIELD} sm:max-w-[24rem]`}
-        >
-          {/* Пустое значение — карточка вне категорий. Так добавляют
-              композицию, для которой раздела ещё нет. */}
-          <option value="">— без категории —</option>
-          {assignableCategories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <span className={LABEL}>Разделы</span>
+        {/* ГАЛОЧКИ, А НЕ ВЫБОР ОДНОГО. Композиция часто подходит сразу
+            нескольким разделам, и раньше её приходилось заводить дважды —
+            в каталоге из-за этого набралось 13 карточек-двойников.
+            Отмечаем сколько нужно, карточка остаётся одна. */}
+        <div className="flex flex-wrap gap-2">
+          {assignableCategories.map((c) => {
+            const on = draft.categories.includes(c.id);
+            return (
+              <label
+                key={c.id}
+                className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[15px] font-medium transition ${
+                  on
+                    ? "border-[#6B4E81] bg-[#F8F4F9] text-[#2D2433]"
+                    : "border-[#E8DEEE] bg-white text-[#5A4D66] hover:bg-[#FBF7FC]"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={(e) =>
+                    set(
+                      "categories",
+                      e.target.checked
+                        ? [...draft.categories, c.id]
+                        : draft.categories.filter((x) => x !== c.id),
+                    )
+                  }
+                  className="h-4 w-4 accent-[#6B4E81]"
+                />
+                {c.name}
+              </label>
+            );
+          })}
+        </div>
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          В разделе «Все» карточка появится в любом случае — он собирает
-          весь каталог, включая композиции без категории.
+          Можно не отмечать ни одного — тогда композиция будет только в
+          разделе «Все». Он собирает весь каталог в любом случае.
         </p>
       </div>
 
@@ -1199,8 +1216,13 @@ function CatalogPane() {
     reload();
   }, [reload]);
 
-  const name = (id: string) =>
-    assignableCategories.find((c) => c.id === id)?.name ?? "без категории";
+  /** Названия отмеченных разделов через запятую — для строки в списке. */
+  const names = (ids: string[]) =>
+    ids.length === 0
+      ? "только «Все»"
+      : ids
+          .map((id) => assignableCategories.find((c) => c.id === id)?.name ?? id)
+          .join(", ");
 
   return (
     <>
@@ -1214,7 +1236,7 @@ function CatalogPane() {
           onPick={setCurrent}
           render={(p) => ({
             title: p.title,
-            note: `${p.price} ₽ · ${name(p.categoryId)}${p.published ? "" : " · скрыта"}`,
+            note: `${p.price} ₽ · ${names(p.categories)}${p.published ? "" : " · скрыта"}`,
           })}
           extra={
             items?.length === 0 ? (
@@ -1248,7 +1270,8 @@ function CatalogPane() {
           ) : (
             <p className={EMPTY}>
               Выберите композицию слева или создайте новую. Любая карточка
-              сразу попадает в раздел «Все», а категорию можно не указывать.
+              сразу попадает в раздел «Все», а разделы можно не отмечать —
+              или отметить сразу несколько.
             </p>
           )}
         </div>
