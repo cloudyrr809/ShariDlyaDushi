@@ -49,6 +49,10 @@ export type Product = {
   /** Ноль или пусто — старой цены нет и зачёркнутого числа не будет. */
   oldPrice?: number | null;
   images: string[];
+  /** Пара абзацев о композиции — то, что не видно на фотографии. */
+  description: string;
+  /** Характеристики парами «что — сколько»: состав, размер, срок. */
+  specs: { name: string; value: string }[];
   /** Чем меньше, тем выше в списке. */
   sort: number;
   published: boolean;
@@ -63,6 +67,8 @@ export function blankProduct(): Product {
     price: 0,
     oldPrice: null,
     images: [],
+    description: "",
+    specs: [],
     sort: 0,
     published: true,
   };
@@ -81,6 +87,8 @@ type Row = {
   price: number;
   old_price: number | null;
   images: string[] | null;
+  description: string | null;
+  specs: { name: string; value: string }[] | null;
   sort: number | null;
   published: boolean;
 };
@@ -92,6 +100,8 @@ const fromRow = (r: Row): Product => ({
   price: r.price,
   oldPrice: r.old_price,
   images: r.images ?? [],
+  description: r.description ?? "",
+  specs: r.specs ?? [],
   sort: r.sort ?? 0,
   published: r.published,
 });
@@ -102,6 +112,11 @@ const toRow = (p: Product) => ({
   price: Math.max(0, Math.round(p.price) || 0),
   old_price: p.oldPrice ? Math.round(p.oldPrice) : null,
   images: p.images,
+  description: p.description.trim(),
+  // Пустые пары не храним: на карточке они дали бы пустую строку таблицы
+  specs: p.specs
+    .map((x) => ({ name: x.name.trim(), value: x.value.trim() }))
+    .filter((x) => x.name && x.value),
   sort: p.sort ?? 0,
   published: p.published,
 });
@@ -175,6 +190,8 @@ export const fallbackProducts: Product[] = (() => {
       price: p.price,
       oldPrice: (p as { oldPrice?: number }).oldPrice ?? null,
       images,
+      description: "",
+      specs: [],
       sort: i,
       published: true,
     });
