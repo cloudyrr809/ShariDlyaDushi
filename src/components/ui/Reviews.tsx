@@ -97,14 +97,14 @@ export const Reviews = () => {
               <button
                 onClick={() => setPhoto((p) => (p - 1 + total) % total)}
                 aria-label="Предыдущее фото"
-                className="absolute top-1/2 left-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-0 shadow-md transition group-hover:opacity-100 hover:bg-white"
+                className="absolute top-1/2 left-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-100 shadow-md transition md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setPhoto((p) => (p + 1) % total)}
                 aria-label="Следующее фото"
-                className="absolute top-1/2 right-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-0 shadow-md transition group-hover:opacity-100 hover:bg-white"
+                className="absolute top-1/2 right-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-100 shadow-md transition md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>

@@ -29,6 +29,16 @@ export type Post = {
   photos: Shot[];
   /** Черновик не виден на сайте, но виден в админке. */
   published: boolean;
+  /**
+   * Место в ленте: меньше — выше. Порядок ставится руками в админке, потому
+   * что дата публикации и важность поста — разные вещи: свежую проходную
+   * работу не всегда хочется держать выше удачной прошлогодней.
+   *
+   * У всех постов сразу после обновления базы здесь ноль, и лента, как и
+   * прежде, идёт по дате. Первая же перестановка стрелками нумерует список
+   * целиком, и дальше порядок ровно тот, что видно в админке.
+   */
+  sort: number;
 };
 
 /** Пост годится к показу, только если у него есть хотя бы один кадр:
@@ -48,7 +58,7 @@ export function isRenderablePost(p: Post): boolean {
 const V = (src: string): Shot => ({ src, w: 540, h: 810 }); // вертикальные 2:3
 const S = (src: string): Shot => ({ src, w: 540, h: 540 }); // квадратные
 
-export const demoPosts: Post[] = [
+const demo: Omit<Post, "sort">[] = [
   {
     id: "demo-1",
     date: "2026-08-28",
@@ -104,9 +114,18 @@ export const demoPosts: Post[] = [
   },
 ];
 
+/** Порядок — тот, в котором они перечислены выше. */
+export const demoPosts: Post[] = demo.map((p, i) => ({ ...p, sort: i }));
+
 /* ─────────────────────────────── ЗАПРОСЫ ─────────────────────────────── */
 
-/** Пустой пост для формы «новая публикация». */
+/**
+ * Пустой пост для формы «новая публикация».
+ *
+ * sort = -1, а не 0: новый пост встаёт ПЕРЕД всеми пронумерованными
+ * (те начинаются с нуля) — то есть на самый верх, где его и ждут увидеть.
+ * Дальше его можно опустить стрелками.
+ */
 export function blankPost(): Post {
   return {
     id: "",
@@ -115,11 +134,30 @@ export function blankPost(): Post {
     text: "",
     photos: [],
     published: true,
+    sort: -1,
   };
 }
 
+/* ─────────────────── КОГДА КОЛОНКИ ПОРЯДКА ЕЩЁ НЕТ ───────────────────
+
+   Колонка sort появилась позже остальных, и добавляет её обновлённый
+   supabase/schema.sql. Пока его не прогнали, колонки в таблице нет, а
+   запрос с сортировкой по ней падает ЦЕЛИКОМ — вместе с лентой на самом
+   сайте, а не только в админке. Ронять витрину из-за неприменённой
+   миграции нельзя.
+
+   Поэтому один раз ловим именно эту ошибку, запоминаем и дальше работаем
+   как раньше: по дате, свежее сверху. Админка при попытке переставить
+   посты честно скажет, что нужно сделать. */
+let hasSort = true;
+
+const noSortColumn = (e: unknown) => {
+  const err = e as { code?: string; message?: string };
+  return err?.code === "42703" || /'?sort'? column|column .*sort/i.test(err?.message ?? "");
+};
+
 /**
- * Читает посты, свежие сверху.
+ * Читает посты в том порядке, в каком они стоят в ленте.
  *
  * `null` означает «база не подключена» — это НЕ ошибка и не пустая лента,
  * и вызывающий код по этому различию решает, показывать ли показательные
@@ -128,12 +166,26 @@ export function blankPost(): Post {
 export async function fetchPosts(withDrafts = false): Promise<Post[] | null> {
   if (!supabase) return null;
 
-  let q = supabase.from("posts").select("*").order("date", { ascending: false });
-  if (!withDrafts) q = q.eq("published", true);
+  const ask = (withSort: boolean) => {
+    const base = supabase!.from("posts").select("*");
+    const filtered = withDrafts ? base : base.eq("published", true);
+    // Дата — второй ключ, а не запасной: у постов с одинаковым sort
+    // (сразу после обновления базы он нулевой у всех) лента остаётся
+    // прежней, «свежее сверху».
+    const ordered = withSort
+      ? filtered.order("sort", { ascending: true })
+      : filtered;
+    return ordered.order("date", { ascending: false });
+  };
 
-  const { data, error } = await q;
+  let { data, error } = await ask(hasSort);
+  if (error && hasSort && noSortColumn(error)) {
+    hasSort = false;
+    ({ data, error } = await ask(false));
+  }
   if (error) throw error;
-  return (data ?? []) as Post[];
+
+  return (data ?? []).map((r) => ({ ...r, sort: r.sort ?? 0 })) as Post[];
 }
 
 /** Создаёт или обновляет пост. Возвращает сохранённый — с настоящим id. */
@@ -146,6 +198,8 @@ export async function savePost(post: Post): Promise<Post> {
     text: post.text.trim(),
     photos: post.photos,
     published: post.published,
+    // Пока колонки нет, её нельзя даже упоминать: запись упадёт целиком
+    ...(hasSort ? { sort: post.sort ?? 0 } : {}),
   };
 
   // Без id — это новая публикация; с id — правка существующей.
@@ -156,6 +210,37 @@ export async function savePost(post: Post): Promise<Post> {
   const { data, error } = await q.select().single();
   if (error) throw error;
   return data as Post;
+}
+
+/**
+ * Записывает новый порядок ленты.
+ *
+ * На вход — весь список в нужном порядке, а не «подняли такой-то».
+ * Так проще и надёжнее: номера раздаются заново (0, 1, 2…), и в базу
+ * уходят только те посты, у которых номер реально поменялся. При первой
+ * же перестановке это весь список, дальше — обычно две записи.
+ */
+export async function reorderPosts(order: Post[]): Promise<void> {
+  if (!supabase) throw new Error("База не подключена");
+  if (!hasSort) {
+    throw new Error(
+      "В таблице постов нет колонки порядка. Прогоните supabase/schema.sql " +
+        "в Supabase заново — он её добавит, ничего не потеряв.",
+    );
+  }
+
+  const writes = order
+    .map((p, i) => ({ id: p.id, to: i, from: p.sort }))
+    .filter((w) => w.id && w.from !== w.to);
+
+  const results = await Promise.all(
+    writes.map((w) =>
+      supabase!.from("posts").update({ sort: w.to }).eq("id", w.id),
+    ),
+  );
+
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
 }
 
 export async function deletePost(id: string): Promise<void> {

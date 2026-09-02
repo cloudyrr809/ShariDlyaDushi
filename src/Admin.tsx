@@ -15,6 +15,7 @@ import {
   blankPost,
   deletePost,
   fetchPosts,
+  reorderPosts,
   savePost,
   type Post,
 } from "./lib/feed";
@@ -497,6 +498,7 @@ function ListPane<T extends { id: string }>({
   newLabel,
   onNew,
   onPick,
+  onMove,
   render,
   extra,
 }: {
@@ -505,6 +507,8 @@ function ListPane<T extends { id: string }>({
   newLabel: string;
   onNew: () => void;
   onPick: (item: T) => void;
+  /** Если передан — у каждой записи появляются стрелки «выше/ниже». */
+  onMove?: (index: number, step: -1 | 1) => void;
   render: (item: T) => { title: string; note: string };
   /** Например, кнопка переноса данных из кода — показывается под списком. */
   extra?: React.ReactNode;
@@ -528,14 +532,14 @@ function ListPane<T extends { id: string }>({
         </p>
       ) : (
         <ul className="space-y-2">
-          {items.map((it) => {
+          {items.map((it, i) => {
             const { title, note } = render(it);
             return (
-              <li key={it.id}>
+              <li key={it.id} className="flex items-stretch gap-2">
                 <button
                   type="button"
                   onClick={() => onPick(it)}
-                  className={`w-full cursor-pointer rounded-xl border px-4 py-3 text-left transition ${
+                  className={`flex-1 cursor-pointer rounded-xl border px-4 py-3 text-left transition ${
                     currentId === it.id
                       ? "border-[#6B4E81] bg-[#F8F4F9]"
                       : "border-[#E8DEEE] bg-white hover:bg-[#FBF7FC]"
@@ -548,6 +552,33 @@ function ListPane<T extends { id: string }>({
                     {note}
                   </span>
                 </button>
+
+                {/* Стрелки, а не перетаскивание: список правят и с телефона,
+                    где перетаскивание внутри прокручиваемой страницы
+                    работает плохо — палец не отличить от прокрутки. Так же
+                    устроен порядок фотографий внутри карточки. */}
+                {onMove && (
+                  <div className="flex shrink-0 flex-col justify-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onMove(i, -1)}
+                      disabled={i === 0}
+                      aria-label={`Поднять «${title || "без названия"}»`}
+                      className="cursor-pointer rounded-lg border border-[#E8DEEE] bg-white p-2 text-[#6B4E81] transition hover:bg-[#F8F4F9] disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <ArrowUp className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onMove(i, 1)}
+                      disabled={i === items.length - 1}
+                      aria-label={`Опустить «${title || "без названия"}»`}
+                      className="cursor-pointer rounded-lg border border-[#E8DEEE] bg-white p-2 text-[#6B4E81] transition hover:bg-[#F8F4F9] disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <ArrowDown className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
               </li>
             );
           })}
@@ -1168,6 +1199,33 @@ function FeedPane() {
     reload();
   }, [reload]);
 
+  /**
+   * Переставляет пост и сразу пишет новый порядок в базу.
+   *
+   * На экране порядок меняется мгновенно, не дожидаясь ответа сервера:
+   * иначе стрелка ощущается «залипшей». Если запись не прошла — говорим
+   * об этом и перечитываем список, чтобы на экране не осталось порядка,
+   * которого в базе нет.
+   */
+  const move = async (i: number, step: -1 | 1) => {
+    if (!items) return;
+    const next = moved(items, i, step);
+    if (next === items) return;
+
+    /* На экране номера уже новые, а в reorderPosts уходит список со
+       СТАРЫМИ: по разнице «было / стало» он и решает, какие строки
+       вообще трогать. Поменять местами эти две строки — значит послать
+       список, в котором менять уже нечего. */
+    setItems(next.map((p, k) => ({ ...p, sort: k })));
+    setErr("");
+    try {
+      await reorderPosts(next);
+    } catch (e) {
+      setErr(explain(e, "Лента"));
+      reload();
+    }
+  };
+
   return (
     <>
       {err && <div className="mb-6">{<Err text={err} />}</div>}
@@ -1178,6 +1236,7 @@ function FeedPane() {
           newLabel="Новый пост"
           onNew={() => setCurrent(blankPost())}
           onPick={setCurrent}
+          onMove={move}
           render={(p) => ({
             title: p.title,
             note: `${p.date} · ${p.photos.length} фото${p.published ? "" : " · черновик"}`,
@@ -1199,7 +1258,11 @@ function FeedPane() {
               onCancel={() => setCurrent(null)}
             />
           ) : (
-            <p className={EMPTY}>Выберите пост слева или создайте новый.</p>
+            <p className={EMPTY}>
+              Выберите пост слева или создайте новый. Стрелками рядом со
+              списком посты меняются местами — в этом же порядке они идут в
+              «Ленте» на сайте.
+            </p>
           )}
         </div>
       </div>

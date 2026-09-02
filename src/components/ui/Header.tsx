@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // <-- ВЕРНУЛИ useLocation
 import { Menu, X, Phone, ChevronDown, ShoppingCart } from "lucide-react";
 
@@ -41,6 +41,39 @@ const InstagramIcon = ({
   </svg>
 );
 
+/* ─────────────────────── МОБИЛЬНОЕ МЕНЮ ───────────────────────
+
+   Разделы верхнего уровня — «Лента», «Акции», «О нас» — живут в этом же
+   меню, а не только в десктопной строке. Раньше их там не было вовсе:
+   с телефона на эти страницы можно было попасть только через подвал,
+   то есть прокрутив сайт до самого низа.
+
+   Кегль тут ровно такой же, как в остальном интерфейсе: прежние 12px
+   читались как сноска, хотя это основная навигация сайта. */
+
+/**
+ * Пункт меню: крупная подпись и поле под палец — 46px по высоте.
+ *
+ * min-w-0 обязателен. Ячейка сетки по умолчанию не сжимается уже своего
+ * содержимого, а «Фольгированные» — одно длинное слово: на экране 320px
+ * колонка не могла стать уже него, и подпись вылезала за край карточки,
+ * обрываясь на «Фольгированн». С min-w-0 колонка ужимается, а слово
+ * переносится на вторую строку.
+ */
+const MOBILE_ROW =
+  "min-w-0 rounded-2xl px-3.5 py-3 text-[15px] font-medium text-[#2D2433] transition hover:bg-[#F8F4F9] hover:text-[#6B4E81]";
+
+/** Заголовок группы внутри меню. */
+const MOBILE_LABEL =
+  "text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase";
+
+/** Верхние разделы — плитками в ряд, чтобы их было видно сразу. */
+const MAIN_LINKS = [
+  { to: "/feed", name: "Лента" },
+  { to: "/promotions", name: "Акции" },
+  { to: "/about", name: "О нас" },
+];
+
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { cart, setIsCartOpen } = useCart();
@@ -52,6 +85,14 @@ export const Header = () => {
 
   // Получаем текущий путь для подчеркивания активной вкладки
   const location = useLocation();
+
+  /* Меню закрывается на любом переходе, а не только по клику мимо. Часть
+     ссылок ведёт на текущую страницу с другим якорем (/catalog#women с
+     самого каталога) — там своего onClick мало: он закроет меню, но
+     обработать все такие случаи по одному значит однажды забыть один. */
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname, location.hash]);
 
   // ФУНКЦИЯ ДЛЯ АКТИВНОГО КЛАССА В МЕНЮ
   const getNavLinkClass = (path: string, hashMatch: string = "") => {
@@ -189,7 +230,7 @@ export const Header = () => {
 
           {/* Модальное окно */}
           <Dialog>
-            <DialogTrigger className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#6B4E91] px-6 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:opacity-90 transition cursor-pointer shadow-sm">
+            <DialogTrigger className="hidden sm:inline-flex items-center justify-center rounded-full bg-[#6B4E91] px-6 py-2.5 text-[13px] font-semibold uppercase tracking-wide text-white hover:opacity-90 transition cursor-pointer shadow-sm">
               Свяжитесь с нами
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-white rounded-3xl p-6 md:p-8 border border-[#E8DEEE] shadow-[0_25px_60px_rgba(107,78,129,0.2)]">
@@ -248,47 +289,95 @@ export const Header = () => {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-[#2D2433] p-2"
+            aria-label={mobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={mobileMenuOpen}
+            className="cursor-pointer p-2 text-[#2D2433] lg:hidden"
           >
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
       </div>
 
-      {/* Мобильное раскрывающееся меню */}
+      {/* Мобильное раскрывающееся меню.
+
+          max-h + прокрутка обязательны: пунктов девятнадцать, и на
+          экране высотой 667px (iPhone SE) список целиком не помещается —
+          без этого нижние разделы оказывались за краем экрана, а шапка
+          sticky и прокрутить до них было нечем. */}
       {mobileMenuOpen && (
-        <div className="mt-4 rounded-3xl bg-white border border-[#E8DEEE] p-6 lg:hidden shadow-lg space-y-4">
-          <div className="font-semibold text-xs uppercase tracking-widest text-[#6B4E81]">
-            Каталог:
+        <div className="mt-4 max-h-[calc(100svh-7rem)] space-y-5 overflow-y-auto overscroll-contain rounded-3xl border border-[#E8DEEE] bg-white p-5 shadow-lg lg:hidden">
+          {/* Разделы верхнего уровня */}
+          <div className="grid grid-cols-3 gap-2">
+            {MAIN_LINKS.map((item) => {
+              const active = location.pathname.startsWith(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`rounded-2xl px-3 py-3 text-center text-[15px] font-semibold transition ${
+                    active
+                      ? "bg-[#6B4E81] text-white"
+                      : "bg-[#F8F4F9] text-[#2D2433] hover:bg-[#F0E5F5]"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs text-[#4A3E54]">
-            {categoriesWithAll.map((item) => (
-              <Link
-                key={item.id}
-                to={`/catalog#${item.id}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-2.5 rounded-2xl hover:bg-[#F8F4F9] hover:text-[#6B4E81] transition flex items-center justify-between group/item"
-              >
-                <span>{item.name}</span>
-                <span className="text-[#6B4E81] opacity-0 group-hover/item:opacity-100 transition-opacity text-xs font-bold">
-                  →
-                </span>
-              </Link>
-            ))}
+
+          <div>
+            <div className={`${MOBILE_LABEL} mb-2 px-1`}>Каталог</div>
+            {/* Две колонки только с 360px: на 320px в колонку остаётся 110px
+                под подпись, и самые длинные названия туда не помещаются
+                даже с переносом. */}
+            <div className="grid grid-cols-1 gap-1 min-[360px]:grid-cols-2">
+              {categoriesWithAll.map((item) => (
+                <Link key={item.id} to={`/catalog#${item.id}`} className={MOBILE_ROW}>
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="border-t border-[#E8DEEE] pt-4 font-semibold text-xs uppercase tracking-widest text-[#6B4E81]">
-            Услуги:
+
+          <div className="border-t border-[#E8DEEE] pt-4">
+            <div className={`${MOBILE_LABEL} mb-2 px-1`}>Услуги</div>
+            {/* Одна колонка, а не две: названия услуг длиннее названий
+                разделов каталога («Съемки в детсадах и школах»), и в две
+                колонки почти каждое ломалось на две строки. */}
+            <div className="grid gap-1">
+              {serviceItems.map((item) => (
+                <Link
+                  key={item.key}
+                  to={`/services#${item.key}`}
+                  className={MOBILE_ROW}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs text-[#4A3E54]">
-            {serviceItems.map((item) => (
-              <Link
-                key={item.key}
-                to={`/services#${item.key}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                • {item.name}
-              </Link>
-            ))}
+
+          {/* Контакты. На телефоне кнопка «Свяжитесь с нами» из шапки
+              спрятана (места в ряду нет), и без этого блока связаться со
+              студии было нечем, пока не долистаешь до подвала. */}
+          <div className="grid grid-cols-2 gap-2 border-t border-[#E8DEEE] pt-4">
+            <a
+              href="tel:+79806616888"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-[#6B4E81] px-3 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-90"
+            >
+              <Phone className="h-4 w-4 shrink-0" />
+              Позвонить
+            </a>
+            <a
+              href="https://vk.ru/sharydlyadushi"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-[#0077FF] px-3 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-90"
+            >
+              <VkIcon className="h-4 w-auto shrink-0 fill-current" />
+              Написать
+            </a>
           </div>
         </div>
       )}

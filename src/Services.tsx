@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
+import { TabStrip } from "./components/ui/TabStrip";
 import {
   ShoppingCart,
   Clock,
@@ -97,13 +98,13 @@ const ServiceCard = ({ service }: { service: Service }) => {
             ))}
 
             {imgErrors[currentImage] && (
-              <span className="absolute inset-0 flex items-center justify-center text-[#A093AB] text-xs pointer-events-none">
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[13px] text-[#A093AB]">
                 Фото {currentImage + 1}
               </span>
             )}
 
             {/* Плашка времени поверх фото */}
-            <span className="absolute top-4 left-4 z-20 text-xs md:text-sm uppercase tracking-widest font-semibold text-[#6B4E81] flex items-center gap-1.5 bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+            <span className="absolute top-4 left-4 z-20 text-[13px] md:text-sm uppercase tracking-widest font-semibold text-[#6B4E81] flex items-center gap-1.5 bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
               <Clock className="w-3 h-3 md:w-3.5 md:h-3.5" />
               {service.time}
             </span>
@@ -113,14 +114,14 @@ const ServiceCard = ({ service }: { service: Service }) => {
                 <button
                   onClick={prevImage}
                   aria-label="Предыдущее фото"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={nextImage}
                   aria-label="Следующее фото"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -215,35 +216,47 @@ const ServiceCard = ({ service }: { service: Service }) => {
             </ul>
           </div>
 
-          {/* ИНФО-БЛОКИ */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
-            <div className="bg-white rounded-2xl border border-[#E8DEEE] px-3 py-4 text-center">
-              <Wallet className="w-4 h-4 text-[#D4839A] mx-auto mb-2" />
-              <div className="text-xs uppercase tracking-widest font-semibold text-[#7E6E8A] mb-1">
-                Цена
+          {/* ИНФО-БЛОКИ.
+
+              Три колонки только с sm. На телефоне их не было куда делить:
+              при ширине экрана 390px на колонку оставалось по 106px, и в
+              них не влезало ни слово «Длительность» (обрезалось на
+              «ДЛИТЕЛЬНОС»), ни цена — «от 5 000» и «₽» разъезжались по
+              разным строкам.
+
+              Поэтому на узком экране это не три плитки, а три строки:
+              подпись слева, значение справа. Места нужно втрое меньше, и
+              ничего не переносится. */}
+          <div className="mb-8 grid gap-2 sm:grid-cols-3 sm:gap-3">
+            {[
+              {
+                Icon: Wallet,
+                label: "Цена",
+                value: `от ${service.price.toLocaleString("ru-RU")} ₽`,
+                accent: true,
+              },
+              { Icon: Clock, label: "Длительность", value: service.time },
+              { Icon: Sparkles, label: "Формат", value: service.format },
+            ].map(({ Icon, label, value, accent }) => (
+              <div
+                key={label}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-[#E8DEEE] bg-white px-4 py-3 sm:flex-col sm:justify-center sm:px-3 sm:py-4 sm:text-center"
+              >
+                <span className="flex shrink-0 items-center gap-2 text-[13px] font-semibold tracking-widest text-[#7E6E8A] uppercase sm:flex-col sm:gap-1.5">
+                  <Icon className="h-4 w-4 shrink-0 text-[#D4839A]" />
+                  {label}
+                </span>
+                <span
+                  className={`text-right leading-tight font-semibold sm:mt-1 sm:text-center ${
+                    accent
+                      ? "font-serif text-base font-bold text-[#6B4E81] md:text-lg"
+                      : "text-[15px] text-[#2D2433]"
+                  }`}
+                >
+                  {value}
+                </span>
               </div>
-              <div className="font-serif font-bold text-base md:text-lg text-[#6B4E81] leading-none">
-                от {service.price.toLocaleString("ru-RU")} ₽
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-[#E8DEEE] px-3 py-4 text-center">
-              <Clock className="w-4 h-4 text-[#D4839A] mx-auto mb-2" />
-              <div className="text-xs uppercase tracking-widest font-semibold text-[#7E6E8A] mb-1">
-                Длительность
-              </div>
-              <div className="text-sm md:text-[15px] font-semibold text-[#2D2433] leading-tight">
-                {service.time}
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-[#E8DEEE] px-3 py-4 text-center">
-              <Sparkles className="w-4 h-4 text-[#D4839A] mx-auto mb-2" />
-              <div className="text-xs uppercase tracking-widest font-semibold text-[#7E6E8A] mb-1">
-                Формат
-              </div>
-              <div className="text-sm md:text-[15px] font-semibold text-[#2D2433] leading-tight">
-                {service.format}
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* КНОПКА */}
@@ -330,46 +343,24 @@ export default function Services() {
         }}
       />
 
-      {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ) — как в Каталоге.
-          scrollbar-hide вместо прежних инлайновых стилей: те закрывали
-          Firefox и старый IE, но не WebKit, поэтому в Chrome и Safari под
-          вкладками всё равно оставалась полоса прокрутки.
-          mb-12/16 — чтобы тёмная черта активного раздела не липла к карточке
-          ниже и читалась как подчёркивание, а не как рамка карточки. */}
-      <div
-        id="services-content"
-        // mb-8 — то же значение, что в каталоге, чтобы вкладки на обеих
-        // страницах отстояли от контента одинаково.
-        className="scrollbar-hide relative z-20 w-full overflow-x-auto border-b border-[#E8DEEE] pt-6 mb-8"
-      >
-        {/* 79rem = 76rem контента + 2×24px (px-6): внутренний край совпадает
-            с логотипом/кнопкой шапки, у которой padding снаружи контейнера */}
-        <div className="max-w-[79rem] mx-auto px-6">
-          <div className="flex justify-between items-center min-w-max w-full gap-8">
-            {list.map((srv) => (
-              <button
-                key={srv.key}
-                onClick={() => setActiveTab(srv.key)}
-                // Активная вкладка — тёмная полоса и тот же тёмный, что у
-                // заголовка шапки: связывает панель с ней в один блок.
-                // Неактивные подняты с #A093AB до #7E6E8A: прежний был
-                // светловат и на белом читался с трудом.
-                // tracking-wider вместо widest: при gap-10 восемь пунктов
-                // переставали влезать в строку (1489px против 1425px) и на
-                // десктопе включалась ненужная горизонтальная прокрутка.
-                // Разрядку внутри слов ужали, промежутки между пунктами
-                // выросли — воздух там, где он и нужен.
-                className={`text-xs uppercase tracking-wider font-semibold transition-colors duration-300 pb-4 border-b-2 cursor-pointer whitespace-nowrap ${
-                  activeTab === srv.key
-                    ? "text-[#2D2433] border-[#2D2433]"
-                    : "text-[#7E6E8A] border-transparent hover:text-[#2D2433] hover:border-[#D9C6E4]"
-                }`}
-              >
-                {srv.title}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ) — общий компонент с «Каталогом».
+
+          gap-6, а не прежние gap-8: это МИНИМАЛЬНЫЙ просвет, а не
+          фактический — на широком экране justify-between всё равно
+          раздвигает вкладки по всей ширине, и разницы не видно. А вот на
+          ноутбуке 1280px восьми пунктам при gap-8 не хватало 33px, и
+          строка без нужды начинала прокручиваться. С gap-6 запас 23px.
+
+          mb-8 — то же значение, что в каталоге, чтобы вкладки на обеих
+          страницах отстояли от контента одинаково. */}
+      <div id="services-content">
+        <TabStrip
+          tabs={list.map((srv) => ({ id: srv.key, name: srv.title }))}
+          active={activeTab}
+          onPick={setActiveTab}
+          gap="gap-6"
+          className="relative z-20 mb-8 border-b border-[#E8DEEE]"
+        />
       </div>
 
       {/* СОДЕРЖИМОЕ АКТИВНОЙ УСЛУГИ */}

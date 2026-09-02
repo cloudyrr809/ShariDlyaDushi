@@ -52,7 +52,12 @@ export const CartDrawer = () => {
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-      <SheetContent className="w-full sm:max-w-lg bg-white border-l border-[#E8DEEE] flex flex-col p-0 z-[100]">
+      {/* data-[side=right]:w-full, а не просто w-full: у самой панели
+          ширина задана правилом data-[side=right]:w-3/4, и по весу
+          селектора обычный w-full ему проигрывал. На телефоне из-за
+          этого корзина занимала три четверти экрана — 292px из 390, —
+          и в них не помещался итог: «₽» уезжал на отдельную строку. */}
+      <SheetContent className="z-[100] flex flex-col border-l border-[#E8DEEE] bg-white p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-lg">
         <SheetHeader className="p-6 border-b border-[#E8DEEE]">
           <SheetTitle className="font-serif text-2xl text-[#2D2433] text-left">
             Ваша корзина
@@ -77,7 +82,7 @@ export const CartDrawer = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-medium text-[#A093AB]">
+                      <div className="flex h-full w-full items-center justify-center text-[13px] font-medium text-[#A093AB]">
                         Нет фото
                       </div>
                     )}
@@ -128,18 +133,20 @@ export const CartDrawer = () => {
               </div>
 
               {/* Обновленный блок с итоговой суммой */}
-              <div className="flex justify-between items-end mb-4">
-                <span className="text-[#5A4D66] text-sm font-medium">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <span className="text-[15px] font-medium text-[#5A4D66]">
                   Предварительный итог:
                 </span>
-                <span className="font-serif text-2xl font-bold text-[#2D2433]">
+                {/* Сумма не переносится ни при какой ширине: разорванное
+                    «~1300 / ₽» читается как две разные цифры. */}
+                <span className="font-serif text-2xl font-bold whitespace-nowrap text-[#2D2433]">
                   ~{totalPrice} ₽
                 </span>
               </div>
 
               {/* Успокаивающая подпись перед кнопкой */}
-              <div className="text-center mb-3">
-                <span className="text-xs text-[#7E6E8A] uppercase tracking-widest font-semibold">
+              <div className="mb-3 text-center">
+                <span className="text-[13px] font-semibold tracking-widest text-[#7E6E8A] uppercase">
                   Без оплаты онлайн • Оплата после подтверждения
                 </span>
               </div>

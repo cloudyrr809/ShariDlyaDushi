@@ -24,8 +24,14 @@ create table if not exists public.posts (
 -- Не обязательно: лишняя колонка со значением по умолчанию не мешает.
 alter table public.posts drop column if exists kind;
 
--- Лента всегда читается «свежее сверху» — под этот запрос и индекс.
-create index if not exists posts_date_idx on public.posts (date desc);
+-- Порядок постов в ленте, выставляемый стрелками в админке: меньше — выше.
+-- Ноль у всех сразу после добавления колонки, и до первой перестановки
+-- лента идёт как раньше — по дате.
+alter table public.posts add column if not exists sort integer not null default 0;
+
+-- Лента читается «по порядку, внутри порядка — свежее сверху»: индекс
+-- составной, ровно под этот запрос.
+create index if not exists posts_order_idx on public.posts (sort, date desc);
 
 -- ─────────────────── КТО ЧТО МОЖЕТ С ПОСТАМИ ───────────────────
 --

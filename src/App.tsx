@@ -147,7 +147,7 @@ export default function App() {
           <div className="mt-12 text-center">
             <button
               onClick={toggleShowMore}
-              className="inline-flex items-center gap-2 rounded-full border border-[#E8DEEE] bg-white px-8 py-3 text-xs font-medium uppercase tracking-widest text-[#6B4E81] hover:bg-[#F8F4F9] hover:border-[#6B4E81] transition shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E8DEEE] bg-white px-8 py-3 text-[13px] font-medium uppercase tracking-widest text-[#6B4E81] hover:bg-[#F8F4F9] hover:border-[#6B4E81] transition shadow-sm cursor-pointer"
             >
               {showMoreCompositions ? "Скрыть" : "Показать больше"}
               <ChevronDown
@@ -197,10 +197,9 @@ export default function App() {
                 Как оформить заказ
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Соберите корзину на сайте или пришлите свой референс — заказ
-                уйдёт нам во ВКонтакте. Ответим, уточним детали и назовём
-                точную стоимость. Цены на сайте предварительные: итог зависит
-                от размера, состава и даты.
+                Соберите корзину на сайте или пришлите нам свой референс.
+                Быстро ответим, уточним детали и назовём точную стоимость.
+                Цены на сайте предварительные: итог зависит от размера, состава и даты.
               </p>
             </div>
             <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
@@ -211,10 +210,7 @@ export default function App() {
                 Доставка и сроки
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Доставляем по Ярославлю в защитном пакете ко времени, о котором
-                договоримся. Композицию собираем под заказ, поэтому лучше
-                написать заранее — срок и стоимость доставки подтвердим в
-                переписке.
+                Доставляем по Ярославлю и пригороду в защитном пакете к удобному для вас времени, которое мы заранее обсуждаем в переписке.
               </p>
             </div>
             <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
@@ -225,8 +221,7 @@ export default function App() {
                 Оплата и возврат
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Предоплата 50%, остаток при получении. Онлайн-оплаты на сайте
-                нет. Если шар сдулся или пришёл повреждённым — заменим или
+                Предоплата 50%, остаток при получении. Если шар сдулся или пришёл повреждённым — заменим или
                 вернём деньги: напишите нам в день получения.
               </p>
             </div>

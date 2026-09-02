@@ -1050,7 +1050,7 @@ export const Hero = () => {
                 Капс оставлен только заголовку и угловым плашкам.
                 Контраст 800 против 400 держит иерархию сам, без разницы
                 в цвете и без декора. */}
-            <p className="pointer-events-auto mx-auto mt-7 max-w-sm text-sm leading-relaxed font-normal text-white/85 md:text-base lg:mx-0 lg:mt-9 lg:max-w-md">
+            <p className="pointer-events-auto mx-auto mt-7 max-w-sm text-[15px] leading-relaxed font-normal text-white/85 md:text-base lg:mx-0 lg:mt-9 lg:max-w-md">
               Украсим ваш праздник и подарим хорошее настроение
             </p>
           </div>
@@ -1069,8 +1069,13 @@ export const Hero = () => {
 
       {/* Верхний ряд */}
       <div className="pointer-events-none absolute top-0 right-0 left-0 z-30 px-6 pt-7 select-none lg:pt-9">
-        <div className="mx-auto w-full max-w-[76rem] text-center lg:text-left">
-          <span className="pointer-events-auto text-xs font-medium tracking-[0.18em] text-white/95 uppercase">
+        {/* text-wrap:balance — из-за разрядки строка не влезает в телефон и
+            переносится; без балансировки на первой строке оставалось
+            «…ПРАЗДНИКОВ ·», а точка-разделитель в конце строки читается как
+            опечатка. Балансировка делит надпись на две равные части, и
+            разделитель оказывается внутри строки. */}
+        <div className="mx-auto w-full max-w-[76rem] text-center [text-wrap:balance] lg:text-left">
+          <span className="pointer-events-auto text-[13px] font-medium tracking-[0.18em] text-white/95 uppercase">
             Студия шаров и праздников · Ярославль
           </span>
         </div>
@@ -1080,7 +1085,7 @@ export const Hero = () => {
       <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-30 px-6 pb-7 select-none lg:pb-9">
         <div className="mx-auto flex w-full max-w-[76rem] flex-col items-center gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
           {/* Левый нижний угол */}
-          <p className="pointer-events-auto text-xs font-medium tracking-[0.18em] text-white/95 uppercase">
+          <p className="pointer-events-auto text-[13px] font-medium tracking-[0.18em] text-white/95 uppercase">
             Доставляем по всему городу
           </p>
 
@@ -1088,7 +1093,7 @@ export const Hero = () => {
           <div className="flex items-center gap-6">
             <a
               href="tel:+79806616888"
-              className="pointer-events-auto inline-flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-white/85 uppercase transition-colors hover:text-white"
+              className="pointer-events-auto inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase transition-colors hover:text-white"
             >
               <Phone className="h-3.5 w-3.5" strokeWidth={1.5} />8 (980) 661-68-88
             </a>

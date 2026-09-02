@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
+import { TabStrip } from "./components/ui/TabStrip";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { useCart } from "./CartContext";
 import { themeSubcategories } from "./constants";
@@ -78,22 +79,38 @@ const ProductCard = ({ product }: { product: Product }) => {
             }
           />
         ) : (
-          <span className="text-[#A093AB] text-xs">Нет фото</span>
+          <span className="text-[13px] text-[#A093AB]">Нет фото</span>
         )}
 
         {imgErrors[activeIndex] && imagesCount > 0 && (
-          <span className="absolute text-[#A093AB] font-medium text-xs pointer-events-none">
+          <span className="pointer-events-none absolute text-[13px] font-medium text-[#A093AB]">
             Фото {activeIndex + 1}
           </span>
         )}
 
+        {/* Листание фотографий карточки.
+
+            Мышью — наведением: курсор над левой третью показывает первый
+            кадр, над правой последний. Пальцем навести нельзя, поэтому на
+            телефоне те же зоны работают по касанию и перелистывают на
+            следующий кадр по кругу. Без этого второе и третье фото
+            композиции с телефона было не увидеть вообще.
+
+            pointerType, а не отдельная вёрстка для мобильного: мышь и
+            палец приходят в один и тот же обработчик, и различить их
+            надёжнее, чем угадывать по ширине экрана — на ноутбуке с
+            сенсорным экраном работают оба способа. */}
         {hasMultiple && (
           <div className="absolute inset-0 flex">
             {images.map((_, idx: number) => (
               <div
                 key={idx}
-                className="flex-1 h-full z-10"
+                className="z-10 h-full flex-1"
                 onMouseEnter={() => setActiveIndex(idx)}
+                onPointerDown={(e) => {
+                  if (e.pointerType === "mouse") return;
+                  setActiveIndex((i) => (i + 1) % imagesCount);
+                }}
               />
             ))}
           </div>
@@ -120,7 +137,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           {product.price} ₽
         </span>
         {product.oldPrice && (
-          <span className="text-xs md:text-sm text-[#A093AB] line-through mb-1">
+          <span className="mb-1 text-[13px] text-[#A093AB] line-through md:text-sm">
             {product.oldPrice} ₽
           </span>
         )}
@@ -132,7 +149,7 @@ const ProductCard = ({ product }: { product: Product }) => {
 
       <button
         onClick={handleAddToCart}
-        className="w-full bg-[#F8F4F9] text-[#6B4E81] border border-[#E8DEEE] py-2.5 rounded-xl text-xs font-semibold hover:bg-[#6B4E81] hover:text-white hover:border-[#6B4E81] transition-all flex items-center justify-center gap-2 cursor-pointer"
+        className="w-full bg-[#F8F4F9] text-[#6B4E81] border border-[#E8DEEE] py-2.5 rounded-xl text-[13px] font-semibold hover:bg-[#6B4E81] hover:text-white hover:border-[#6B4E81] transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
         <ShoppingCart className="w-3.5 h-3.5" />В корзину
       </button>
@@ -194,46 +211,23 @@ export default function Catalog() {
         }}
       />
 
-      {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ).
-          scrollbar-hide вместо инлайновых стилей: те закрывали Firefox и
-          старый IE, но не WebKit, и в Chrome полоса всё равно оставалась. */}
-      <div
-        id="catalog-content"
-        // mb-8, а не прежние mb-12/16: тот отступ ставился, когда под
-        // вкладками ещё шла линия border-b и он читался как поле под ней.
-        // Линию убрали — и 64px превратились в пустоту между категориями и
-        // товарами. У блока товаров верхнего отступа нет, так что эти 32px и
-        // есть весь зазор.
-        className="scrollbar-hide w-full overflow-x-auto pt-6 mb-8"
-      >
-        {/* 79rem = 76rem контента + 2×24px (px-6): внутренний край совпадает
-            с логотипом/кнопкой шапки, у которой padding снаружи контейнера */}
-        <div className="max-w-[79rem] mx-auto px-6">
-          {/* gap-4, а не gap-8 как на «Услугах»: тут девять категорий, и их
-              суммарная ширина 1073px из 1216 доступных. На больший зазор
-              строка не влезает, последняя категория уходит за край. w-full +
-              justify-between дораспределяют остаток, поэтому фактический
-              просвет получается ~18px — это физический максимум для такого
-              набора названий. */}
-          <div className="flex justify-between items-center min-w-max w-full gap-4">
-            {categoriesWithAll.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => handleTabClick(cat.id)}
-                // Кегль и разрядка поджаты, чтобы девять длинных категорий
-                // уместились в строку при gap-8 и не включали горизонтальную
-                // прокрутку на десктопе. Подробности — в Services.tsx.
-                className={`text-xs uppercase tracking-wider font-semibold transition-colors duration-300 pb-4 border-b-2 cursor-pointer whitespace-nowrap ${
-                  activeTab === cat.id
-                    ? "text-[#2D2433] border-[#2D2433]"
-                    : "text-[#7E6E8A] border-transparent hover:text-[#2D2433] hover:border-[#D9C6E4]"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* ИНТЕРАКТИВНЫЕ ВКЛАДКИ (ТАБЫ) — общий компонент со страницей
+          «Услуги». gap-4, а не gap-8 как там: тут девять категорий, и их
+          суммарная ширина 1073px из 1216 доступных — на больший зазор
+          строка не влезает и последняя категория уходит за край.
+
+          mb-8, а не прежние mb-12/16: тот отступ ставился, когда под
+          вкладками ещё шла линия border-b и он читался как поле под ней.
+          Линию убрали — и 64px превратились в пустоту между категориями и
+          товарами. У блока товаров верхнего отступа нет, так что эти 32px и
+          есть весь зазор. */}
+      <div id="catalog-content">
+        <TabStrip
+          tabs={categoriesWithAll}
+          active={activeTab}
+          onPick={handleTabClick}
+          className="mb-8"
+        />
       </div>
 
       {/* РЕНДЕР ТОВАРОВ ВЫБРАННОЙ ВКЛАДКИ */}
