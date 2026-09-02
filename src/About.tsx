@@ -6,9 +6,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
+  Sparkles,
+  Heart,
+  ShieldCheck,
+  Clock,
 } from "lucide-react";
 
-import { BALLOON_ART, balloonFit } from "./lib/balloons";
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 
@@ -166,38 +169,26 @@ export default function About() {
   const years = useCountUp(5);
   const events = useCountUp(3000);
 
-  /* ВМЕСТО ЗНАЧКОВ — НАШИ ЖЕ ШАРЫ.
-
-     Раньше в каждой карточке стоял значок из готового набора: искорки,
-     сердечко, щит, часы. Ровно так выглядит блок «наши цифры» на любом
-     шаблонном сайте — набор общих символов, которые к воздушным шарам
-     отношения не имеют.
-
-     Теперь там те самые PNG, из которых собрана гроздь на первом экране
-     и плитки акций. Ничего нового рисовать не пришлось, а блок сразу
-     стал частью этого сайта, а не любого.
-
-     Шары разные и по цвету, и по форме — как в настоящей связке. */
   const stats = [
     {
-      art: "/assets/ballon2.png",
+      icon: Sparkles,
       counter: years,
       suffix: "+ лет",
       label: "Дарим праздник и яркие эмоции",
     },
     {
-      art: "/assets/ballon5.png",
+      icon: Heart,
       counter: events,
       suffix: "+",
       label: "Оформленных мероприятий",
     },
     {
-      art: "/assets/ballon3.png",
+      icon: ShieldCheck,
       value: "Hi-Float",
       label: "Обработка для долгого полёта",
     },
     {
-      art: "/assets/ballon1.png",
+      icon: Clock,
       value: "24/7",
       label: "Бережная доставка точно ко времени",
     },
@@ -682,32 +673,13 @@ export default function About() {
 
             <div className="grid grid-cols-2 gap-4 md:col-span-5">
               {stats.map((stat) => {
-                const art = BALLOON_ART[stat.art];
+                const Icon = stat.icon;
                 return (
                   <div
                     key={stat.label}
                     className="flex flex-col justify-between rounded-3xl border border-[#E8DEEE] bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(107,78,129,0.08)]"
                   >
-                    {/* Высота задана, ширина следует из пропорций самого
-                        шара, а прозрачные поля файла уходят за пределы
-                        бокса. Поэтому все четыре шара выглядят одного
-                        роста, хотя в исходниках занимают от 46% до 93%
-                        кадра. */}
-                    <div
-                      aria-hidden="true"
-                      className="relative shrink-0"
-                      style={{ height: 52, width: 52 * art.ar }}
-                    >
-                      <img
-                        src={art.src}
-                        alt=""
-                        loading="lazy"
-                        draggable={false}
-                        className="absolute max-w-none select-none"
-                        style={balloonFit(art)}
-                      />
-                    </div>
-
+                    <Icon className="h-6 w-6 text-[#6B4E81]" />
                     <div className="mt-6">
                       {/* tabular-nums — цифры одинаковой ширины. Без него
                         плашка едва заметно дёргается на каждом кадре

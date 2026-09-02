@@ -2,19 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { careCards } from "../../constants";
 
-/* РАЗМЫТИЯ НА ВХОДЕ БОЛЬШЕ НЕТ, и это не косметика.
-
-   Скрытая карточка держала filter: blur(3.5px). Пока наблюдатель был один
-   на всю сетку, это длилось мгновение: он срабатывал от края сетки и
-   снимал размытие сразу со всех шести. Когда карточки стали появляться
-   поодиночке, нижние остаются скрытыми всё время, пока читаешь страницу
-   выше, — а размытие держит слой живым и заставляет перерисовывать его
-   постоянно. Замер: шесть слоёв по 130 000 пикселей каждый, суммарно
-   784 000 — на средней видеокарте это и есть те самые лаги.
-
-   Само появление от этого почти не изменилось: его читают по
-   прозрачности и сдвигу, а не по резкости. */
-
 // Карточки выходят одна за другой. Внутри каждой слои (картинка, заголовок,
 // текст) догоняют её с небольшим запозданием — это и даёт ощущение глубины.
 // Скорость примерно как в прошлый раз (вдвое быстрее исходных 950/620/150),
@@ -127,6 +114,14 @@ export const CareCards = () => {
     return () => io.disconnect();
   }, []);
 
+  /* Размытие на входе — только там, где есть чем его считать. Переход
+     фильтра заставляет перерисовывать карточку каждый кадр, и на
+     телефоне шесть таких переходов подряд заметно дёргаются. */
+  const softBlur = useRef(
+    typeof window !== "undefined" &&
+      !window.matchMedia("(hover: none)").matches,
+  ).current;
+
   // общий помощник: плавный выход слоя с собственной задержкой
   const layer = (idx: number, step: number, hidden: string) => ({
     opacity: isShown(idx) ? 1 : 0,
@@ -166,10 +161,11 @@ export const CareCards = () => {
                   transform: isShown(idx)
                     ? "none"
                     : "translateY(22px) scale(0.975)",
+                  filter: !softBlur || isShown(idx) ? "blur(0px)" : "blur(3.5px)",
                   boxShadow: isShown(idx)
                     ? "0 18px 40px -28px rgba(107,78,129,0.45)"
                     : "0 0 0 rgba(107,78,129,0)",
-                  transition: `opacity ${REVEAL_MS}ms ${EASE}, transform ${REVEAL_MS}ms ${EASE}, box-shadow ${REVEAL_MS}ms ${EASE}`,
+                  transition: `opacity ${REVEAL_MS}ms ${EASE}, transform ${REVEAL_MS}ms ${EASE}, filter ${REVEAL_MS}ms ${EASE}, box-shadow ${REVEAL_MS}ms ${EASE}`,
                   transitionDelay: isShown(idx) ? `${delays[idx]}ms` : "0ms",
                 }}
               >

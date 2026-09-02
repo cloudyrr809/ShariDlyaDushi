@@ -61,19 +61,12 @@ export const Footer = () => {
           >
             info@sharidlyadushi.com
           </a>
-          {/* Имя рядом с номером: звонить незнакомому номеру заметно
-              спокойнее, когда видно, кто на том конце. Обёртка нужна,
-              чтобы имя не оказалось внутри ссылки — набирать по нажатию
-              должен именно номер. */}
-          <p className="mt-0.5 font-medium text-[#2D2433]">
-            Нина{" "}
-            <a
-              href="tel:+79806616888"
-              className="transition hover:text-[#6B4E81]"
-            >
-              8 (980) 661-6888
-            </a>
-          </p>
+          <a
+            href="tel:+79806616888"
+            className="mt-0.5 block font-medium text-[#2D2433] hover:text-[#6B4E81] transition"
+          >
+            8 (980) 661-6888
+          </a>
 
           <div className="flex items-center gap-2.5 mt-3">
             <a

@@ -52,32 +52,24 @@ import {
   type PromoIconKey,
 } from "./lib/promotions";
 
-import {
-  defaultSettings,
-  fetchSettings,
-  saveSettings,
-  type Settings,
-} from "./lib/settings";
 import { servicesData } from "./lib/servicesData";
 import { Collage } from "./components/ui/PhotoCollage";
 
 /* ═══════════════════════════ АДМИНКА САЙТА ═══════════════════════════
 
-   Страница /admin: вход по паролю и пять разделов — Лента, Каталог,
-   Услуги, Акции и Настройки. В меню сайта её нет и не должно быть: адрес
-   набирают вручную, а доступ закрывают пароль и правила на стороне базы.
+   Страница /admin: вход по паролю и четыре раздела — Лента, Каталог,
+   Услуги, Акции. В меню сайта её нет и не должно быть: адрес набирают
+   вручную, а доступ закрывают пароль и правила на стороне базы.
 
    Три состояния, и каждое честно объясняет, что происходит:
    1. база не подключена   → что настроить;
    2. подключена, не вошли → форма входа;
    3. вошли                → рабочий стол.
 
-   Первые четыре устроены одинаково: слева список, справа форма. Общее
-   вынесено в Shell, Gallery, ListPane и Actions — иначе почти одинаковые
-   экраны начали бы расходиться так же, как в своё время разошлись шапки
-   страниц. «Настройки» стоят особняком: там править нечего, кроме
-   единственного набора текстов, и список слева был бы списком из одной
-   строки. */
+   Все разделы устроены одинаково: слева список, справа форма. Общее
+   вынесено в Shell, Gallery, ListPane и Actions — иначе четыре почти
+   одинаковых экрана начали бы расходиться так же, как в своё время
+   разошлись шапки страниц. */
 
 const FIELD =
   "w-full rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-[15px] font-medium text-[#2D2433] outline-none transition-colors focus:border-[#6B4E81]";
@@ -89,13 +81,12 @@ const PRIMARY = `${BTN} bg-[#6B4E81] text-white hover:bg-[#513A6B]`;
 const GHOST = `${BTN} border border-[#E8DEEE] bg-white text-[#6B4E81] hover:bg-[#F8F4F9]`;
 const DANGER = `${BTN} inline-flex items-center gap-2 border border-[#E8C4CF] bg-white text-[#A64D6C] hover:bg-[#FBEEF2]`;
 
-type Tab = "feed" | "catalog" | "services" | "promos" | "terms";
+type Tab = "feed" | "catalog" | "services" | "promos";
 const TABS: { id: Tab; name: string }[] = [
   { id: "feed", name: "Лента" },
   { id: "catalog", name: "Каталог" },
   { id: "services", name: "Услуги" },
   { id: "promos", name: "Акции" },
-  { id: "terms", name: "Настройки" },
 ];
 
 /** Короткое сообщение об ошибке — красное, но в палитре сайта. */
@@ -917,86 +908,6 @@ function ProductEditor({
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
           Первая — главная: она видна на карточке в каталоге, остальные
           листаются наведением.
-        </p>
-      </div>
-
-      {/* ── ЧТО ВИДНО В ОКНЕ «ПОДРОБНЕЕ» ── */}
-      <div>
-        <label className={LABEL} htmlFor="p-desc">
-          Описание
-        </label>
-        <textarea
-          id="p-desc"
-          rows={3}
-          value={draft.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder="Пара предложений о композиции: настроение, повод, из чего собрана."
-          className={`${FIELD} resize-y leading-relaxed`}
-        />
-        <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Видно в окне «Подробнее», которое открывается по нажатию на
-          карточку. Можно не заполнять — тогда окно покажет только
-          характеристики и условия.
-        </p>
-      </div>
-
-      <div>
-        <span className={LABEL}>Характеристики</span>
-        {/* Пары «что — сколько». Свободный текст с обеих сторон:
-            у одной композиции важен состав, у другой высота, и загонять
-            это в готовый список полей значило бы половину оставлять
-            пустой. */}
-        <div className="space-y-2">
-          {draft.specs.map((row, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={row.name}
-                onChange={(e) => {
-                  const next = [...draft.specs];
-                  next[i] = { ...next[i], name: e.target.value };
-                  set("specs", next);
-                }}
-                placeholder="Состав"
-                className={`${FIELD} sm:max-w-[14rem]`}
-              />
-              <input
-                value={row.value}
-                onChange={(e) => {
-                  const next = [...draft.specs];
-                  next[i] = { ...next[i], value: e.target.value };
-                  set("specs", next);
-                }}
-                placeholder="12 латексных шаров и фольгированная цифра"
-                className={FIELD}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  set(
-                    "specs",
-                    draft.specs.filter((_, k) => k !== i),
-                  )
-                }
-                aria-label="Убрать характеристику"
-                className="shrink-0 cursor-pointer rounded-lg p-2 text-[#A64D6C] hover:bg-[#FBEEF2]"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={() => set("specs", [...draft.specs, { name: "", value: "" }])}
-            className={`${GHOST} inline-flex items-center gap-2`}
-          >
-            <Plus className="h-5 w-5" />
-            Добавить строку
-          </button>
-        </div>
-        <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Например: «Состав — 12 шаров», «Высота — 1,2 м», «Держится — до
-          двух недель». Пустые строки не сохраняются.
         </p>
       </div>
 
@@ -1920,190 +1831,6 @@ function PromosPane() {
   );
 }
 
-/* ────────────────── УСЛОВИЯ РАБОТЫ СТУДИИ ──────────────────
-
-   Доставка, оплата, возврат и памятка по уходу. Один набор текстов на
-   весь сайт — он показывается в окне «Подробнее» у каждой композиции.
-
-   Здесь нет ни списка слева, ни кнопки «создать»: править нечего, кроме
-   единственного набора. Поэтому и раздел устроен иначе остальных — одна
-   форма во всю ширину. */
-
-function TermsPane() {
-  const [draft, setDraft] = useState<Settings | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    fetchSettings()
-      .then(setDraft)
-      .catch(() => setDraft(defaultSettings));
-  }, []);
-
-  if (!draft) {
-    return <p className={EMPTY}>Читаем…</p>;
-  }
-
-  const set = <K extends keyof Settings>(k: K, v: Settings[K]) => {
-    setDraft((d) => (d ? { ...d, [k]: v } : d));
-    setSaved(false);
-  };
-
-  const save = async () => {
-    setBusy(true);
-    setErr("");
-    try {
-      await saveSettings(draft);
-      setSaved(true);
-    } catch (e) {
-      setErr(explain(e, "Условия"));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  /* Только текстовые списки: у Settings есть и одиночные строки (кнопка
-     первого экрана), а Lines умеет работать со списком абзацев. */
-  type TextBlock = "delivery" | "payment" | "returns" | "care";
-  const blocks: { key: TextBlock; title: string; hint: string }[] = [
-    {
-      key: "delivery",
-      title: "Доставка",
-      hint: "Куда возим, в чём, когда и от какой суммы бесплатно.",
-    },
-    {
-      key: "payment",
-      title: "Оплата",
-      hint: "Предоплата, способы, что онлайн-оплаты на сайте нет.",
-    },
-    {
-      key: "returns",
-      title: "Возврат и обмен",
-      hint: "Закон стоит упомянуть, но главное — что вы сделаете, если что-то пошло не так.",
-    },
-    {
-      key: "care",
-      title: "Чтобы шары прожили дольше",
-      hint: "Показывается маркированным списком: один пункт — одна строка.",
-    },
-  ];
-
-  return (
-    <div className="max-w-3xl space-y-8">
-      {/* ── ПЕРВЫЙ ЭКРАН ГЛАВНОЙ ── */}
-      <div className="rounded-2xl border border-[#E8DEEE] bg-[#FBF7FC] p-5">
-        <h2 className="text-[17px] font-semibold text-[#2D2433]">
-          Кнопка на первом экране
-        </h2>
-        <p className="mt-1 text-[15px] leading-relaxed font-medium text-[#5A4D66]">
-          Первое, что видит человек, зайдя на сайт. Строка рядом с кнопкой
-          — место для действующего предложения: «−10% к 1 сентября».
-          Оставьте её пустой, когда акции нет.
-        </p>
-
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className={LABEL} htmlFor="h-cta">
-              Подпись кнопки
-            </label>
-            <input
-              id="h-cta"
-              value={draft.heroCta}
-              onChange={(e) => set("heroCta", e.target.value)}
-              placeholder="Выбрать композицию"
-              className={FIELD}
-            />
-            <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-              Пусто — кнопки на первом экране не будет вовсе.
-            </p>
-          </div>
-
-          <div>
-            <label className={LABEL} htmlFor="h-to">
-              Куда ведёт
-            </label>
-            <select
-              id="h-to"
-              value={draft.heroCtaTo}
-              onChange={(e) => set("heroCtaTo", e.target.value)}
-              className={`${FIELD} cursor-pointer`}
-            >
-              <option value="/catalog">Каталог</option>
-              <option value="/services">Услуги</option>
-              <option value="/promotions">Акции</option>
-              <option value="/feed">Лента</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-5">
-          <label className={LABEL} htmlFor="h-note">
-            Строка о предложении
-          </label>
-          <input
-            id="h-note"
-            value={draft.heroNote}
-            onChange={(e) => set("heroNote", e.target.value)}
-            placeholder="−10% на композиции к 1 сентября"
-            className={FIELD}
-          />
-          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-            Набирается прописными рядом с кнопкой. Коротко: длинная фраза
-            на телефоне переносится на три строки.
-          </p>
-        </div>
-      </div>
-
-      <p className={EMPTY}>
-        Тексты ниже видны в окне «Подробнее» у каждой композиции каталога.
-        Меняются в одном месте — обновляются сразу везде.
-      </p>
-
-      {blocks.map((b) => (
-        <div key={b.key}>
-          <span className={LABEL}>{b.title}</span>
-          <Lines
-            value={draft[b.key]}
-            onChange={(next) => set(b.key, next)}
-            placeholder="Абзац текста"
-            rows={2}
-          />
-          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">{b.hint}</p>
-        </div>
-      ))}
-
-      {err && <Err text={err} />}
-
-      <div className="flex flex-wrap items-center gap-3 border-t border-[#E8DEEE] pt-6">
-        <button
-          type="button"
-          onClick={save}
-          disabled={busy}
-          className={PRIMARY}
-        >
-          {busy ? "Сохраняем…" : "Сохранить"}
-        </button>
-        {saved && (
-          <span className="text-[15px] font-semibold text-[#6B4E81]">
-            Сохранено
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => {
-            setDraft(defaultSettings);
-            setSaved(false);
-          }}
-          className={`${GHOST} ml-auto`}
-        >
-          Вернуть исходный текст
-        </button>
-      </div>
-    </div>
-  );
-}
-
 /* ─────────────────────────── ТОЧКА ВХОДА ─────────────────────────── */
 
 export default function Admin() {
@@ -2131,7 +1858,6 @@ export default function Admin() {
       {tab === "catalog" && <CatalogPane />}
       {tab === "services" && <ServicesPane />}
       {tab === "promos" && <PromosPane />}
-      {tab === "terms" && <TermsPane />}
     </Shell>
   );
 }
