@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Phone } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Phone } from "lucide-react";
+
+import { defaultSettings, fetchSettings } from "../../lib/settings";
 
 /**
  * Логотип ВК нарисован внутри кадра 24×24, но сам занимает только полосу
@@ -465,6 +468,20 @@ export const Hero = () => {
      разметка, а не только поведение, и переключать её на лету незачем —
      мышь посреди сеанса не появляется. */
   const lite = useMemo(wantsLite, []);
+
+  /* Подпись кнопки и строка о действующем предложении приходят из
+     админки. Стартуем со значений по умолчанию, а не с пустоты: кнопка
+     нужна на первом экране сразу, ждать ответа базы ей незачем. */
+  const [cta, setCta] = useState(defaultSettings);
+  useEffect(() => {
+    let alive = true;
+    fetchSettings()
+      .then((s) => alive && setCta(s))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const heroRef = useRef<HTMLElement | null>(null);
   const clusterRef = useRef<HTMLDivElement | null>(null);
@@ -1144,6 +1161,39 @@ export const Hero = () => {
               Создаём уникальные композиции из воздушных шариков для любых
               событий
             </p>
+
+            {/* КНОПКА И СТРОКА О ПРЕДЛОЖЕНИИ.
+
+                До сих пор на первом экране не было ни одной кнопки:
+                человек, уже готовый выбирать, должен был сам догадаться
+                долистать до каталога или найти «Каталог» в меню.
+
+                Оформление намеренно тихое и в том же ключе, что вся
+                остальная надпись экрана. Кнопка белая с тёмной подписью —
+                тот же белый, что у карточек по всему сайту; никакой
+                заливки цветом акции и никакой плашки под текстом
+                предложения. Само предложение набрано ровно так же, как
+                строки в углах экрана: капс, разрядка, белый с
+                прозрачностью. Оно читается как часть кадра, а не как
+                вклеенный поверх баннер.
+
+                min-h держит место под строку заранее: она приходит из
+                базы чуть позже кнопки, и без этого кнопка бы дёргалась. */}
+            {cta.heroCta && (
+              <div className="pointer-events-auto mt-8 flex flex-col items-center gap-4 lg:mt-10 lg:flex-row lg:items-center lg:gap-6">
+                <Link
+                  to={cta.heroCtaTo}
+                  className="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold text-[#2D2433] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] transition hover:bg-[#F8F4F9]"
+                >
+                  {cta.heroCta}
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+
+                <p className="flex min-h-[1.15rem] items-center text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase">
+                  {cta.heroNote}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

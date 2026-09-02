@@ -64,7 +64,7 @@ import { Collage } from "./components/ui/PhotoCollage";
 /* ═══════════════════════════ АДМИНКА САЙТА ═══════════════════════════
 
    Страница /admin: вход по паролю и пять разделов — Лента, Каталог,
-   Услуги, Акции и Условия. В меню сайта её нет и не должно быть: адрес
+   Услуги, Акции и Настройки. В меню сайта её нет и не должно быть: адрес
    набирают вручную, а доступ закрывают пароль и правила на стороне базы.
 
    Три состояния, и каждое честно объясняет, что происходит:
@@ -75,7 +75,7 @@ import { Collage } from "./components/ui/PhotoCollage";
    Первые четыре устроены одинаково: слева список, справа форма. Общее
    вынесено в Shell, Gallery, ListPane и Actions — иначе почти одинаковые
    экраны начали бы расходиться так же, как в своё время разошлись шапки
-   страниц. «Условия» стоят особняком: там править нечего, кроме
+   страниц. «Настройки» стоят особняком: там править нечего, кроме
    единственного набора текстов, и список слева был бы списком из одной
    строки. */
 
@@ -95,7 +95,7 @@ const TABS: { id: Tab; name: string }[] = [
   { id: "catalog", name: "Каталог" },
   { id: "services", name: "Услуги" },
   { id: "promos", name: "Акции" },
-  { id: "terms", name: "Условия" },
+  { id: "terms", name: "Настройки" },
 ];
 
 /** Короткое сообщение об ошибке — красное, но в палитре сайта. */
@@ -1963,7 +1963,10 @@ function TermsPane() {
     }
   };
 
-  const blocks: { key: keyof Settings; title: string; hint: string }[] = [
+  /* Только текстовые списки: у Settings есть и одиночные строки (кнопка
+     первого экрана), а Lines умеет работать со списком абзацев. */
+  type TextBlock = "delivery" | "payment" | "returns" | "care";
+  const blocks: { key: TextBlock; title: string; hint: string }[] = [
     {
       key: "delivery",
       title: "Доставка",
@@ -1988,8 +1991,72 @@ function TermsPane() {
 
   return (
     <div className="max-w-3xl space-y-8">
+      {/* ── ПЕРВЫЙ ЭКРАН ГЛАВНОЙ ── */}
+      <div className="rounded-2xl border border-[#E8DEEE] bg-[#FBF7FC] p-5">
+        <h2 className="text-[17px] font-semibold text-[#2D2433]">
+          Кнопка на первом экране
+        </h2>
+        <p className="mt-1 text-[15px] leading-relaxed font-medium text-[#5A4D66]">
+          Первое, что видит человек, зайдя на сайт. Строка рядом с кнопкой
+          — место для действующего предложения: «−10% к 1 сентября».
+          Оставьте её пустой, когда акции нет.
+        </p>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className={LABEL} htmlFor="h-cta">
+              Подпись кнопки
+            </label>
+            <input
+              id="h-cta"
+              value={draft.heroCta}
+              onChange={(e) => set("heroCta", e.target.value)}
+              placeholder="Выбрать композицию"
+              className={FIELD}
+            />
+            <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+              Пусто — кнопки на первом экране не будет вовсе.
+            </p>
+          </div>
+
+          <div>
+            <label className={LABEL} htmlFor="h-to">
+              Куда ведёт
+            </label>
+            <select
+              id="h-to"
+              value={draft.heroCtaTo}
+              onChange={(e) => set("heroCtaTo", e.target.value)}
+              className={`${FIELD} cursor-pointer`}
+            >
+              <option value="/catalog">Каталог</option>
+              <option value="/services">Услуги</option>
+              <option value="/promotions">Акции</option>
+              <option value="/feed">Лента</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <label className={LABEL} htmlFor="h-note">
+            Строка о предложении
+          </label>
+          <input
+            id="h-note"
+            value={draft.heroNote}
+            onChange={(e) => set("heroNote", e.target.value)}
+            placeholder="−10% на композиции к 1 сентября"
+            className={FIELD}
+          />
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            Набирается прописными рядом с кнопкой. Коротко: длинная фраза
+            на телефоне переносится на три строки.
+          </p>
+        </div>
+      </div>
+
       <p className={EMPTY}>
-        Эти тексты видны в окне «Подробнее» у каждой композиции каталога.
+        Тексты ниже видны в окне «Подробнее» у каждой композиции каталога.
         Меняются в одном месте — обновляются сразу везде.
       </p>
 

@@ -157,8 +157,17 @@ create table if not exists public.settings (
   payment    jsonb not null default '[]'::jsonb,
   returns    jsonb not null default '[]'::jsonb,
   care       jsonb not null default '[]'::jsonb,
+  -- Кнопка и строка о предложении на первом экране главной
+  hero_cta     text not null default 'Выбрать композицию',
+  hero_cta_to  text not null default '/catalog',
+  hero_note    text not null default '',
   updated_at timestamptz not null default now()
 );
+
+-- Если таблицу успели создать до появления этих трёх полей
+alter table public.settings add column if not exists hero_cta text not null default 'Выбрать композицию';
+alter table public.settings add column if not exists hero_cta_to text not null default '/catalog';
+alter table public.settings add column if not exists hero_note text not null default '';
 
 -- У условий нет черновиков: они либо есть, либо показываются
 -- значения по умолчанию из кода. Поэтому правило чтения своё —

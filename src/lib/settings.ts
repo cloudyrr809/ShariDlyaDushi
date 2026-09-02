@@ -17,6 +17,18 @@ import { supabase } from "./supabase";
    ни бояться, что их съест trim. */
 
 export type Settings = {
+  /* ── ПЕРВЫЙ ЭКРАН ──
+     Кнопка и строка о действующем предложении. До сих пор на первом
+     экране не было ни одной кнопки: человек, который уже готов
+     выбирать, долистывал до каталога сам. */
+
+  /** Подпись кнопки. Пусто — кнопки нет. */
+  heroCta: string;
+  /** Куда ведёт кнопка: путь внутри сайта. */
+  heroCtaTo: string;
+  /** Строка рядом с кнопкой: «−10% к 1 сентября». Пусто — не показываем. */
+  heroNote: string;
+
   /** Абзацы про доставку. */
   delivery: string[];
   /** Абзацы про оплату. */
@@ -37,6 +49,9 @@ export type Settings = {
  * требовать.
  */
 export const defaultSettings: Settings = {
+  heroCta: "Выбрать композицию",
+  heroCtaTo: "/catalog",
+  heroNote: "",
   delivery: [
     "Привезём композицию по Ярославлю и ближайшим пригородам в защитном транспортировочном пакете — ко времени, о котором договоримся.",
     "При заказе от 3 000 ₽ доставка по городу бесплатная. Можно забрать и самим: адрес скажем при подтверждении заказа.",
@@ -65,6 +80,9 @@ const ROW_ID = "main";
 
 type Row = {
   id: string;
+  hero_cta: string | null;
+  hero_cta_to: string | null;
+  hero_note: string | null;
   delivery: string[] | null;
   payment: string[] | null;
   returns: string[] | null;
@@ -77,6 +95,11 @@ const pick = (v: string[] | null | undefined, fallback: string[]) =>
   v && v.length > 0 ? v : fallback;
 
 const fromRow = (r: Row): Settings => ({
+  // Пустая подпись кнопки — это осознанное «кнопки не надо», поэтому
+  // тут ?? , а не ||: подставляем исходное только когда поля нет вовсе.
+  heroCta: r.hero_cta ?? defaultSettings.heroCta,
+  heroCtaTo: r.hero_cta_to || defaultSettings.heroCtaTo,
+  heroNote: r.hero_note ?? "",
   delivery: pick(r.delivery, defaultSettings.delivery),
   payment: pick(r.payment, defaultSettings.payment),
   returns: pick(r.returns, defaultSettings.returns),
@@ -108,6 +131,9 @@ export async function saveSettings(s: Settings): Promise<void> {
   if (!supabase) throw new Error("База не подключена");
   const { error } = await supabase.from("settings").upsert({
     id: ROW_ID,
+    hero_cta: s.heroCta.trim(),
+    hero_cta_to: s.heroCtaTo.trim() || "/catalog",
+    hero_note: s.heroNote.trim(),
     delivery: clean(s.delivery),
     payment: clean(s.payment),
     returns: clean(s.returns),
