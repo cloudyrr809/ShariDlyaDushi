@@ -1051,7 +1051,8 @@ export const Hero = () => {
                 Контраст 800 против 400 держит иерархию сам, без разницы
                 в цвете и без декора. */}
             <p className="pointer-events-auto mx-auto mt-7 max-w-sm text-[15px] leading-relaxed font-normal text-white/85 md:text-base lg:mx-0 lg:mt-9 lg:max-w-md">
-              Украсим ваш праздник и подарим хорошее настроение
+              Создаём уникальные композиции из воздушных шариков для любых
+              событий
             </p>
           </div>
         </div>

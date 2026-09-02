@@ -38,24 +38,38 @@ import {
   slugify,
   type Service,
 } from "./lib/services";
+import {
+  PROMO_ARTS,
+  PROMO_ICONS,
+  blankPromo,
+  fallbackPromos,
+  deletePromo,
+  fetchPromos,
+  isWide,
+  savePromo,
+  seedPromos,
+  type Promo,
+  type PromoIconKey,
+} from "./lib/promotions";
+
 import { servicesData } from "./lib/servicesData";
 import { Collage } from "./components/ui/PhotoCollage";
 
 /* ═══════════════════════════ АДМИНКА САЙТА ═══════════════════════════
 
-   Страница /admin: вход по паролю и три раздела — Лента, Каталог,
-   Услуги. В меню сайта её нет и не должно быть: адрес набирают вручную,
-   а доступ закрывают пароль и правила на стороне базы.
+   Страница /admin: вход по паролю и четыре раздела — Лента, Каталог,
+   Услуги, Акции. В меню сайта её нет и не должно быть: адрес набирают
+   вручную, а доступ закрывают пароль и правила на стороне базы.
 
    Три состояния, и каждое честно объясняет, что происходит:
    1. база не подключена   → что настроить;
    2. подключена, не вошли → форма входа;
    3. вошли                → рабочий стол.
 
-   Все три раздела устроены одинаково: слева список, справа форма. Общее
-   вынесено в Shell, Gallery и ListPane — иначе три почти одинаковых
-   экрана начали бы расходиться так же, как в своё время разошлись шапки
-   страниц. */
+   Все разделы устроены одинаково: слева список, справа форма. Общее
+   вынесено в Shell, Gallery, ListPane и Actions — иначе четыре почти
+   одинаковых экрана начали бы расходиться так же, как в своё время
+   разошлись шапки страниц. */
 
 const FIELD =
   "w-full rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-[15px] font-medium text-[#2D2433] outline-none transition-colors focus:border-[#6B4E81]";
@@ -67,11 +81,12 @@ const PRIMARY = `${BTN} bg-[#6B4E81] text-white hover:bg-[#513A6B]`;
 const GHOST = `${BTN} border border-[#E8DEEE] bg-white text-[#6B4E81] hover:bg-[#F8F4F9]`;
 const DANGER = `${BTN} inline-flex items-center gap-2 border border-[#E8C4CF] bg-white text-[#A64D6C] hover:bg-[#FBEEF2]`;
 
-type Tab = "feed" | "catalog" | "services";
+type Tab = "feed" | "catalog" | "services" | "promos";
 const TABS: { id: Tab; name: string }[] = [
   { id: "feed", name: "Лента" },
   { id: "catalog", name: "Каталог" },
   { id: "services", name: "Услуги" },
+  { id: "promos", name: "Акции" },
 ];
 
 /** Короткое сообщение об ошибке — красное, но в палитре сайта. */
@@ -1125,6 +1140,320 @@ function ServiceEditor({
   );
 }
 
+/* ─────────────────────── ФОРМА АКЦИИ ─────────────────────── */
+
+/** Название раздела для понятных сообщений об ошибках базы. */
+const SECTION_PROMOS = "Акции";
+
+function PromoEditor({
+  promo,
+  onSaved,
+  onDeleted,
+  onCancel,
+}: {
+  promo: Promo;
+  onSaved: () => void;
+  onDeleted: () => void;
+  onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState<Promo>(promo);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const set = <K extends keyof Promo>(k: K, v: Promo[K]) =>
+    setDraft((d) => ({ ...d, [k]: v }));
+
+  const save = async () => {
+    setBusy(true);
+    setErr("");
+    try {
+      await savePromo(draft);
+      onSaved();
+    } catch (e) {
+      setErr(explain(e, SECTION_PROMOS));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm(`Удалить акцию «${draft.title}»? Это навсегда.`)) return;
+    setBusy(true);
+    try {
+      await deletePromo(draft.id);
+      onDeleted();
+    } catch (e) {
+      setErr(explain(e, SECTION_PROMOS));
+      setBusy(false);
+    }
+  };
+
+  const Icon = PROMO_ICONS[draft.icon].Icon;
+
+  return (
+    <div className="space-y-6">
+      {/* ЖИВОЙ ПРЕДПРОСМОТР ПЛАКАТА.
+
+          Плитка акции — не текст в рамке, а плакат: то, как встанут
+          крупная цифра, слово вдоль края и шар, по полям формы не
+          представить. Показываем уменьшенную плитку прямо здесь, чтобы
+          «−7%» вместо «−10%» можно было увидеть, а не вообразить. */}
+      <div>
+        <span className={LABEL}>Как это будет выглядеть</span>
+        <div
+          className="relative flex min-h-[15rem] flex-col overflow-hidden rounded-[2rem] p-6"
+          style={{ backgroundColor: "#6B4E81", color: "#FFFFFF" }}
+        >
+          <img
+            src={draft.art}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-6 bottom-0 h-[80%] w-auto max-w-none opacity-90"
+            style={{ transform: `scale(${draft.artScale || 1})` }}
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-6 right-5 text-[13px] font-bold tracking-[0.28em] text-[#E6D8EF] uppercase [writing-mode:vertical-rl]"
+          >
+            {draft.vertical}
+          </span>
+          <div className="relative z-10 max-w-[78%]">
+            <Icon className="mb-4 h-7 w-7 text-[#E6D8EF]" />
+            <p
+              className={`leading-[0.85] font-extrabold tracking-[-0.03em] ${
+                isWide(draft.hero) ? "text-[2.2rem]" : "text-[3.2rem]"
+              }`}
+            >
+              {draft.hero || "—"}
+            </p>
+            <p className="mt-3 text-lg leading-snug font-bold uppercase">
+              {draft.heroSub}
+            </p>
+          </div>
+          <div className="relative z-10 mt-5 max-w-[64%]">
+            <p className="text-[15px] leading-relaxed font-medium">
+              {draft.desc}
+            </p>
+            <p className="mt-3 text-sm leading-snug font-semibold text-[#E6D8EF]">
+              {draft.cond}
+            </p>
+          </div>
+        </div>
+        <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+          Цвет плитки на сайте зависит от места в списке — они чередуются
+          сами. Здесь он всегда фиолетовый, это только проверка текста.
+        </p>
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="a-title">
+          Название акции
+        </label>
+        <input
+          id="a-title"
+          value={draft.title}
+          onChange={(e) => set("title", e.target.value)}
+          placeholder="Скидка 10% за отзыв с фото"
+          className={FIELD}
+        />
+        <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+          На плитке не видно: это полное название для поиска и для тех, кто
+          слушает сайт голосом. Крупная надпись задаётся ниже.
+        </p>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        <div>
+          <label className={LABEL} htmlFor="a-hero">
+            Крупно
+          </label>
+          <input
+            id="a-hero"
+            value={draft.hero}
+            onChange={(e) => set("hero", e.target.value)}
+            placeholder="−10%"
+            className={FIELD}
+          />
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            {isWide(draft.hero)
+              ? "Длинное — наберётся мельче"
+              : "Короткое — во всю величину"}
+          </p>
+        </div>
+
+        <div>
+          <label className={LABEL} htmlFor="a-sub">
+            Подпись под цифрой
+          </label>
+          <input
+            id="a-sub"
+            value={draft.heroSub}
+            onChange={(e) => set("heroSub", e.target.value)}
+            placeholder="за отзыв с фото"
+            className={FIELD}
+          />
+        </div>
+
+        <div>
+          <label className={LABEL} htmlFor="a-vert">
+            Слово вдоль края
+          </label>
+          <input
+            id="a-vert"
+            value={draft.vertical}
+            onChange={(e) => set("vertical", e.target.value)}
+            placeholder="СПАСИБО"
+            className={FIELD}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="a-desc">
+          Описание
+        </label>
+        <textarea
+          id="a-desc"
+          rows={3}
+          value={draft.desc}
+          onChange={(e) => set("desc", e.target.value)}
+          placeholder="Поделитесь эмоциями от праздника — и следующий заказ будет выгоднее."
+          className={`${FIELD} resize-y leading-relaxed`}
+        />
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="a-cond">
+          Условие
+        </label>
+        <input
+          id="a-cond"
+          value={draft.cond}
+          onChange={(e) => set("cond", e.target.value)}
+          placeholder="Покажите отзыв при повторном заказе"
+          className={FIELD}
+        />
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <span className={LABEL}>Значок</span>
+          {/* Выбор из списка, а не загрузка: значок — это векторный
+              компонент из набора lucide, в базе от него хранится только
+              имя. */}
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(PROMO_ICONS) as PromoIconKey[]).map((k) => {
+              const { name, Icon: I } = PROMO_ICONS[k];
+              const on = draft.icon === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => set("icon", k)}
+                  title={name}
+                  aria-label={name}
+                  aria-pressed={on}
+                  className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl border transition ${
+                    on
+                      ? "border-[#6B4E81] bg-[#F8F4F9] text-[#6B4E81]"
+                      : "border-[#E8DEEE] bg-white text-[#7E6E8A] hover:bg-[#FBF7FC]"
+                  }`}
+                >
+                  <I className="h-6 w-6" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <span className={LABEL}>Шар</span>
+          {/* Тоже выбор, а не своя картинка: у каждого файла заранее
+              замерены прозрачные поля вокруг рисунка, и по ним плитка
+              считает размер. Посторонний файл этих замеров не имеет —
+              его растянуло бы по одной оси. */}
+          <div className="flex flex-wrap gap-2">
+            {PROMO_ARTS.map((src) => {
+              const on = draft.art === src;
+              return (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => set("art", src)}
+                  aria-label={`Шар ${src.slice(-5, -4)}`}
+                  aria-pressed={on}
+                  className={`h-12 w-12 cursor-pointer rounded-xl border p-1 transition ${
+                    on
+                      ? "border-[#6B4E81] bg-[#F8F4F9]"
+                      : "border-[#E8DEEE] bg-white hover:bg-[#FBF7FC]"
+                  }`}
+                >
+                  <img
+                    src={src}
+                    alt=""
+                    className="h-full w-full object-contain"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label className={LABEL} htmlFor="a-scale">
+            Размер шара
+          </label>
+          <input
+            id="a-scale"
+            type="range"
+            min={0.6}
+            max={1.6}
+            step={0.01}
+            value={draft.artScale}
+            onChange={(e) => set("artScale", Number(e.target.value))}
+            className="w-full accent-[#6B4E81]"
+          />
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            {draft.artScale.toFixed(2)} — плитки специально разные, чтобы
+            ряд не выглядел под копирку.
+          </p>
+        </div>
+
+        <div>
+          <label className={LABEL} htmlFor="a-sort">
+            Порядок
+          </label>
+          <input
+            id="a-sort"
+            type="number"
+            value={draft.sort}
+            onChange={(e) => set("sort", Number(e.target.value) || 0)}
+            className={FIELD}
+          />
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            Меньше — выше на странице. От места зависит и цвет плитки.
+          </p>
+        </div>
+      </div>
+
+      {err && <Err text={err} />}
+
+      <Actions
+        busy={busy}
+        canSave={!!draft.title.trim() && !!draft.hero.trim()}
+        published={draft.published}
+        canPublish
+        onSave={save}
+        onPublished={(v) => set("published", v)}
+        onCancel={onCancel}
+        onDelete={draft.id ? remove : undefined}
+      />
+    </div>
+  );
+}
+
 /* ──────────────────── КНОПКА ПЕРЕНОСА ИЗ КОДА ────────────────────
 
    До админки товары и услуги были записаны прямо в коде. Пока таблица
@@ -1428,6 +1757,80 @@ function ServicesPane() {
   );
 }
 
+function PromosPane() {
+  const [items, setItems] = useState<Promo[] | null>(null);
+  const [current, setCurrent] = useState<Promo | null>(null);
+  const [err, setErr] = useState("");
+
+  const reload = useCallback(async () => {
+    try {
+      setItems(await fetchPromos(true));
+    } catch (e) {
+      setErr(explain(e, "Акции"));
+      setItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return (
+    <>
+      {err && <div className="mb-6">{<Err text={err} />}</div>}
+      <div className={PANE}>
+        <ListPane
+          items={items}
+          currentId={current?.id}
+          newLabel="Новая акция"
+          onNew={() => setCurrent(blankPromo())}
+          onPick={setCurrent}
+          render={(p) => ({
+            title: p.title,
+            note: `${p.hero}${p.published ? "" : " · скрыта"}`,
+          })}
+          extra={
+            items?.length === 0 ? (
+              <SeedButton
+                what="Акции"
+                count={fallbackPromos.length}
+                onSeed={async () => {
+                  const n = await seedPromos(fallbackPromos);
+                  await reload();
+                  return n;
+                }}
+              />
+            ) : undefined
+          }
+        />
+        <div>
+          {current ? (
+            <PromoEditor
+              key={current.id || "new"}
+              promo={current}
+              onSaved={() => {
+                setCurrent(null);
+                reload();
+              }}
+              onDeleted={() => {
+                setCurrent(null);
+                reload();
+              }}
+              onCancel={() => setCurrent(null)}
+            />
+          ) : (
+            <p className={EMPTY}>
+              Выберите акцию слева или создайте новую. Проценты, суммы и
+              условия правятся прямо здесь — плитка рядом с формой сразу
+              показывает, что получится.
+            </p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ─────────────────────────── ТОЧКА ВХОДА ─────────────────────────── */
 
 export default function Admin() {
@@ -1454,6 +1857,7 @@ export default function Admin() {
       {tab === "feed" && <FeedPane />}
       {tab === "catalog" && <CatalogPane />}
       {tab === "services" && <ServicesPane />}
+      {tab === "promos" && <PromosPane />}
     </Shell>
   );
 }

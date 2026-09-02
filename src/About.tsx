@@ -473,12 +473,24 @@ export default function About() {
                   </button>
                 )}
 
+                {/* ПОЛОСА ВОСПРОИЗВЕДЕНИЯ.
+
+                    Внешний слой — только поле для нажатия: двенадцать
+                    пикселей, чтобы в него попадал палец. Раньше у него был
+                    фон bg-black/30, и он читался как широкая тёмная плашка
+                    поверх кадра: над тонкой полоской таймера висела вторая,
+                    ничего не значащая. Теперь он прозрачный — площадь
+                    нажатия та же, видно только сам таймер.
+
+                    Дорожка при этом стала тёмной вместо белой: ролики
+                    светлые, и прежняя white/30 на них пропадала — заметна
+                    она была лишь на фоне той самой плашки. */}
                 {isActive && (
                   <div
                     onClick={handleSeek}
-                    className="absolute right-0 bottom-0 left-0 z-30 flex h-3 cursor-pointer items-end bg-black/30 transition-all hover:h-4"
+                    className="absolute right-0 bottom-0 left-0 z-30 flex h-3 cursor-pointer items-end transition-all hover:h-4"
                   >
-                    <div className="relative h-1 w-full bg-white/30 hover:h-1.5">
+                    <div className="relative h-1 w-full bg-black/25 hover:h-1.5">
                       <div
                         ref={progressRef}
                         className="h-full bg-white transition-all duration-75"

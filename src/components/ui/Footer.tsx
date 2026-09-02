@@ -49,7 +49,7 @@ export const Footer = () => {
             ШарыДляДуши
           </p>
           <p className="mt-6 text-sm font-medium whitespace-nowrap text-[#5A4D66]">
-            Создаем настроение и яркие эмоции
+            Дарим настроение и яркие эмоции
           </p>
         </div>
 

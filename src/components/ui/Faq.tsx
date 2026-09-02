@@ -30,7 +30,7 @@ export const Faq = () => {
           Часто задаваемые вопросы
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-base font-medium text-white/95">
-          Собрали то, о чём спрашивают чаще всего. Не нашли своё — просто напишите нам
+          Не нашли ответ на свой вопрос — просто напишите нам
         </p>
 
         <div className="mt-10 space-y-3">

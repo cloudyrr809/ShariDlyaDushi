@@ -120,12 +120,35 @@ create table if not exists public.services (
   created_at  timestamptz not null default now()
 );
 
+-- Акции. Проценты, суммы и условия меняются чаще всего остального на
+-- сайте, поэтому лежат в базе, а не в коде.
+--
+-- icon и art — не произвольные значения, а ключ значка и путь к одному из
+-- шести PNG с шарами: у каждого файла свои замеренные поля кадра, и
+-- посторонняя картинка растянулась бы по одной оси. Выбор ограничен
+-- списком в самой админке.
+create table if not exists public.promotions (
+  id          uuid primary key default gen_random_uuid(),
+  hero        text not null default '',
+  hero_sub    text not null default '',
+  vertical    text not null default '',
+  title       text not null default '',
+  descr       text not null default '',
+  cond        text not null default '',
+  icon        text not null default 'gift',
+  art         text not null default '/assets/ballon1.png',
+  art_scale   real not null default 1,
+  sort        integer not null default 0,
+  published   boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
 -- Правила те же, что у постов: читают опубликованное все, пишет админ.
--- Цикл, чтобы не повторять восемь почти одинаковых policy руками.
+-- Цикл, чтобы не повторять почти одинаковые policy руками.
 do $$
 declare t text;
 begin
-  foreach t in array array['products', 'services'] loop
+  foreach t in array array['products', 'services', 'promotions'] loop
     execute format('alter table public.%I enable row level security', t);
 
     execute format('drop policy if exists "видно всем" on public.%I', t);

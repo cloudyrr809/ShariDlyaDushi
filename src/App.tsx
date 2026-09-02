@@ -182,7 +182,7 @@ export default function App() {
 
         <div className="relative z-10 max-w-[76rem] mx-auto">
           <h2 className="text-center font-serif text-3xl font-semibold text-white md:text-5xl">
-            Заказывайте онлайн
+            Заказ и получение
           </h2>
           <p className="text-center text-base font-regular text-white mt-2">
             Гарантия качества и доставка по Ярославлю
@@ -211,6 +211,7 @@ export default function App() {
               </h3>
               <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
                 Доставляем по Ярославлю и пригороду в защитном пакете к удобному для вас времени, которое мы заранее обсуждаем в переписке.
+                Так же возможен самовывоз, адрес уточняйте при заказе.
               </p>
             </div>
             <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
