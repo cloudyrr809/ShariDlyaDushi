@@ -619,7 +619,19 @@ export const Hero = () => {
 
       const time = now / 1000;
       const ppu = a.pxPerUnit;
-      const updatePaths = a.frame % 2 === 0; // форму ленты обновляем через кадр
+      /* ФОРМУ ЛЕНТОЧЕК ПЕРЕСЧИТЫВАЕМ РЕДКО.
+
+         Это самая дорогая строка кадра: семнадцать путей с градиентной
+         обводкой, и каждая запись атрибута d заставляет браузер заново
+         растрировать весь SVG. Сдвиг и масштаб ленты (атрибут transform у
+         группы) при этом обновляются каждый кадр — они композитятся и
+         почти бесплатны, поэтому лента едет за шаром без рывков.
+
+         Меняется же форма только от прокрутки и от медленной волны с
+         периодом больше десяти секунд — на такой скорости разницы между
+         каждым вторым кадром и каждым четвёртым не видно, а работы вдвое
+         меньше. */
+      const updatePaths = a.frame % 4 === 0;
 
       /*
         «Дыхание» неба и грозди раньше крутили CSS-кейфреймы на отдельных
@@ -1180,17 +1192,57 @@ export const Hero = () => {
                 min-h держит место под строку заранее: она приходит из
                 базы чуть позже кнопки, и без этого кнопка бы дёргалась. */}
             {cta.heroCta && (
-              <div className="pointer-events-auto mt-8 flex flex-col items-center gap-4 lg:mt-10 lg:flex-row lg:items-center lg:gap-6">
-                <Link
-                  to={cta.heroCtaTo}
-                  className="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-[15px] font-semibold text-[#2D2433] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] transition hover:bg-[#F8F4F9]"
-                >
-                  {cta.heroCta}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
+              <div className="pointer-events-auto mt-7 lg:mt-9">
+                {/* ПРЕДЛОЖЕНИЕ — НАД КНОПКОЙ, ОТДЕЛЬНОЙ СТРОКОЙ.
 
-                <p className="flex min-h-[1.15rem] items-center text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase">
-                  {cta.heroNote}
+                    Сбоку от кнопки оно читалось как приписка мелким
+                    шрифтом и работало против неё: взгляд уходил вправо,
+                    в текст, вместо того чтобы остановиться на действии.
+                    Сверху получается обычный порядок — сначала повод,
+                    потом что нажать.
+
+                    Точка перед строкой — тот же приём, что в надписи
+                    «студия шаров и праздников · Ярославль» наверху
+                    экрана: узнаваемая мелочь вместо плашки. */}
+                {cta.heroNote && (
+                  <p className="mb-4 text-[13px] font-semibold tracking-[0.18em] text-[#F6D9E4] uppercase">
+                    <span aria-hidden="true" className="mr-2 text-white/50">
+                      ·
+                    </span>
+                    {cta.heroNote}
+                  </p>
+                )}
+
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-7 lg:items-center">
+                  {/* Кнопка крупнее подписи вокруг неё почти вдвое: это
+                      единственное действие первого экрана, и по кеглю
+                      это должно быть видно сразу. */}
+                  <Link
+                    to={cta.heroCtaTo}
+                    className="group inline-flex items-center gap-2.5 rounded-full bg-white px-9 py-4 text-[17px] font-semibold text-[#2D2433] shadow-[0_14px_36px_-12px_rgba(0,0,0,0.55)] transition hover:-translate-y-0.5 hover:bg-[#F8F4F9]"
+                  >
+                    {cta.heroCta}
+                    <ArrowRight className="h-4.5 w-4.5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+
+                  {/* Второй, необязательный путь: посмотреть работы, ничего
+                      не выбирая. Ссылкой, а не кнопкой — чтобы не спорить
+                      с главным действием. */}
+                  <Link
+                    to="/feed"
+                    className="group inline-flex items-center gap-2 text-[15px] font-semibold text-white/85 underline decoration-white/30 underline-offset-[6px] transition hover:text-white hover:decoration-white/70"
+                  >
+                    Посмотреть работы
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                </div>
+
+                {/* Строка доверия под кнопкой отвечает на «а что дальше,
+                    если нажму»: ответим быстро, платить сейчас не надо.
+                    Именно это чаще всего и останавливает перед первым
+                    шагом. */}
+                <p className="mt-5 text-[13px] font-medium tracking-[0.14em] text-white/70 uppercase">
+                  Ответим в течение дня · Оплата после подтверждения
                 </p>
               </div>
             )}

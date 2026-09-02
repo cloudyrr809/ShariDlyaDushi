@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { BALLOON_ART, balloonFit } from "./lib/balloons";
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 
@@ -165,35 +166,38 @@ export default function About() {
   const years = useCountUp(5);
   const events = useCountUp(3000);
 
-  /* ЗНАЧКОВ ЗДЕСЬ БОЛЬШЕ НЕТ.
+  /* ВМЕСТО ЗНАЧКОВ — НАШИ ЖЕ ШАРЫ.
 
-     Было четыре белые карточки, в каждой значок из готового набора —
-     искорки, сердечко, щит, часы. Ровно так выглядит любой блок «наши
-     цифры» на любом шаблонном сайте: набор общих символов, которые к
-     воздушным шарам не имеют никакого отношения и ничего не добавляют к
-     самим цифрам.
+     Раньше в каждой карточке стоял значок из готового набора: искорки,
+     сердечко, щит, часы. Ровно так выглядит блок «наши цифры» на любом
+     шаблонном сайте — набор общих символов, которые к воздушным шарам
+     отношения не имеют.
 
-     Вместо них — список фактов на самой странице: число слева, что оно
-     значит справа, между строками волосяная линия. Рамок нет вовсе,
-     держит всё типографика. Единственное украшение — рукописная
-     надстрочка тем же шрифтом, что логотип и подписи на «Акциях» и
-     «Услугах»: это почерк студии, а не общий значок. */
+     Теперь там те самые PNG, из которых собрана гроздь на первом экране
+     и плитки акций. Ничего нового рисовать не пришлось, а блок сразу
+     стал частью этого сайта, а не любого.
+
+     Шары разные и по цвету, и по форме — как в настоящей связке. */
   const stats = [
     {
+      art: "/assets/ballon2.png",
       counter: years,
       suffix: "+ лет",
       label: "Дарим праздник и яркие эмоции",
     },
     {
+      art: "/assets/ballon5.png",
       counter: events,
       suffix: "+",
       label: "Оформленных мероприятий",
     },
     {
+      art: "/assets/ballon3.png",
       value: "Hi-Float",
       label: "Обработка для долгого полёта",
     },
     {
+      art: "/assets/ballon1.png",
       value: "24/7",
       label: "Бережная доставка точно ко времени",
     },
@@ -676,45 +680,57 @@ export default function About() {
               </p>
             </div>
 
-            <div className="md:col-span-5">
-              {/* Рукописная надстрочка — тот же шрифт, что у логотипа.
-                  pb-[0.5em] подкладывает место под росчерк «ф», иначе при
-                  leading-none он ложится на первую строку списка. */}
-              <p className="font-miana pb-[0.5em] text-2xl leading-none text-[#C46B8A] md:text-3xl">
-                в цифрах
-              </p>
-
-              {/* Список фактов, а не сетка карточек: число слева, смысл
-                  справа, между строками волосяная линия. Число крупное и
-                  фиолетовое, подпись спокойная — иерархия держится на
-                  контрасте кегля и цвета, без единой рамки. */}
-              <dl className="mt-3 border-t border-[#E8DEEE]">
-                {stats.map((stat) => (
+            <div className="grid grid-cols-2 gap-4 md:col-span-5">
+              {stats.map((stat) => {
+                const art = BALLOON_ART[stat.art];
+                return (
                   <div
                     key={stat.label}
-                    className="flex items-baseline justify-between gap-5 border-b border-[#E8DEEE] py-4"
+                    className="flex flex-col justify-between rounded-3xl border border-[#E8DEEE] bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(107,78,129,0.08)]"
                   >
-                    {/* tabular-nums — цифры одинаковой ширины. Без него
-                        строка едва заметно дёргается на каждом кадре
+                    {/* Высота задана, ширина следует из пропорций самого
+                        шара, а прозрачные поля файла уходят за пределы
+                        бокса. Поэтому все четыре шара выглядят одного
+                        роста, хотя в исходниках занимают от 46% до 93%
+                        кадра. */}
+                    <div
+                      aria-hidden="true"
+                      className="relative shrink-0"
+                      style={{ height: 52, width: 52 * art.ar }}
+                    >
+                      <img
+                        src={art.src}
+                        alt=""
+                        loading="lazy"
+                        draggable={false}
+                        className="absolute max-w-none select-none"
+                        style={balloonFit(art)}
+                      />
+                    </div>
+
+                    <div className="mt-6">
+                      {/* tabular-nums — цифры одинаковой ширины. Без него
+                        плашка едва заметно дёргается на каждом кадре
                         отсчёта, пока меняется разряд. */}
-                    <dt className="shrink-0 text-[1.75rem] leading-none font-extrabold tracking-[-0.02em] text-[#6B4E81] tabular-nums md:text-[2rem]">
-                      {stat.counter ? (
-                        <>
-                          <span ref={stat.counter.ref}>
-                            {stat.counter.value}
-                          </span>
-                          {stat.suffix}
-                        </>
-                      ) : (
-                        stat.value
-                      )}
-                    </dt>
-                    <dd className="text-right text-[15px] leading-snug font-medium text-[#5A4D66]">
-                      {stat.label}
-                    </dd>
+                      <p className="text-3xl font-extrabold tracking-[-0.02em] text-[#2D2433] tabular-nums">
+                        {stat.counter ? (
+                          <>
+                            <span ref={stat.counter.ref}>
+                              {stat.counter.value}
+                            </span>
+                            {stat.suffix}
+                          </>
+                        ) : (
+                          stat.value
+                        )}
+                      </p>
+                      <p className="mt-1.5 text-sm font-medium text-[#5A4D66] md:text-[15px]">
+                        {stat.label}
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </dl>
+                );
+              })}
             </div>
           </div>
         </div>
