@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart, type CartItem } from "../../CartContext";
 import { Minus, Plus, ShoppingCart, Check, Copy } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./sheet";
@@ -22,6 +22,16 @@ export const CartDrawer = () => {
   /* Заполняется, если браузер не дал доступ к буферу: тогда показываем
      текст заявки прямо в окне, чтобы её можно было скопировать руками. */
   const [manual, setManual] = useState("");
+
+  /* ПОДТВЕРЖДЕНИЕ СБРАСЫВАЕТСЯ ПРИ ЛЮБОЙ ПРАВКЕ КОРЗИНЫ.
+     Иначе после первого нажатия надпись «Заказ скопирован» висела бы и
+     дальше — а человек тем временем добавил или убрал композицию, и в
+     буфере лежит уже не то, что он видит на экране. Отправил бы он
+     устаревший список, ничего не заподозрив. */
+  useEffect(() => {
+    setCopied(false);
+    setManual("");
+  }, [cart]);
 
   /* ЗАЯВКА УХОДИТ ЧЕРЕЗ ВКОНТАКТЕ, а не через нашу отправку.
 
@@ -117,10 +127,12 @@ export const CartDrawer = () => {
             </div>
 
             <div className="border-t border-[#E8DEEE] p-6 bg-[#FDFBFD]">
-              <p className="text-sm font-medium text-[#5A4D66] bg-[#F0E8F4]/50 p-3 rounded-xl border border-[#E8DEEE] mb-5 text-center leading-relaxed">
-                Список заказа скопируется, и откроется наш диалог во
-                ВКонтакте — останется вставить его и отправить. Ответим и
-                согласуем детали, доставку и точную стоимость.
+              {/* Что будет ПОСЛЕ отправки. Как именно нажать — отдельной
+                  строкой прямо под кнопкой: там это и нужно прочитать,
+                  а не за два экрана до неё. */}
+              <p className="mb-5 rounded-xl border border-[#E8DEEE] bg-[#F0E8F4]/50 p-3 text-center text-sm leading-relaxed font-medium text-[#5A4D66]">
+                Ответим во ВКонтакте, согласуем детали, доставку и точную
+                стоимость.
               </p>
 
               <div className="mb-6">
@@ -170,14 +182,22 @@ export const CartDrawer = () => {
                 Заказать во ВКонтакте
               </button>
 
-              {/* Подтверждение: что произошло и что делать дальше. */}
-              {copied && (
+              {/* Строка под кнопкой: до нажатия — что произойдёт, после —
+                  что уже произошло. Место одно и то же, поэтому вёрстка не
+                  прыгает, а человек читает подсказку там, где принимает
+                  решение, — а не в блоке над корзиной. */}
+              {copied ? (
                 <p className="mt-3 flex items-start justify-center gap-2 text-center text-[15px] leading-snug font-semibold text-[#6B4E81]">
                   <Check className="mt-0.5 h-5 w-5 shrink-0" />
                   <span>
                     Заказ скопирован. Вставьте его в открывшийся диалог —
                     Ctrl+V, на телефоне долгое нажатие и «Вставить».
                   </span>
+                </p>
+              ) : (
+                <p className="mt-3 text-center text-[15px] leading-snug font-medium text-[#5A4D66]">
+                  Нажмите кнопку, заказ скопируется и вы сможете вставить
+                  его в диалог
                 </p>
               )}
 

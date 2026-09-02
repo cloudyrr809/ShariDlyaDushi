@@ -67,8 +67,13 @@ const MOBILE_ROW =
 const MOBILE_LABEL =
   "text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase";
 
-/** Верхние разделы — плитками в ряд, чтобы их было видно сразу. */
+/** Разделы сайта — ровно те же и в том же порядке, что в строке меню на
+    десктопе. Списки категорий и услуг идут НИЖЕ, как их содержимое: сами
+    «Каталог» и «Услуги» — тоже страницы, и открыть их целиком должно быть
+    так же просто, как выбрать один раздел внутри. */
 const MAIN_LINKS = [
+  { to: "/catalog", name: "Каталог" },
+  { to: "/services", name: "Услуги" },
   { to: "/feed", name: "Лента" },
   { to: "/promotions", name: "Акции" },
   { to: "/about", name: "О нас" },
@@ -94,6 +99,18 @@ export const Header = () => {
     setMobileMenuOpen(false);
   }, [location.pathname, location.hash]);
 
+  /* Пока открыто меню, страница под ним не прокручивается. Без этого палец
+     на списке разделов уводит вниз саму страницу — меню стоит на месте, а
+     под ним всё уезжает, и при закрытии оказываешься не там, где был. */
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const was = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = was;
+    };
+  }, [mobileMenuOpen]);
+
   // ФУНКЦИЯ ДЛЯ АКТИВНОГО КЛАССА В МЕНЮ
   const getNavLinkClass = (path: string, hashMatch: string = "") => {
     let isCurrent = false;
@@ -114,7 +131,12 @@ export const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#E8DEEE]/80 bg-[#FDFBFD]/90 backdrop-blur-md px-6 py-4">
+    /* Размытие подложки — только с lg. Backdrop-filter пересчитывается на
+       каждом кадре прокрутки по всей ширине полосы: на телефоне это одна
+       из самых заметных статей расхода, а выигрыш — полупрозрачность,
+       которую на маленьком экране всё равно не разглядеть. Ниже lg полоса
+       просто непрозрачная. */
+    <header className="sticky top-0 z-50 border-b border-[#E8DEEE]/80 bg-[#FDFBFD] px-6 py-4 lg:bg-[#FDFBFD]/90 lg:backdrop-blur-md">
       {/* max-w-[76rem] — единая сетка для всех страниц (главная, каталог,
           услуги): логотип слева и кнопка справа стоят ровно по краям
           контента страницы */}
@@ -298,70 +320,105 @@ export const Header = () => {
         </div>
       </div>
 
-      {/* Мобильное раскрывающееся меню.
+      {/* ═══════════════ МОБИЛЬНОЕ МЕНЮ — ОТДЕЛЬНЫЙ ЭКРАН ═══════════════
 
-          max-h + прокрутка обязательны: пунктов девятнадцать, и на
-          экране высотой 667px (iPhone SE) список целиком не помещается —
-          без этого нижние разделы оказывались за краем экрана, а шапка
-          sticky и прокрутить до них было нечем. */}
+          Раньше оно раскрывалось ВНУТРИ шапки, и шапка от этого вырастала
+          на восемьсот пикселей: липкая полоса превращалась в стену, под
+          которой ещё и продолжала ездить страница. Плюс на ней висело
+          размытие подложки — а размывать теперь приходилось экран целиком.
+
+          Теперь это отдельный слой поверх всего (z-[60] — выше самой шапки
+          с её z-50), со своей прокруткой и со своей строкой-заголовком на
+          месте шапки. Страница под ним заморожена, поэтому палец не
+          прокручивает её вместо списка.
+
+          Порядок пунктов — от главного к частному: сначала пять разделов
+          сайта крупными строками, потом их содержимое, в самом низу связь.
+          Прежняя версия начиналась сразу с девяти категорий каталога, и
+          «Лента» с «Акциями» терялись среди них. */}
       {mobileMenuOpen && (
-        <div className="mt-4 max-h-[calc(100svh-7rem)] space-y-5 overflow-y-auto overscroll-contain rounded-3xl border border-[#E8DEEE] bg-white p-5 shadow-lg lg:hidden">
-          {/* Разделы верхнего уровня */}
-          <div className="grid grid-cols-3 gap-2">
-            {MAIN_LINKS.map((item) => {
-              const active = location.pathname.startsWith(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`rounded-2xl px-3 py-3 text-center text-[15px] font-semibold transition ${
-                    active
-                      ? "bg-[#6B4E81] text-white"
-                      : "bg-[#F8F4F9] text-[#2D2433] hover:bg-[#F0E5F5]"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
+        <div className="fixed inset-0 z-[60] flex flex-col bg-[#FDFBFD] lg:hidden">
+          {/* Строка ровно на месте шапки — панель открывается без прыжка */}
+          <div className="flex shrink-0 items-center justify-between border-b border-[#E8DEEE] px-6 py-4">
+            <span className="font-miana text-lg tracking-wide text-[#6B4E81] min-[375px]:text-2xl">
+              ШарыДляДуши
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Закрыть меню"
+              className="-mr-2 cursor-pointer p-2 text-[#2D2433]"
+            >
+              <X />
+            </button>
           </div>
 
-          <div>
-            <div className={`${MOBILE_LABEL} mb-2 px-1`}>Каталог</div>
-            {/* Две колонки только с 360px: на 320px в колонку остаётся 110px
-                под подпись, и самые длинные названия туда не помещаются
-                даже с переносом. */}
-            <div className="grid grid-cols-1 gap-1 min-[360px]:grid-cols-2">
-              {categoriesWithAll.map((item) => (
-                <Link key={item.id} to={`/catalog#${item.id}`} className={MOBILE_ROW}>
-                  {item.name}
-                </Link>
-              ))}
+          <nav className="flex-1 overflow-y-auto overscroll-contain px-6 py-5">
+            {/* ПЯТЬ РАЗДЕЛОВ САЙТА — то же, что в строке меню на десктопе */}
+            <ul className="border-b border-[#E8DEEE] pb-4">
+              {MAIN_LINKS.map((item) => {
+                const active =
+                  item.to === "/"
+                    ? location.pathname === "/"
+                    : location.pathname.startsWith(item.to);
+                return (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      className={`flex items-center justify-between py-3.5 text-[19px] font-semibold transition ${
+                        active ? "text-[#6B4E81]" : "text-[#2D2433]"
+                      }`}
+                    >
+                      {item.name}
+                      <ChevronDown className="h-5 w-5 -rotate-90 text-[#C9B4D6]" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="pt-5">
+              <div className={`${MOBILE_LABEL} mb-2`}>Разделы каталога</div>
+              {/* Две колонки только с 360px: на 320px в колонку остаётся
+                  110px под подпись, и самые длинные названия туда не
+                  помещаются даже с переносом. */}
+              <div className="-mx-3.5 grid grid-cols-1 min-[360px]:grid-cols-2">
+                {categoriesWithAll.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/catalog#${item.id}`}
+                    className={MOBILE_ROW}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="border-t border-[#E8DEEE] pt-4">
-            <div className={`${MOBILE_LABEL} mb-2 px-1`}>Услуги</div>
-            {/* Одна колонка, а не две: названия услуг длиннее названий
-                разделов каталога («Съемки в детсадах и школах»), и в две
-                колонки почти каждое ломалось на две строки. */}
-            <div className="grid gap-1">
-              {serviceItems.map((item) => (
-                <Link
-                  key={item.key}
-                  to={`/services#${item.key}`}
-                  className={MOBILE_ROW}
-                >
-                  {item.name}
-                </Link>
-              ))}
+            <div className="mt-5 border-t border-[#E8DEEE] pt-5">
+              <div className={`${MOBILE_LABEL} mb-2`}>Что мы делаем</div>
+              {/* Одна колонка: названия услуг длиннее категорий каталога
+                  («Съемки в детсадах и школах»), и в две колонки почти
+                  каждое ломалось на две строки. */}
+              <div className="-mx-3.5 grid">
+                {serviceItems.map((item) => (
+                  <Link
+                    key={item.key}
+                    to={`/services#${item.key}`}
+                    className={MOBILE_ROW}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          </nav>
 
-          {/* Контакты. На телефоне кнопка «Свяжитесь с нами» из шапки
-              спрятана (места в ряду нет), и без этого блока связаться со
-              студии было нечем, пока не долистаешь до подвала. */}
-          <div className="grid grid-cols-2 gap-2 border-t border-[#E8DEEE] pt-4">
+          {/* Связь — закреплена внизу экрана, а не в конце длинного списка.
+              Кнопка «Свяжитесь с нами» из шапки на телефоне спрятана: места
+              в ряду нет, и без этого блока написать студии было неоткуда,
+              пока не долистаешь до подвала. */}
+          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-[#E8DEEE] bg-white px-6 py-4">
             <a
               href="tel:+79806616888"
               className="flex items-center justify-center gap-2 rounded-2xl bg-[#6B4E81] px-3 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-90"

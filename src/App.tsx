@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { Hero } from "./components/ui/Hero";
@@ -15,42 +15,82 @@ import comp7 from "./assets/composition-7.jpg";
 import comp1_1 from "./assets/composition1.1.jpg";
 import comp1_2 from "./assets/composition1.2.jpg";
 
+/* ─────────────────────── НАШИ КОМПОЗИЦИИ ───────────────────────
+
+   Один список на обе раскладки. Раньше снимки были рассыпаны прямо по
+   разметке: три в видимой части, четыре под кнопкой «показать больше», и
+   у каждого свой object-position в классе. Добавить восьмой значило
+   вписать его в нужное место руками и не забыть про вторую раскладку.
+
+   Раскладок две, и они разные по существу. На широком экране всё как
+   было: мозаика из трёх снимков и кнопка «показать больше», по которой
+   выезжают остальные четыре. На телефоне кнопки нет — там снимки
+   листаются пальцем: раскрытие сетки в одну колонку добавляло экран
+   высоты и заставляло страницу подпрыгивать, а листать привычнее.
+
+   pos — куда смотреть при обрезке: у половины снимков главное не в
+   середине кадра. */
+const COMPOSITIONS = [
+  { src: comp3, alt: "Композиция с цифрой", pos: "object-[50%_76%]" },
+  { src: comp1_2, alt: "Детская фотосессия", pos: "" },
+  { src: comp1_1, alt: "Праздник с шарами", pos: "object-[50%_26%]" },
+  { src: comp4, alt: "Композиция из шаров пастельных тонов", pos: "object-top" },
+  { src: comp5, alt: "Композиция с фольгированными шарами", pos: "" },
+  { src: comp6, alt: "Оформление праздника шарами", pos: "object-[40%_6%]" },
+  { src: comp7, alt: "Связка шаров с цифрой", pos: "object-[50%_40%]" },
+];
+
 export default function App() {
-  const [showMoreCompositions, setShowMoreCompositions] = useState(false);
+  /* Какой снимок сейчас по центру ленты — только для точек под ней.
+     Считается из прокрутки самой ленты, а не наоборот: листание остаётся
+     нативным, со всей его инерцией и прилипанием. */
+  const strip = useRef<HTMLDivElement | null>(null);
+  const [shot, setShot] = useState(0);
 
-  // Реф для плавного скролла к секции композиций
-  const compositionsRef = useRef<HTMLElement | null>(null);
+  /* Раскрытие мозаики на широком экране. На телефоне этой кнопки нет —
+     там всё листается пальцем, — поэтому и состояние работает только там,
+     где кнопка вообще отрисована. */
+  const [showMore, setShowMore] = useState(false);
+  const section = useRef<HTMLElement | null>(null);
 
-  // Мягкое переключение без рывков
   const toggleShowMore = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.blur(); // Убираем фокус с кнопки
+    e.currentTarget.blur();
 
-    if (showMoreCompositions) {
-      if (compositionsRef.current) {
-        const headerOffset = 80; // Учитываем высоту липкой шапки
-        const topPos =
-          compositionsRef.current.getBoundingClientRect().top +
-          window.scrollY -
-          headerOffset;
-
-        // 1. Сначала запускаем плавный скролл наверх
-        window.scrollTo({
-          top: topPos,
-          behavior: "smooth",
-        });
-
-        // 2. Даем браузеру 400 миллисекунд, чтобы доехать наверх,
-        // и ТОЛЬКО ПОТОМ начинаем плавно схлопывать сетку.
-        // Так высота страницы не будет конфликтовать со скроллом!
-        setTimeout(() => {
-          setShowMoreCompositions(false);
-        }, 400);
-      } else {
-        setShowMoreCompositions(false);
-      }
-    } else {
-      setShowMoreCompositions(true);
+    if (!showMore) {
+      setShowMore(true);
+      return;
     }
+
+    /* Схлопываем НЕ СРАЗУ. Сначала возвращаем экран к началу блока и
+       только потом убираем нижний ряд: иначе страница укорачивается
+       под уже едущей прокруткой и та промахивается мимо цели. */
+    const el = section.current;
+    if (!el) {
+      setShowMore(false);
+      return;
+    }
+    window.scrollTo({
+      top: el.getBoundingClientRect().top + window.scrollY - 80,
+      behavior: "smooth",
+    });
+    setTimeout(() => setShowMore(false), 400);
+  };
+
+  const onStripScroll = () => {
+    const el = strip.current;
+    if (!el) return;
+    const step = el.scrollWidth / COMPOSITIONS.length;
+    const i = Math.round(el.scrollLeft / step);
+    setShot(Math.min(COMPOSITIONS.length - 1, Math.max(0, i)));
+  };
+
+  const goToShot = (i: number) => {
+    const el = strip.current;
+    if (!el) return;
+    el.scrollTo({
+      left: (el.scrollWidth / COMPOSITIONS.length) * i,
+      behavior: "smooth",
+    });
   };
 
   return (
@@ -59,103 +99,140 @@ export default function App() {
 
       {/* Наши композиции */}
       <section
-        ref={compositionsRef}
+        ref={section}
         id="compositions"
-        className="bg-[#FFFAFD] px-6 py-20"
+        className="bg-[#FFFAFD] px-6 py-16 md:py-20"
       >
         <div className="mx-auto max-w-[76rem]">
-          <p className="text-center text-[13px] font-medium uppercase tracking-widest text-[#6B4E81]">
+          <p className="text-center text-[13px] font-medium tracking-widest text-[#6B4E81] uppercase">
             Больше 5 лет с вами
           </p>
-          <h2 className="mt-2 text-center font-serif text-3xl font-semibold text-[#2D2433] md:text-5xl">
+          <h2 className="mt-2 text-center font-serif text-[1.9rem] font-semibold text-[#2D2433] md:text-5xl">
             Наши Композиции
           </h2>
 
-          {/* Основная сетка */}
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-2 h-96 rounded-3xl overflow-hidden shadow-sm group relative">
-              <img
-                src={comp3}
-                alt="Композиция с цифрой"
-                className="w-full h-full object-cover object-[50%_76%] group-hover:scale-105 transition duration-500"
-              />
-            </div>
-            <div className="flex flex-col gap-6">
-              <div className="h-44 rounded-3xl overflow-hidden shadow-sm group relative">
-                <img
-                  src={comp1_2}
-                  alt="Детская фотосессия"
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                />
-              </div>
-              <div className="h-44 rounded-3xl overflow-hidden shadow-sm group relative">
-                <img
-                  src={comp1_1}
-                  alt="Праздник с шарами"
-                  className="w-full h-full object-cover object-[50%_26%] group-hover:scale-105 transition duration-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Плавный контейнер с ультра-мягкой анимацией duration-700 */}
-          <div
-            className={`grid transition-all duration-700 ease-out ${
-              showMoreCompositions
-                ? "grid-rows-[1fr] opacity-100 mt-6"
-                : "grid-rows-[0fr] opacity-0 mt-0"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-sm group relative">
-                  <img
-                    src={comp4}
-                    alt="Композиция 4"
-                    className="w-full h-full object-cover object-[center_top] group-hover:scale-105 transition duration-500"
-                  />
-                </div>
-
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-sm group relative">
-                  <img
-                    src={comp5}
-                    alt="Композиция 5"
-                    className="w-full h-full object-cover object-[center_center] group-hover:scale-105 transition duration-500"
-                  />
-                </div>
-
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-sm group relative">
-                  <img
-                    src={comp6}
-                    alt="Композиция 6"
-                    className="w-full h-full object-cover object-[40%_6%] group-hover:scale-105 transition duration-500"
-                  />
-                </div>
-
-                <div className="aspect-square rounded-3xl overflow-hidden shadow-sm group relative">
-                  <img
-                    src={comp7}
-                    alt="Композиция 7"
-                    className="w-full h-full object-cover object-[50%_40%] group-hover:scale-105 transition duration-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Кнопка "ПОКАЗАТЬ БОЛЬШЕ / СКРЫТЬ" */}
-          <div className="mt-12 text-center">
-            <button
-              onClick={toggleShowMore}
-              className="inline-flex items-center gap-2 rounded-full border border-[#E8DEEE] bg-white px-8 py-3 text-[13px] font-medium uppercase tracking-widest text-[#6B4E81] hover:bg-[#F8F4F9] hover:border-[#6B4E81] transition shadow-sm cursor-pointer"
+          {/* ── ТЕЛЕФОН: лента с прокруткой вбок ──
+              -mx-6 + px-6 выводят ленту под самые края экрана, оставляя
+              первый снимок на сетке страницы. Ширина слайда 78%, поэтому
+              справа всегда торчит край следующего — это и есть подсказка,
+              что ленту можно листать, без единой надписи об этом. */}
+          <div className="md:hidden">
+            <div
+              ref={strip}
+              onScroll={onStripScroll}
+              className="scrollbar-hide -mx-6 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6"
             >
-              {showMoreCompositions ? "Скрыть" : "Показать больше"}
-              <ChevronDown
-                className={`w-4 h-4 transition-transform duration-500 ${
-                  showMoreCompositions ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+              {COMPOSITIONS.map((c, i) => (
+                <div
+                  key={c.alt}
+                  className="aspect-[3/4] w-[78%] shrink-0 snap-start overflow-hidden rounded-3xl bg-[#F0E8F4]"
+                >
+                  <img
+                    src={c.src}
+                    alt={c.alt}
+                    /* Первый снимок виден сразу — его тянем обычным
+                       порядком, остальные по мере листания. */
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                    className={`h-full w-full object-cover ${c.pos}`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex justify-center gap-2">
+              {COMPOSITIONS.map((c, i) => (
+                <button
+                  key={c.alt}
+                  type="button"
+                  onClick={() => goToShot(i)}
+                  aria-label={`Снимок ${i + 1} из ${COMPOSITIONS.length}`}
+                  aria-current={i === shot}
+                  /* Точка мелкая, а поле нажатия вокруг неё — 24px:
+                     попасть пальцем в четыре пикселя невозможно. */
+                  className="cursor-pointer p-2.5"
+                >
+                  <span
+                    className={`block h-1.5 rounded-full transition-all duration-300 ${
+                      i === shot ? "w-5 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4]"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── ШИРОКИЙ ЭКРАН: прежняя мозаика с раскрытием по кнопке ──
+
+              Кнопка осталась только здесь. На телефоне от неё отказались:
+              там лента листается пальцем, и раскрывать нечего — а вот на
+              широком экране это и есть способ не занимать пол-страницы
+              снимками, пока их не попросили. */}
+          <div className="hidden md:block">
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              <div className="group h-96 overflow-hidden rounded-3xl shadow-sm md:col-span-2">
+                <img
+                  src={COMPOSITIONS[0].src}
+                  alt={COMPOSITIONS[0].alt}
+                  className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${COMPOSITIONS[0].pos}`}
+                />
+              </div>
+              <div className="flex flex-col gap-6">
+                {COMPOSITIONS.slice(1, 3).map((c) => (
+                  <div
+                    key={c.alt}
+                    className="group h-44 overflow-hidden rounded-3xl shadow-sm"
+                  >
+                    <img
+                      src={c.src}
+                      alt={c.alt}
+                      className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${c.pos}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Плавное раскрытие: сетка едет от 0fr к 1fr, без скачка высоты */}
+            <div
+              className={`grid transition-all duration-700 ease-out ${
+                showMore
+                  ? "mt-6 grid-rows-[1fr] opacity-100"
+                  : "mt-0 grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="grid gap-6 md:grid-cols-2">
+                  {COMPOSITIONS.slice(3).map((c) => (
+                    <div
+                      key={c.alt}
+                      className="group aspect-square overflow-hidden rounded-3xl shadow-sm"
+                    >
+                      <img
+                        src={c.src}
+                        alt={c.alt}
+                        loading="lazy"
+                        className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${c.pos}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 text-center">
+              <button
+                onClick={toggleShowMore}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#E8DEEE] bg-white px-8 py-3 text-[13px] font-medium tracking-widest text-[#6B4E81] uppercase shadow-sm transition hover:border-[#6B4E81] hover:bg-[#F8F4F9]"
+              >
+                {showMore ? "Скрыть" : "Показать больше"}
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-500 ${
+                    showMore ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -59,36 +59,75 @@ const Cropped = ({ img, className }: { img: Img; className?: string }) => (
 );
 
 export const CareCards = () => {
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const [shown, setShown] = useState(false);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  /* КАЖДАЯ КАРТОЧКА ПОЯВЛЯЕТСЯ САМА, а не все шестеро по одному сигналу.
+
+     Раньше наблюдение шло за всей сеткой: стоило ей краем показаться на
+     экране — и запускался общий каскад с шагом в 300 мс. На широком
+     экране это две строки по три, каскад укладывается в секунду и его
+     видно целиком. На телефоне же колонка ОДНА, сетка высотой в две
+     тысячи пикселей: каскад отыгрывал где-то внизу, за краем экрана, и
+     до нижних карточек человек долистывал уже к пустым местам —
+     карточки занимали высоту, но были прозрачными.
+
+     Значение в словаре — задержка карточки внутри той пачки, в которой
+     она показалась. На широком экране строка выезжает целиком, пачка из
+     трёх, и каскад остаётся прежним. На телефоне карточка приходит одна,
+     пачка из одной, задержки нет — она проявляется сразу. Ширину экрана
+     при этом знать не нужно, всё решает сам факт появления. */
+  const [delays, setDelays] = useState<Record<number, number>>({});
+  const isShown = (i: number) => i in delays;
 
   useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
+    const all = careCards.map((_, i) => i);
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShown(true);
+      setDelays(Object.fromEntries(all.map((i) => [i, 0])));
       return;
     }
 
     const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setShown(true);
-        io.disconnect(); // одноразово: дальше наблюдать нечего
+      (entries) => {
+        const hit = entries
+          .filter((e) => e.isIntersecting)
+          .map((e) => Number((e.target as HTMLElement).dataset.card));
+        if (!hit.length) return;
+
+        setDelays((prev) => {
+          const next = { ...prev };
+          hit.forEach((i, k) => {
+            if (!(i in next)) next[i] = k * STEP_MS;
+          });
+          return next;
+        });
+        // Показанную карточку больше не наблюдаем: эффект одноразовый
+        hit.forEach((i) => {
+          const el = cardRefs.current[i];
+          if (el) io.unobserve(el);
+        });
       },
-      { threshold: 0.12 },
+      { threshold: 0.15 },
     );
-    io.observe(el);
+
+    cardRefs.current.forEach((el) => el && io.observe(el));
     return () => io.disconnect();
   }, []);
 
+  /* Размытие на входе — только там, где есть чем его считать. Переход
+     фильтра заставляет перерисовывать карточку каждый кадр, и на
+     телефоне шесть таких переходов подряд заметно дёргаются. */
+  const softBlur = useRef(
+    typeof window !== "undefined" &&
+      !window.matchMedia("(hover: none)").matches,
+  ).current;
+
   // общий помощник: плавный выход слоя с собственной задержкой
-  const layer = (base: number, step: number, hidden: string) => ({
-    opacity: shown ? 1 : 0,
-    transform: shown ? "none" : hidden,
+  const layer = (idx: number, step: number, hidden: string) => ({
+    opacity: isShown(idx) ? 1 : 0,
+    transform: isShown(idx) ? "none" : hidden,
     transition: `opacity ${REVEAL_MS}ms ${EASE}, transform ${REVEAL_MS}ms ${EASE}`,
-    transitionDelay: shown ? `${base + step}ms` : "0ms",
+    transitionDelay: isShown(idx) ? `${delays[idx] + step}ms` : "0ms",
   });
 
   return (
@@ -102,9 +141,8 @@ export const CareCards = () => {
         </p>
 
         {/* Три карточки в ряд, во втором ряду ещё три */}
-        <div ref={gridRef} className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           {careCards.map((card, idx) => {
-            const base = idx * STEP_MS;
             const top = card.images.find((i) => i.bleed === "top");
             const bottom = card.images.find((i) => i.bleed === "bottom");
             const inline = card.images.filter((i) => !i.bleed);
@@ -113,16 +151,22 @@ export const CareCards = () => {
             return (
               <div
                 key={card.title}
+                ref={(el) => {
+                  cardRefs.current[idx] = el;
+                }}
+                data-card={idx}
                 className="relative flex flex-col items-center overflow-hidden rounded-3xl border border-[#E8DEEE] bg-white p-7 text-center"
                 style={{
-                  opacity: shown ? 1 : 0,
-                  transform: shown ? "none" : "translateY(22px) scale(0.975)",
-                  filter: shown ? "blur(0px)" : "blur(3.5px)",
-                  boxShadow: shown
+                  opacity: isShown(idx) ? 1 : 0,
+                  transform: isShown(idx)
+                    ? "none"
+                    : "translateY(22px) scale(0.975)",
+                  filter: !softBlur || isShown(idx) ? "blur(0px)" : "blur(3.5px)",
+                  boxShadow: isShown(idx)
                     ? "0 18px 40px -28px rgba(107,78,129,0.45)"
                     : "0 0 0 rgba(107,78,129,0)",
                   transition: `opacity ${REVEAL_MS}ms ${EASE}, transform ${REVEAL_MS}ms ${EASE}, filter ${REVEAL_MS}ms ${EASE}, box-shadow ${REVEAL_MS}ms ${EASE}`,
-                  transitionDelay: shown ? `${base}ms` : "0ms",
+                  transitionDelay: isShown(idx) ? `${delays[idx]}ms` : "0ms",
                 }}
               >
                 {/* Шар, прижатый к верхней кромке карточки во всю её ширину.
@@ -139,7 +183,7 @@ export const CareCards = () => {
                       className="memo-figure memo-figure--top absolute top-0 left-0 z-0 w-full"
                       style={{
                         aspectRatio: `${top.ar}`,
-                        ...layer(base, LAYER_MS, "translateY(-9px) scale(1.025)"),
+                        ...layer(idx, LAYER_MS, "translateY(-9px) scale(1.025)"),
                       }}
                     >
                       <Cropped img={top} />
@@ -158,7 +202,7 @@ export const CareCards = () => {
                       style={{
                         height: MEDIA_H / (bottom.headFrac ?? 0.667),
                         aspectRatio: `${bottom.ar}`,
-                        ...layer(base, LAYER_MS, "translateY(10px) scale(0.955)"),
+                        ...layer(idx, LAYER_MS, "translateY(10px) scale(0.955)"),
                       }}
                     >
                       <div className="relative h-full w-full">
@@ -186,7 +230,7 @@ export const CareCards = () => {
                     className="flex items-end justify-center gap-4"
                     style={{
                       height: MEDIA_H,
-                      ...layer(base, LAYER_MS, "translateY(9px) scale(0.94)"),
+                      ...layer(idx, LAYER_MS, "translateY(9px) scale(0.94)"),
                     }}
                   >
                     {inline.map((img, i) => {
@@ -225,13 +269,13 @@ export const CareCards = () => {
                 {/* Текст поверх ленты */}
                 <h4
                   className="relative z-10 mt-5 font-serif text-base font-semibold text-[#2D2433]"
-                  style={layer(base, LAYER_MS * 2, "translateY(8px)")}
+                  style={layer(idx, LAYER_MS * 2, "translateY(8px)")}
                 >
                   {card.title}
                 </h4>
                 <p
                   className="relative z-10 mt-2 text-sm font-medium leading-relaxed text-[#5A4D66]"
-                  style={layer(base, LAYER_MS * 3, "translateY(8px)")}
+                  style={layer(idx, LAYER_MS * 3, "translateY(8px)")}
                 >
                   {card.description}
                 </p>
