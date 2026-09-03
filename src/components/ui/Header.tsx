@@ -8,6 +8,7 @@ import { useCart, type CartItem } from "../../CartContext";
 // список берём из lib/catalog, чтобы порядок совпадал в обоих местах.
 import { serviceItems } from "../../constants";
 import { categoriesWithAll } from "../../lib/catalog";
+import { pauseSmoothScroll } from "../../lib/smoothScroll";
 
 import {
   Dialog,
@@ -106,8 +107,12 @@ export const Header = () => {
     if (!mobileMenuOpen) return;
     const was = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Плавная прокрутка живёт своей жизнью и запрет на теле не видит —
+    // её тоже надо остановить, иначе колесо всё равно двигало бы фон.
+    const resume = pauseSmoothScroll();
     return () => {
       document.body.style.overflow = was;
+      resume();
     };
   }, [mobileMenuOpen]);
 
@@ -353,7 +358,10 @@ export const Header = () => {
             </button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto overscroll-contain px-6 py-5">
+          <nav
+            data-lenis-prevent
+            className="flex-1 overflow-y-auto overscroll-contain px-6 py-5"
+          >
             {/* ПЯТЬ РАЗДЕЛОВ САЙТА — то же, что в строке меню на десктопе */}
             <ul className="border-b border-[#E8DEEE] pb-4">
               {MAIN_LINKS.map((item) => {

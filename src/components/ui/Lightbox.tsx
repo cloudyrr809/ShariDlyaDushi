@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
    не переписывать импорты по всему проекту. */
 export type { Shot } from "../../lib/media";
 import type { Shot } from "../../lib/media";
+import { pauseSmoothScroll } from "../../lib/smoothScroll";
 
 /** Насколько далеко надо провести пальцем, чтобы это засчиталось за
     перелистывание, а не за дрожание руки при обычном тапе. */
@@ -72,9 +73,13 @@ export function Lightbox({
     const prevPad = body.style.paddingRight;
     body.style.overflow = "hidden";
     if (gap > 0) body.style.paddingRight = `${gap}px`;
+    // Плавная прокрутка про overflow на теле не знает и продолжила бы
+    // двигать страницу под просмотрщиком — замораживаем и её.
+    const resume = pauseSmoothScroll();
     return () => {
       body.style.overflow = prevOverflow;
       body.style.paddingRight = prevPad;
+      resume();
     };
   }, [open]);
 

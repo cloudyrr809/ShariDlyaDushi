@@ -87,6 +87,11 @@ create table if not exists public.products (
   created_at  timestamptz not null default now()
 );
 
+-- Описание и характеристики карточки — для окна «Подробнее».
+-- specs: [{"name": "Состав", "value": "12 латексных шаров"}, ...]
+alter table public.products add column if not exists description text not null default '';
+alter table public.products add column if not exists specs jsonb not null default '[]'::jsonb;
+
 -- Если таблицу успели создать с одиночной колонкой category_id —
 -- переносим её значение в список и убираем. Повторный запуск безвреден.
 do $$
@@ -142,6 +147,35 @@ create table if not exists public.promotions (
   published   boolean not null default true,
   created_at  timestamptz not null default now()
 );
+
+-- Условия работы студии: доставка, оплата, возврат, памятка по уходу.
+-- ОДНА строка с постоянным ключом 'main' — это правила студии, а не
+-- свойство отдельного товара. Каждое поле — массив абзацев.
+create table if not exists public.settings (
+  id         text primary key default 'main',
+  delivery   jsonb not null default '[]'::jsonb,
+  payment    jsonb not null default '[]'::jsonb,
+  returns    jsonb not null default '[]'::jsonb,
+  care       jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+-- У условий нет черновиков: они либо есть, либо показываются
+-- значения по умолчанию из кода. Поэтому правило чтения своё —
+-- «видно всем без оговорок», а не общее по колонке published.
+alter table public.settings enable row level security;
+
+drop policy if exists "условия видны всем" on public.settings;
+create policy "условия видны всем"
+  on public.settings for select using (true);
+
+drop policy if exists "админ пишет условия" on public.settings;
+create policy "админ пишет условия"
+  on public.settings for insert to authenticated with check (true);
+
+drop policy if exists "админ правит условия" on public.settings;
+create policy "админ правит условия"
+  on public.settings for update to authenticated using (true) with check (true);
 
 -- Правила те же, что у постов: читают опубликованное все, пишет админ.
 -- Цикл, чтобы не повторять почти одинаковые policy руками.

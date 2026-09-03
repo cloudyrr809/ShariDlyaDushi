@@ -367,3 +367,24 @@
    компоненте: там шарик просто не показывается. Гасить анимацию через CSS
    нельзя — компонент ждёт событие её окончания, чтобы назначить следующий
    вылет, и без анимации шарик застрял бы невидимым за нижней кромкой. */
+
+/* ─────────────────── ПЛАВНАЯ ПРОКРУТКА (Lenis) ───────────────────
+   Служебные классы Lenis навешивает на <html> сам. Правила — те же, что
+   в официальном lenis.css: пока плавный скролл включён, родной
+   scroll-behavior нужно отключить, иначе они дерутся. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}

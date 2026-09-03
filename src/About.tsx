@@ -6,10 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
-  Sparkles,
-  Heart,
-  ShieldCheck,
-  Clock,
 } from "lucide-react";
 
 import { CoverHeader } from "./components/ui/PageHeader";
@@ -169,28 +165,35 @@ export default function About() {
   const years = useCountUp(5);
   const events = useCountUp(3000);
 
+  /* ЧЕТЫРЕ ФАКТА О СТУДИИ — тремя уровнями набора, без единого значка.
+     Крупное число, под ним короткая метка-плашка (что это за число), под
+     ней строка объяснения. Раньше здесь стояли белые карточки со
+     значками из готового набора — искорки, сердечко, щит, часы. Именно
+     они и делали блок похожим на шаблон: к воздушным шарам эти значки
+     отношения не имеют, а место занимали столько же, сколько сам факт.
+     Теперь работу картинки делает сам кегль. */
   const stats = [
     {
-      icon: Sparkles,
       counter: years,
-      suffix: "+ лет",
+      suffix: "+",
+      tag: "лет в деле",
       label: "Дарим праздник и яркие эмоции",
     },
     {
-      icon: Heart,
       counter: events,
       suffix: "+",
-      label: "Оформленных мероприятий",
+      tag: "праздников",
+      label: "Оформленных мероприятий по всему городу",
     },
     {
-      icon: ShieldCheck,
       value: "Hi-Float",
-      label: "Обработка для долгого полёта",
+      tag: "обработка",
+      label: "Держит гелий: шары живут от 3 дней до двух недель",
     },
     {
-      icon: Clock,
       value: "24/7",
-      label: "Бережная доставка точно ко времени",
+      tag: "доставка",
+      label: "Бережно привезём композицию точно ко времени",
     },
   ];
 
@@ -653,56 +656,73 @@ export default function About() {
           <div className="absolute inset-0 bg-[#FBF7FC]/86" />
         </div>
 
+        {/* РАСКЛАДКА: слева рассказ, справа четыре факта в две колонки.
+            Цифрам отдано БОЛЬШЕ места, чем тексту (семь колонок против
+            пяти): они здесь и есть картинка блока, и мельчить их — значит
+            снова получить набор одинаковых плашек. */}
         <div className="relative mx-auto max-w-[79rem] px-6">
-          <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-10">
-            {/* Текст шире цифр: семь колонок против пяти. */}
-            <div className="md:col-span-7">
-              <p className="text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
-                Наша философия
+          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-12 md:gap-12">
+            <div className="md:col-span-5">
+              {/* Рукописная надстрочка тем же шрифтом, что логотип, — она
+                  же стоит над призывом внизу страницы. */}
+              <p className="font-miana pb-[0.4em] text-2xl leading-none text-[#C46B8A] md:text-[1.75rem]">
+                наша философия
               </p>
-              <h2 className="mt-4 text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
+
+              <h2 className="text-[2.1rem] leading-[1.08] font-extrabold tracking-[-0.02em] text-[#2D2433] md:text-[3rem] md:leading-[1.05]">
                 Больше, чем просто воздушные шары
               </h2>
-              <p className="mt-6 max-w-xl text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
+
+              <p className="mt-7 max-w-md text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
                 Мы верим, что каждый праздник — это уникальная история и тёплые
                 воспоминания, которые остаются на всю жизнь. Мы разрабатываем
                 индивидуальные концепции, подбираем гармоничные палитры и
                 бережно доставляем эмоции точно к вашему событию.
               </p>
+
+              {/* Кнопка ведёт на «Услуги», а не в каталог: ниже на этой же
+                  странице уже стоит призыв «Перейти в каталог», и две
+                  ссылки в одно место подряд обесценивали бы обе. */}
+              <Link
+                to="/services"
+                className="group mt-8 inline-flex items-center gap-2.5 rounded-full border border-[#E8DEEE] bg-white px-7 py-3.5 text-[15px] font-semibold text-[#513A6B] shadow-[0_8px_24px_-14px_rgba(107,78,129,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#6B4E81]"
+              >
+                Что мы умеем
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 md:col-span-5">
-              {stats.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <div
-                    key={stat.label}
-                    className="flex flex-col justify-between rounded-3xl border border-[#E8DEEE] bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(107,78,129,0.08)]"
-                  >
-                    <Icon className="h-6 w-6 text-[#6B4E81]" />
-                    <div className="mt-6">
-                      {/* tabular-nums — цифры одинаковой ширины. Без него
-                        плашка едва заметно дёргается на каждом кадре
-                        отсчёта, пока меняется разряд. */}
-                      <p className="text-3xl font-extrabold tracking-[-0.02em] text-[#2D2433] tabular-nums">
-                        {stat.counter ? (
-                          <>
-                            <span ref={stat.counter.ref}>
-                              {stat.counter.value}
-                            </span>
-                            {stat.suffix}
-                          </>
-                        ) : (
-                          stat.value
-                        )}
-                      </p>
-                      <p className="mt-1.5 text-sm font-medium text-[#5A4D66] md:text-[15px]">
-                        {stat.label}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Ни рамок, ни подложек: факты лежат прямо на фоне секции.
+                Разделяет их воздух, а не четыре одинаковых прямоугольника —
+                именно они читались как готовый шаблон. */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:col-span-7 md:gap-x-10 md:gap-y-14">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  {/* tabular-nums — цифры одинаковой ширины. Без него
+                      строка едва заметно дёргается на каждом кадре
+                      отсчёта, пока меняется разряд. */}
+                  <p className="text-[2.75rem] leading-[0.9] font-extrabold tracking-[-0.035em] text-[#2D2433] tabular-nums md:text-[3.6rem]">
+                    {stat.counter ? (
+                      <>
+                        <span ref={stat.counter.ref}>{stat.counter.value}</span>
+                        {stat.suffix}
+                      </>
+                    ) : (
+                      stat.value
+                    )}
+                  </p>
+
+                  {/* Метка-плашка: говорит, что означает число над ней.
+                      Белая на просвечивающем фото — иначе капс терялся. */}
+                  <span className="mt-4 inline-block rounded-full border border-[#E8DEEE] bg-white/85 px-3.5 py-1.5 text-[13px] font-bold tracking-[0.1em] text-[#6B4E81] uppercase">
+                    {stat.tag}
+                  </span>
+
+                  <p className="mt-3.5 max-w-[19rem] text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

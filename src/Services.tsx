@@ -184,7 +184,10 @@ const ServiceCard = ({ service }: { service: Service }) => {
 
           {/* Описание услуги. Если текста больше, чем помещается по высоте —
               внутренняя прокрутка, чтобы карточка не растягивалась. */}
-          <div className="space-y-4 mb-8 lg:max-h-[360px] lg:overflow-y-auto lg:pr-4 [scrollbar-width:thin] [scrollbar-color:#C9B4D6_transparent]">
+          <div
+            data-lenis-prevent
+            className="space-y-4 mb-8 lg:max-h-[360px] lg:overflow-y-auto lg:pr-4 [scrollbar-width:thin] [scrollbar-color:#C9B4D6_transparent]"
+          >
             {service.paragraphs.map((text, i) => (
               <p
                 key={i}

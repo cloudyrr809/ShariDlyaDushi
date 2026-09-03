@@ -76,24 +76,33 @@ function Meta({ post }: { post: Post }) {
    разворот журнала. */
 function PostCard({
   post,
+  index,
   onOpen,
 }: {
   post: Post;
+  index: number;
   onOpen: (post: Post, i: number) => void;
 }) {
+  /* ЛЕНТА ЗИГЗАГОМ: чётный пост прижат к левому краю ленты, нечётный — к
+     правому, и коллаж всегда на внешней стороне (у своей стенки), текст —
+     на внутренней. Посты у нас всё равно разной ширины: кадры не
+     обрезаются, поэтому пропорции коллажа задают сами фотографии — три
+     вертикальных 9:16 у́же трёх квадратов при одной высоте. Раньше это
+     читалось как «блоки разного размера»; в зигзаге тот же разнобой
+     становится ритмом. Высоту постов при этом подравнивает поднятый
+     потолок --collage-w (см. ниже): пока в него никто не упирается, все
+     коллажи выходят одной высоты.
+
+     Ниже lg — как было: одна колонка, снимки сверху, текст под ними, без
+     сдвигов вбок (на узком экране им негде развернуться). */
+  const flushRight = index % 2 === 1;
+
   return (
-    /* ДВЕ КОЛОНКИ НА ШИРОКОМ ЭКРАНЕ: коллаж слева, текст справа.
-
-       Раньше текст лежал ПОД фотографиями и добавлял к посту ещё ~210px —
-       пост переставал помещаться в экран. Сбоку он высоту не добавляет, а
-       заодно занимает пустое поле, которое иначе пустовало бы справа.
-
-       Ниже lg порядок прежний: снимки сверху, текст под ними (на 768px
-       колонка сбоку вышла бы уже 30 знаков в строке — не читается).
-
-       --collage-w — потолок ширины коллажа в долях строки. Меньше на lg,
-       где рядом ещё колонка текста и всё вместе должно уместиться. */
-    <article className="flex flex-col gap-7 lg:flex-row lg:items-start lg:gap-10 lg:[--collage-w:56%] xl:[--collage-w:62%]">
+    <article
+      className={`flex flex-col gap-7 lg:w-[92%] lg:flex-row lg:items-start lg:gap-10 lg:[--collage-w:68%] xl:[--collage-w:70%] ${
+        flushRight ? "lg:ml-auto lg:flex-row-reverse" : "lg:mr-auto"
+      }`}
+    >
       <Collage photos={post.photos} onOpen={(i) => onOpen(post, i)} />
 
       {/* ТЕКСТОВАЯ КОЛОНКА.
@@ -131,7 +140,10 @@ function PostCard({
             whitespace-pre-line — переносы и пустые строки между абзацами
             в тексте должны сохраняться. */}
         {post.text && (
-          <div className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]">
+          <div
+            data-lenis-prevent
+            className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]"
+          >
             <p className="text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
               {post.text}
             </p>
@@ -167,7 +179,7 @@ function PostSkeleton() {
       aria-hidden="true"
       className="flex animate-pulse flex-col gap-7 lg:flex-row lg:items-start lg:gap-10"
     >
-      <div className="h-[46vh] w-full rounded-[1.5rem] bg-[#E5D8EE] lg:h-[62vh] lg:w-[56%] xl:w-[62%]" />
+      <div className="h-[46vh] w-full rounded-[1.5rem] bg-[#E5D8EE] lg:h-[62vh] lg:w-[68%] xl:w-[70%]" />
       <div className="flex-1 space-y-4 pt-1">
         <div className="h-4 w-44 rounded bg-[#E5D8EE]" />
         <div className="h-7 w-3/4 rounded bg-[#E5D8EE]" />
@@ -248,24 +260,24 @@ export default function Feed() {
           </p>
         )}
 
-        {/* Между постами — тонкая линия. Лента без карточек и рамок,
-            посты разной высоты идут подряд, и граница между ними
-            размывалась. Волосяная черта в сайтовом цвете границы делит их,
-            не превращая в карточки. Отступ поделён пополам сверху и снизу
-            от линии — она ровно посередине промежутка.
-            article+article — у первого поста черты сверху нет. */}
-        <div className="flex flex-col [&>article+article]:mt-14 [&>article+article]:border-t [&>article+article]:border-[#E8DEEE] [&>article+article]:pt-14 md:[&>article+article]:mt-16 md:[&>article+article]:pt-16">
+        {/* Разделитель-линию убрали: посты теперь идут зигзагом (чётный у
+            левого края, нечётный у правого), и волосяная черта в 92%
+            ширины прыгала бы со стороны на сторону. Промежутка между
+            постами хватает, чтобы они не сливались.
+            article+article — у первого поста отступа сверху нет. */}
+        <div className="flex flex-col [&>article+article]:mt-16 md:[&>article+article]:mt-24">
           {renderable === null ? (
             <>
               <PostSkeleton />
               <PostSkeleton />
             </>
           ) : (
-            visible.map((post) => (
+            visible.map((post, i) => (
               <PostCard
                 key={post.id}
                 post={post}
-                onOpen={(p, i) => setView({ post: p, i })}
+                index={i}
+                onOpen={(p, j) => setView({ post: p, i: j })}
               />
             ))
           )}

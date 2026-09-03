@@ -19,7 +19,16 @@ import { Header } from "./components/ui/Header.tsx";
 import { Footer } from "./components/ui/Footer.tsx";
 import { CartDrawer } from "./components/ui/CartDrawer.tsx";
 import { PopBalloons } from "./components/ui/PopBalloon.tsx";
+import { startSmoothScroll, getLenis } from "./lib/smoothScroll.ts";
 import "./index.css";
+
+/* ПЛАВНАЯ ПРОКРУТКА (Lenis) — как на augen.pro.
+   Запускается один раз на всё приложение, тач оставляет родному скроллу.
+   Подробности и настройки — в lib/smoothScroll.ts. */
+function SmoothScroll() {
+  useEffect(() => startSmoothScroll(), []);
+  return null;
+}
 
 /* ШАРИКИ-ПАСХАЛКА — на всех внутренних страницах сразу.
 
@@ -43,12 +52,20 @@ function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
   useEffect(() => {
+    // Прокрутку ведём через Lenis, если он запущен: иначе плавный скролл
+    // и переход между страницами дёргали бы позицию каждый по-своему.
+    const lenis = getLenis();
+
     if (!hash) {
-      window.scrollTo(0, 0);
+      if (lenis) lenis.scrollTo(0, { immediate: true });
+      else window.scrollTo(0, 0);
     } else {
       setTimeout(() => {
         const element = document.getElementById(hash.replace("#", ""));
-        if (element) {
+        if (!element) return;
+        if (lenis) {
+          lenis.scrollTo(element, { offset: -100 });
+        } else {
           const y = element.getBoundingClientRect().top + window.scrollY - 100;
           window.scrollTo({ top: y, behavior: "smooth" });
         }
@@ -63,6 +80,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <CartProvider>
       <BrowserRouter>
+        <SmoothScroll />
         <ScrollToTop />
         <Balloons />
         <div className="min-h-screen bg-[#FDFBFD] text-[#2D2433] flex flex-col">

@@ -64,7 +64,10 @@ export const Reviews = () => {
           <Quote className="mt-4 h-7 w-7 shrink-0 fill-[#D9C6E4] text-[#D9C6E4]" />
 
           {/* Длинный отзыв не растягивает блок — появляется прокрутка */}
-          <div className="review-scroll mt-3 min-h-0 flex-1 overflow-y-auto pr-3">
+          <div
+            data-lenis-prevent
+            className="review-scroll mt-3 min-h-0 flex-1 overflow-y-auto pr-3"
+          >
             <p className="text-[15px] font-medium leading-relaxed whitespace-pre-line text-[#5A4D66] md:text-base">
               {review.text}
             </p>
