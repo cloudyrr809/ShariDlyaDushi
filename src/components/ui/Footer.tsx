@@ -1,6 +1,7 @@
 // src/components/Footer.tsx
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { MapPin } from "lucide-react";
 
 /* ═════════════════ ДАННЫЕ ПРОДАВЦА — ЗАПОЛНИТЬ ЗДЕСЬ ═════════════════
 
@@ -40,24 +41,38 @@ const INN = "762707157039";
    Значения подобраны на глаз и намеренно «некруглые»: ровные числа
    складываются в узор, а узор — это уже не куча. */
 const FALLEN = [
-  { src: "/assets/ballon3.png", left: "-4%", w: "clamp(96px, 17vw, 232px)", sink: 50, rot: -13, op: 0.36, z: 2 },
-  { src: "/assets/ballon1.png", left: "4%", w: "clamp(72px, 12vw, 168px)", sink: 63, rot: 9, op: 0.24, z: 1 },
-  { src: "/assets/ballon5.png", left: "11%", w: "clamp(88px, 15vw, 204px)", sink: 42, rot: 17, op: 0.33, z: 3 },
-  { src: "/assets/ballon2.png", left: "18%", w: "clamp(64px, 11vw, 146px)", sink: 68, rot: -21, op: 0.22, z: 1 },
-  { src: "/assets/ballon6.png", left: "25%", w: "clamp(92px, 16vw, 218px)", sink: 47, rot: 6, op: 0.35, z: 2 },
-  { src: "/assets/ballon4.png", left: "32%", w: "clamp(76px, 13vw, 178px)", sink: 58, rot: -8, op: 0.26, z: 1 },
-  { src: "/assets/ballon1.png", left: "39%", w: "clamp(98px, 17vw, 240px)", sink: 40, rot: 14, op: 0.38, z: 3 },
-  { src: "/assets/ballon3.png", left: "46%", w: "clamp(68px, 12vw, 156px)", sink: 66, rot: -17, op: 0.23, z: 1 },
-  { src: "/assets/ballon5.png", left: "53%", w: "clamp(90px, 15vw, 210px)", sink: 45, rot: 11, op: 0.32, z: 2 },
-  { src: "/assets/ballon2.png", left: "60%", w: "clamp(74px, 13vw, 172px)", sink: 61, rot: -6, op: 0.27, z: 1 },
-  { src: "/assets/ballon6.png", left: "67%", w: "clamp(94px, 16vw, 224px)", sink: 43, rot: 19, op: 0.35, z: 2 },
-  { src: "/assets/ballon4.png", left: "74%", w: "clamp(70px, 12vw, 162px)", sink: 65, rot: -12, op: 0.24, z: 1 },
-  { src: "/assets/ballon3.png", left: "81%", w: "clamp(97px, 17vw, 236px)", sink: 46, rot: 8, op: 0.37, z: 3 },
-  { src: "/assets/ballon1.png", left: "88%", w: "clamp(78px, 13vw, 180px)", sink: 59, rot: -19, op: 0.25, z: 1 },
+  // ── первый слой: мелкие и бледные, лежат глубже всех ──
+  { src: "/assets/ballon2.png", left: "-2%", w: "clamp(58px, 10vw, 138px)", sink: 70, rot: -24, op: 0.18, z: 1 },
+  { src: "/assets/ballon4.png", left: "9%", w: "clamp(62px, 11vw, 150px)", sink: 72, rot: 13, op: 0.19, z: 1 },
+  { src: "/assets/ballon6.png", left: "21%", w: "clamp(56px, 10vw, 132px)", sink: 69, rot: -16, op: 0.17, z: 1 },
+  { src: "/assets/ballon1.png", left: "36%", w: "clamp(64px, 11vw, 154px)", sink: 73, rot: 21, op: 0.2, z: 1 },
+  { src: "/assets/ballon3.png", left: "50%", w: "clamp(59px, 10vw, 142px)", sink: 71, rot: -11, op: 0.18, z: 1 },
+  { src: "/assets/ballon5.png", left: "64%", w: "clamp(63px, 11vw, 148px)", sink: 74, rot: 18, op: 0.19, z: 1 },
+  { src: "/assets/ballon2.png", left: "78%", w: "clamp(57px, 10vw, 136px)", sink: 70, rot: -20, op: 0.17, z: 1 },
+  { src: "/assets/ballon4.png", left: "93%", w: "clamp(61px, 11vw, 146px)", sink: 72, rot: 9, op: 0.19, z: 1 },
+
+  // ── второй слой: средние ──
+  { src: "/assets/ballon1.png", left: "4%", w: "clamp(72px, 12vw, 168px)", sink: 63, rot: 9, op: 0.24, z: 2 },
+  { src: "/assets/ballon2.png", left: "18%", w: "clamp(64px, 11vw, 146px)", sink: 68, rot: -21, op: 0.22, z: 2 },
+  { src: "/assets/ballon4.png", left: "32%", w: "clamp(76px, 13vw, 178px)", sink: 58, rot: -8, op: 0.26, z: 2 },
+  { src: "/assets/ballon3.png", left: "46%", w: "clamp(68px, 12vw, 156px)", sink: 66, rot: -17, op: 0.23, z: 2 },
+  { src: "/assets/ballon2.png", left: "60%", w: "clamp(74px, 13vw, 172px)", sink: 61, rot: -6, op: 0.27, z: 2 },
+  { src: "/assets/ballon4.png", left: "74%", w: "clamp(70px, 12vw, 162px)", sink: 65, rot: -12, op: 0.24, z: 2 },
+  { src: "/assets/ballon1.png", left: "88%", w: "clamp(78px, 13vw, 180px)", sink: 59, rot: -19, op: 0.25, z: 2 },
+  { src: "/assets/ballon6.png", left: "-8%", w: "clamp(80px, 13vw, 186px)", sink: 62, rot: 16, op: 0.25, z: 2 },
+
+  // ── третий слой: крупные, выходят вперёд ──
+  { src: "/assets/ballon3.png", left: "-4%", w: "clamp(96px, 17vw, 232px)", sink: 50, rot: -13, op: 0.36, z: 3 },
+  { src: "/assets/ballon5.png", left: "11%", w: "clamp(88px, 15vw, 204px)", sink: 42, rot: 17, op: 0.33, z: 4 },
+  { src: "/assets/ballon6.png", left: "25%", w: "clamp(92px, 16vw, 218px)", sink: 47, rot: 6, op: 0.35, z: 3 },
+  { src: "/assets/ballon1.png", left: "39%", w: "clamp(98px, 17vw, 240px)", sink: 40, rot: 14, op: 0.38, z: 4 },
+  { src: "/assets/ballon5.png", left: "53%", w: "clamp(90px, 15vw, 210px)", sink: 45, rot: 11, op: 0.32, z: 3 },
+  { src: "/assets/ballon6.png", left: "67%", w: "clamp(94px, 16vw, 224px)", sink: 43, rot: 19, op: 0.35, z: 3 },
+  { src: "/assets/ballon3.png", left: "81%", w: "clamp(97px, 17vw, 236px)", sink: 46, rot: 8, op: 0.37, z: 4 },
   // Крайний правый утоплен глубже соседей нарочно. При мелком заглублении
   // от него оставался виден ровно круглый бок, который читался не как часть
   // кучи, а как отдельный шарик, случайно подлетевший к логотипу.
-  { src: "/assets/ballon5.png", left: "91%", w: "clamp(92px, 16vw, 236px)", sink: 56, rot: 15, op: 0.34, z: 2 },
+  { src: "/assets/ballon5.png", left: "91%", w: "clamp(92px, 16vw, 236px)", sink: 56, rot: 15, op: 0.34, z: 3 },
 ];
 
 /** Разделы сайта — тот же набор и порядок, что в шапке. */
@@ -86,45 +101,47 @@ const COL_LINK =
 export const Footer = () => {
   const footerRef = useRef<HTMLElement | null>(null);
 
-  /* ДВЕ АНИМАЦИИ ШАРОВ И ОДИН НАБЛЮДАТЕЛЬ НА ОБЕ.
+  /* ЖИВОЙ ПОДВАЛ: ОДИН ПРИЗНАК НА ОБЕ АНИМАЦИИ.
 
-     fell  — падение отыгрывается один раз, когда до подвала долистали.
-             Пока не долистали, шары стоят на первом кадре: высоко над
-             кромкой и невидимые. Отсюда и «попадали откуда-то» — они
-             честно прилетают сверху ровно в тот момент, когда на них
-             смотрят, а не оказываются на месте заранее.
-     inView — покачивание. Идёт, только пока подвал на экране. Это не
-             украшательство ради украшательства: пятнадцать непрерывно
-             анимированных слоёв незачем считать всё время, пока человек
-             читает страницу вверху. Ушёл подвал за край — покачивание
-             встало.
+     live — подвал показался на экране как следует. Пока признак стоит,
+     шары качаются; в момент, когда он появляется, они заново падают
+     сверху. Ушёл подвал — анимации снимаются вовсе, и шары возвращаются
+     на исходную: высоко над кромкой и невидимые. Вернулись — падают
+     снова, а не оказываются на месте заранее.
+
+     Именно СНЯТИЕ анимации и даёт повтор: в CSS убранная и заново
+     назначенная анимация всегда стартует с нуля. Никаких счётчиков и
+     перемонтирования узлов для этого не нужно.
+
+     ГИСТЕРЕЗИС. Порог входа выше порога выхода (55% против 30%) — иначе
+     на границе одного значения шары дёргались бы: пиксель прокрутки
+     туда-сюда, и падение запускается заново по десять раз. Разные пороги
+     дают мёртвую зону, в которой ничего не переключается.
 
      Обе анимации трогают только transform, поэтому считает их
-     композитор, а не основной поток.
+     композитор, а не основной поток. Покачивание вдобавок идёт только
+     при показанном подвале: два десятка непрерывно анимированных слоёв
+     незачем считать, пока человек читает страницу вверху.
 
      «Меньше движения» — уважаем в CSS: там обе анимации выключаются, а
      шары остаются лежать на своих местах. */
-  const [fell, setFell] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [live, setLive] = useState(false);
 
   useEffect(() => {
     const el = footerRef.current;
     if (!el) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setFell(true);
-      return;
-    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const io = new IntersectionObserver(
       ([e]) => {
-        setInView(e.isIntersecting);
-        if (e.isIntersecting) setFell(true);
+        const r = e.intersectionRatio;
+        setLive((was) => (was ? r > 0.3 : r > 0.55));
       },
-      // Небольшой запас снизу: падение должно начаться чуть раньше, чем
-      // кромка подвала войдёт в кадр, иначе первые шары приземляются уже
-      // на виду и фокус пропадает.
-      { rootMargin: "0px 0px 120px 0px" },
+      // Пороги перечислены густо: наблюдатель сообщает долю только на
+      // переходах через них, и без промежуточных значений гистерезис
+      // получил бы слишком редкие отсчёты.
+      { threshold: [0, 0.15, 0.3, 0.45, 0.55, 0.7, 0.9, 1] },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -157,7 +174,7 @@ export const Footer = () => {
              на сколько качаться. */
           <span
             key={i}
-            className={`footer-balloon ${fell ? "is-falling" : ""}`}
+            className={`footer-balloon ${live ? "is-live" : ""}`}
             style={
               {
                 left: b.left,
@@ -171,8 +188,13 @@ export const Footer = () => {
                 // Разбег старта: шары сыплются один за другим, а не падают
                 // строем. Числа взяты из индекса, чтобы не держать в
                 // таблице ещё одну колонку.
-                "--fall-delay": `${(i % 5) * 70 + (i % 3) * 45}ms`,
-                "--fall-dur": `${900 + (i % 4) * 150}ms`,
+                "--fall-delay": `${(i % 5) * 60 + (i % 3) * 40}ms`,
+                "--fall-dur": `${620 + (i % 4) * 90}ms`,
+                // Откуда падать. Путь короткий — примерно от черты над
+                // нижней полосой подвала, а не из-под шапки: шары должны
+                // осыпаться на своё место, а не пролетать через весь блок.
+                // Разброс небольшой, чтобы движение не выглядело строем.
+                "--drop": `${112 + (i % 4) * 26}px`,
               } as CSSProperties
             }
           >
@@ -191,7 +213,6 @@ export const Footer = () => {
                   // Отрицательная задержка = каждый шар стартует со своей
                   // фазы сразу, без волны в начале.
                   "--sway-delay": `${-(i * 0.41).toFixed(2)}s`,
-                  animationPlayState: inView ? "running" : "paused",
                 } as CSSProperties
               }
             />
@@ -256,9 +277,26 @@ export const Footer = () => {
               </li>
               <li>
                 {/* Не ссылка: город — это справка о том, где нас искать, а
-                    вести отсюда некуда. */}
-                <span className="text-[15px] font-semibold tracking-[0.08em] text-[#7E6E8A] uppercase">
-                  Ярославль
+                    вести отсюда некуда. Но цвет теперь тот же, что у почты
+                    и телефона: приглушённый серый читался как «неактивно»,
+                    хотя строка такая же настоящая, как соседние.
+
+                    Что это не ссылка, видно и без цвета — по отсутствию
+                    подчёркивания на наведении. А что это город — по
+                    значку, который для того и поставлен.
+
+                    justify-end на широком экране: колонка выключена
+                    вправо, и значок должен уходить к тексту, а не
+                    оставаться у левого края пустой строки. */}
+                <span className="inline-flex items-center gap-2 md:w-full md:justify-end">
+                  <MapPin
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-[#A64D6C]"
+                    strokeWidth={2.4}
+                  />
+                  <span className="text-[15px] font-semibold tracking-[0.08em] text-[#4A3A5C] uppercase">
+                    Ярославль
+                  </span>
                 </span>
               </li>
             </ul>
@@ -292,7 +330,14 @@ export const Footer = () => {
           </div>
 
           <div className="shrink-0 md:text-right">
-            <p className="font-miana pb-[0.3em] text-3xl leading-none text-[#6B4E81]">
+            {/* pb-[0.7em] — место под росчерк рукописных букв. У «р», «у» и
+                «Д» хвост уходит на 0.667em ниже базовой линии, а шрифт
+                объявляет себе метрический descent всего 0.2em: браузер
+                резервирует место по метрике, и при leading-none хвост
+                ложился прямо на строку снизу. Прежние 0.3em закрывали
+                меньше половины выноса. В em, а не в px — чтобы работало на
+                любом кегле. */}
+            <p className="font-miana pb-[0.7em] text-3xl leading-none text-[#6B4E81]">
               ШарыДляДуши
             </p>
             <p className="text-[13px] font-medium text-[#7E6E8A]">

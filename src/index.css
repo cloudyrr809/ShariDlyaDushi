@@ -395,33 +395,51 @@
   opacity: var(--op);
 }
 
-/* ПАДЕНИЕ. До сигнала анимация стоит на первом кадре (fill-mode both +
-   paused), то есть шар висит высоко над кромкой и невидим. Долистали до
-   подвала — класс переключает play-state, и шары сыплются вниз.
+/* Состояние ПОКОЯ — пока подвал за краем экрана. Шар поднят туда, откуда
+   начнётся падение, и невидим. Так он не мелькает на месте в тот кадр,
+   когда анимацию только назначили.
+
+   Высота подъёма в ПИКСЕЛЯХ, а не в долях своей высоты. В долях мелкий
+   шар пролетал полсотни пикселей, а крупный — восемь сотен: одни едва
+   трогались с места, другие валились из-под шапки. В пикселях путь у всех
+   один и короткий — примерно от черты над нижней полосой подвала. */
+.footer-balloon:not(.is-live) {
+  transform: translateY(calc(var(--sink) * 1% - var(--drop, 150px)));
+  opacity: 0;
+}
+
+/* ПАДЕНИЕ. Анимация назначается только при показанном подвале и
+   снимается, когда он уходит за край. Это и даёт ПОВТОР: снятая и заново
+   назначенная анимация в CSS всегда стартует с нуля, поэтому вернувшись к
+   подвалу человек снова видит, как шары сыплются сверху.
+
+   Пока анимации нет, шар стоит на своей исходной: высоко над кромкой и
+   невидимый (см. базовые правила ниже) — то есть за краем экрана, где на
+   него всё равно никто не смотрит.
 
    В конце два коротких отскока: шар приземляется, чуть проваливается и
    встаёт на место. Без них падение выглядит как приезд лифта. */
-.footer-balloon {
+.footer-balloon.is-live {
   animation: footer-balloon-fall var(--fall-dur, 1s)
-    cubic-bezier(0.3, 0.7, 0.25, 1) var(--fall-delay, 0ms) both paused;
-}
-.footer-balloon.is-falling {
-  animation-play-state: running;
+    cubic-bezier(0.3, 0.7, 0.25, 1) var(--fall-delay, 0ms) both;
 }
 
 @keyframes footer-balloon-fall {
   0% {
-    transform: translateY(calc(var(--sink) * 1% - 360%));
+    transform: translateY(calc(var(--sink) * 1% - var(--drop, 150px)));
     opacity: 0;
   }
-  12% {
+  22% {
     opacity: var(--op);
   }
+  /* Отскоки тоже в пикселях: в долях своей высоты крупный шар
+     проваливался на два десятка пикселей, а мелкий на четыре — вместо
+     общего движения выходил разнобой. */
   72% {
-    transform: translateY(calc(var(--sink) * 1% + 9%));
+    transform: translateY(calc(var(--sink) * 1% + 9px));
   }
-  86% {
-    transform: translateY(calc(var(--sink) * 1% - 4%));
+  87% {
+    transform: translateY(calc(var(--sink) * 1% - 4px));
   }
   100% {
     transform: translateY(calc(var(--sink) * 1%));
@@ -437,6 +455,8 @@
   width: 100%;
   transform-origin: 50% 100%;
   transform: rotate(calc(var(--rot) * 1deg));
+}
+.footer-balloon.is-live .footer-balloon__img {
   animation: footer-balloon-sway var(--sway-dur, 5s) ease-in-out
     var(--sway-delay, 0s) infinite;
 }
@@ -457,7 +477,8 @@
   .footer-balloon__img {
     animation: none !important;
   }
-  .footer-balloon {
+  .footer-balloon,
+  .footer-balloon:not(.is-live) {
     transform: translateY(calc(var(--sink) * 1%));
     opacity: var(--op);
   }
