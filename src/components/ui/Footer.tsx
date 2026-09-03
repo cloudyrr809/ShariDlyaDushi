@@ -1,4 +1,6 @@
 // src/components/Footer.tsx
+import { Link } from "react-router-dom";
+
 /* ═════════════════ ДАННЫЕ ПРОДАВЦА — ЗАПОЛНИТЬ ЗДЕСЬ ═════════════════
 
    Закон о защите прав потребителей (ст. 8–10) требует, чтобы покупатель
@@ -16,92 +18,200 @@
 const SELLER = "Стукалова Нина Анатольевна";
 const INN = "762707157039";
 
-// Векторные иконки соцсетей
-// viewBox обрезан по фактическим границам рисунка: логотип ВК занимает
-// в исходном кадре 24×24 только полосу y 7..19, из-за чего рядом с
-// Instagram отрисовывался вдвое мельче. Подробности — в Hero.tsx.
-const VkIcon = ({
-  className = "w-4 h-4 fill-current",
-}: {
-  className?: string;
-}) => (
-  <svg className={className} viewBox="1.29 7 21.42 12">
-    <path d="M13.162 18.994c.609 0 .858-.406.851-.915-.072-1.075.454-1.527.91-1.527.322 0 .58.172.936.528 1.137 1.138 1.83 1.914 3.013 1.914h2.467c.725 0 1.077-.353.868-1.073-.414-1.425-2.02-3.14-2.825-3.957-.42-.428-.548-.619 0-1.392.548-.775 2.45-3.526 2.656-4.664.108-.598-.242-.906-.827-.906h-2.467c-.604 0-.882.28-1.034.636-.889 2.083-2.016 4.316-2.73 4.316-.254 0-.371-.118-.371-.767V7.911c0-.62-.178-.905-.688-.905H9.98c-.378 0-.612.28-.612.551 0 .59.882.726.972 2.385v3.606c0 .791-.142.934-.457.934-.844 0-2.895-3.076-4.108-6.586-.239-.691-.482-.985-1.112-.985H2.196c-.752 0-.904.353-.904.743 0 .695.892 4.148 4.152 8.706 2.174 3.045 5.234 4.649 7.718 4.649z" />
-  </svg>
-);
+/* ══════════════════════ УПАВШИЕ ШАРЫ ВНИЗУ ══════════════════════
 
-const InstagramIcon = ({
-  className = "w-4 h-4 fill-current",
-}: {
-  className?: string;
-}) => (
-  <svg className={className} viewBox="0 0 24 24">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-  </svg>
-);
+   Нижняя кромка подвала завалена шарами — будто их принесли, поставили и
+   они разбрелись. Каждый прижат к нижнему краю и УТОПЛЕН за него: видно
+   только верхнюю часть, остальное срезает край страницы. Отсюда и
+   ощущение кучи, а не выложенного в ряд орнамента.
+
+   Что делает картинку живой:
+   • sink — на сколько шар ушёл вниз, в долях СВОЕЙ высоты. У всех разный,
+     поэтому верхушки не выстраиваются по линейке;
+   • rot — наклон. Ни один шар не стоит строго вертикально;
+   • w — размер через clamp: на телефоне куча ужимается сама, без
+     отдельной раскладки. Разброс размеров даёт ближний и дальний план;
+   • op — прозрачность. Шары не должны спорить с текстом над ними, а
+     разная плотность добавляет глубины;
+   • z — кто перед кем. Мелкие и бледные уходят назад, крупные выходят
+     вперёд, и куча перестаёт быть плоской аппликацией.
+
+   Значения подобраны на глаз и намеренно «некруглые»: ровные числа
+   складываются в узор, а узор — это уже не куча. */
+const FALLEN = [
+  { src: "/assets/ballon3.png", left: "-4%", w: "clamp(96px, 17vw, 232px)", sink: 50, rot: -13, op: 0.36, z: 2 },
+  { src: "/assets/ballon1.png", left: "4%", w: "clamp(72px, 12vw, 168px)", sink: 63, rot: 9, op: 0.24, z: 1 },
+  { src: "/assets/ballon5.png", left: "11%", w: "clamp(88px, 15vw, 204px)", sink: 42, rot: 17, op: 0.33, z: 3 },
+  { src: "/assets/ballon2.png", left: "18%", w: "clamp(64px, 11vw, 146px)", sink: 68, rot: -21, op: 0.22, z: 1 },
+  { src: "/assets/ballon6.png", left: "25%", w: "clamp(92px, 16vw, 218px)", sink: 47, rot: 6, op: 0.35, z: 2 },
+  { src: "/assets/ballon4.png", left: "32%", w: "clamp(76px, 13vw, 178px)", sink: 58, rot: -8, op: 0.26, z: 1 },
+  { src: "/assets/ballon1.png", left: "39%", w: "clamp(98px, 17vw, 240px)", sink: 40, rot: 14, op: 0.38, z: 3 },
+  { src: "/assets/ballon3.png", left: "46%", w: "clamp(68px, 12vw, 156px)", sink: 66, rot: -17, op: 0.23, z: 1 },
+  { src: "/assets/ballon5.png", left: "53%", w: "clamp(90px, 15vw, 210px)", sink: 45, rot: 11, op: 0.32, z: 2 },
+  { src: "/assets/ballon2.png", left: "60%", w: "clamp(74px, 13vw, 172px)", sink: 61, rot: -6, op: 0.27, z: 1 },
+  { src: "/assets/ballon6.png", left: "67%", w: "clamp(94px, 16vw, 224px)", sink: 43, rot: 19, op: 0.35, z: 2 },
+  { src: "/assets/ballon4.png", left: "74%", w: "clamp(70px, 12vw, 162px)", sink: 65, rot: -12, op: 0.24, z: 1 },
+  { src: "/assets/ballon3.png", left: "81%", w: "clamp(97px, 17vw, 236px)", sink: 46, rot: 8, op: 0.37, z: 3 },
+  { src: "/assets/ballon1.png", left: "88%", w: "clamp(78px, 13vw, 180px)", sink: 59, rot: -19, op: 0.25, z: 1 },
+  // Крайний правый утоплен глубже соседей нарочно. При мелком заглублении
+  // от него оставался виден ровно круглый бок, который читался не как часть
+  // кучи, а как отдельный шарик, случайно подлетевший к логотипу.
+  { src: "/assets/ballon5.png", left: "91%", w: "clamp(92px, 16vw, 236px)", sink: 56, rot: 15, op: 0.34, z: 2 },
+];
+
+/** Разделы сайта — тот же набор и порядок, что в шапке. */
+const SECTIONS = [
+  { to: "/catalog", name: "Каталог" },
+  { to: "/services", name: "Услуги" },
+  { to: "/feed", name: "Лента" },
+  { to: "/promotions", name: "Акции" },
+  { to: "/about", name: "О нас" },
+];
+
+const SOCIAL = [
+  { href: "https://vk.ru/sharydlyadushi", name: "ВКонтакте" },
+  { href: "https://www.instagram.com/sharydlyadushi", name: "Instagram" },
+];
+
+/* Три уровня набора в колонках. Заголовок — плотный капс вразрядку
+   розовым, ссылки — капс пожиже тёмным. Кегль ссылок 15px, а не 13:
+   разрядка съедает читаемость, и на мелком капсе строка рассыпается на
+   отдельные буквы. */
+const COL_TITLE =
+  "text-lg font-extrabold tracking-[0.14em] text-[#A64D6C] uppercase";
+const COL_LINK =
+  "text-[15px] font-semibold tracking-[0.08em] text-[#4A3A5C] uppercase transition-colors hover:text-[#A64D6C]";
 
 export const Footer = () => {
   return (
-    <footer className="border-t border-[#E8DEEE] px-6 py-6 bg-white text-sm text-[#5A4D66] mt-auto">
-      <div className="max-w-[76rem] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <div>
-          <p className="inline-block font-miana text-2xl text-[#6B4E81]">
-            ШарыДляДуши
-          </p>
-          <p className="mt-6 text-sm font-medium whitespace-nowrap text-[#5A4D66]">
-            Дарим настроение и яркие эмоции
-          </p>
-        </div>
+    /* overflow-hidden — то, что срезает шары по нижнему краю. Без него они
+       вылезли бы за подвал и растянули страницу вниз пустотой.
 
-        <div className="text-center md:text-right flex flex-col items-center md:items-end">
-          <p className="font-medium text-[#2D2433] text-sm">Контакты:</p>
-          <a
-            href="mailto:info@sharidlyadushi.com"
-            className="mt-1 block font-medium text-[#2D2433] hover:text-[#6B4E81] transition text-sm"
-          >
-            info@sharidlyadushi.com
-          </a>
-          <a
-            href="tel:+79806616888"
-            className="mt-0.5 block font-medium text-[#2D2433] hover:text-[#6B4E81] transition"
-          >
-            8 (980) 661-6888
-          </a>
+       Фон уходит книзу в сиреневый: шары лежат на тоне чуть плотнее, чем
+       поле под текстом, и куча читается как земля, а не как наклейки на
+       белом. */
+    <footer className="relative mt-auto overflow-hidden bg-gradient-to-b from-[#FDFBFD] via-[#F8F3FA] to-[#F0E5F5] px-6 pt-16 pb-44 md:pt-20 md:pb-52">
+      {/* СЛОЙ С ШАРАМИ. Декоративный: из озвучки убран, курсор не ловит —
+          иначе он накрыл бы ссылки над собой. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {FALLEN.map((b, i) => (
+          <img
+            key={i}
+            src={b.src}
+            alt=""
+            loading="lazy"
+            className="absolute bottom-0 max-w-none select-none"
+            style={{
+              left: b.left,
+              width: b.w,
+              opacity: b.op,
+              zIndex: b.z,
+              // translate в процентах считается от размера самой картинки,
+              // поэтому «утопить наполовину» работает одинаково и на
+              // телефоне, и на широком экране, где шар вчетверо больше.
+              transform: `translateY(${b.sink}%) rotate(${b.rot}deg)`,
+            }}
+          />
+        ))}
+      </div>
 
-          <div className="flex items-center gap-2.5 mt-3">
-            <a
-              href="https://vk.ru/sharydlyadushi"
-              target="_blank"
-              rel="noreferrer"
-              className="w-8 h-8 rounded-full border border-[#E8DEEE] bg-[#F8F4F9] text-[#6B4E81] flex items-center justify-center hover:bg-[#6B4E81] hover:text-white transition shadow-sm"
-            >
-              <VkIcon />
-            </a>
-            <a
-              href="https://www.instagram.com/sharydlyadushi"
-              target="_blank"
-              rel="noreferrer"
-              className="w-8 h-8 rounded-full border border-[#E8DEEE] bg-[#F8F4F9] text-[#6B4E81] flex items-center justify-center hover:bg-[#6B4E81] hover:text-white transition shadow-sm"
-            >
-              <InstagramIcon />
-            </a>
+      <div className="relative z-10 mx-auto w-full max-w-[76rem]">
+        {/* ТРИ КОЛОНКИ. На телефоне «Разделы» и «мы в сети» встают парой, а
+            «контакты» уходят под них во всю ширину: почта капсом
+            вразрядку — это 240px, в половину экрана она не помещается и
+            обрезалась по краю. Три колонки в столбик по одной вытянули бы
+            подвал вдвое, поэтому в столбик уходит только та, которой
+            действительно тесно. */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 md:gap-8">
+          <div>
+            <h2 className={COL_TITLE}>Разделы</h2>
+            <ul className="mt-6 space-y-3.5">
+              {SECTIONS.map((s) => (
+                <li key={s.to}>
+                  <Link to={s.to} className={COL_LINK}>
+                    {s.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h2 className={COL_TITLE}>Мы в сети</h2>
+            <ul className="mt-6 space-y-3.5">
+              {SOCIAL.map((s) => (
+                <li key={s.href}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={COL_LINK}
+                  >
+                    {s.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Третья колонка выключена вправо — как на образце, по которому
+              подвал собран. На телефоне выключка обычная: справа она
+              оторвалась бы от соседней колонки. */}
+          <div className="col-span-2 md:col-span-1 md:text-right">
+            <h2 className={COL_TITLE}>Контакты</h2>
+            <ul className="mt-6 space-y-3.5">
+              <li>
+                <a href="mailto:info@sharidlyadushi.com" className={COL_LINK}>
+                  info@sharidlyadushi.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+79806616888" className={COL_LINK}>
+                  8 (980) 661-6888
+                </a>
+              </li>
+              <li>
+                {/* Не ссылка: город — это справка о том, где нас искать, а
+                    вести отсюда некуда. */}
+                <span className="text-[15px] font-semibold tracking-[0.08em] text-[#7E6E8A] uppercase">
+                  Ярославль
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
-      <div className="mt-8 space-y-2 border-t border-[#F8F4F9] pt-6 text-center text-[13px] font-medium text-[#7E6E8A]">
-        {/* Кегль 13px, а не 12: мелкий текст на сайте под запретом, а этот
-            блок вдобавок обязан быть читаемым — его для того и вешают. */}
-        {SELLER && (
-          <p className="text-[#5A4D66]">
-            {SELLER}
-            {INN && ` · ИНН ${INN}`}
-          </p>
-        )}
-        <p>
-          Сведения на сайте носят справочный характер и не являются публичной
-          офертой. Состав, стоимость и сроки согласуются в переписке до оплаты.
-        </p>
-        <p>© 2026 Шары Для Души. Все права защищены.</p>
+
+        {/* НИЖНЯЯ ПОЛОСА. Слева обязательные сведения о продавце, справа
+            логотип — на образце в этих же местах стоят копирайт и подпись
+            студии, сделавшей сайт. */}
+        <div className="mt-16 flex flex-col gap-6 border-t border-[#E2D3EC] pt-8 md:mt-20 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-1.5 text-[13px] font-medium text-[#7E6E8A]">
+            {/* Кегль 13px, а не 12: мелкий текст на сайте под запретом, а
+                этот блок вдобавок обязан быть читаемым — его для того и
+                вешают. */}
+            {SELLER && (
+              <p className="text-[#5A4D66]">
+                {SELLER}
+                {INN && ` · ИНН ${INN}`}
+              </p>
+            )}
+            <p>© 2026 Шары Для Души. Все права защищены.</p>
+            <p className="max-w-xl">
+              Сведения на сайте носят справочный характер и не являются
+              публичной офертой. Состав, стоимость и сроки согласуются в
+              переписке до оплаты.
+            </p>
+          </div>
+
+          <div className="shrink-0 md:text-right">
+            <p className="font-miana pb-[0.3em] text-3xl leading-none text-[#6B4E81]">
+              ШарыДляДуши
+            </p>
+            <p className="text-[13px] font-medium text-[#7E6E8A]">
+              Дарим настроение и яркие эмоции
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   );
