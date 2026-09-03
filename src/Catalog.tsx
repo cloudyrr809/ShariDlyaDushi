@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
 import { TabStrip } from "./components/ui/TabStrip";
@@ -29,6 +29,11 @@ const ProductCard = ({
   const images = product.images || [];
   const imagesCount = images.length;
   const hasMultiple = imagesCount > 1;
+
+  /* Чем нажали в последний раз — мышью или пальцем. Нужно зонам листания
+     фотографий: событие click про способ ввода уже не знает, а
+     pointerdown знает, и приходит он раньше. */
+  const lastPointer = useRef<string>("mouse");
 
   // АНИМАЦИЯ ПОЛЕТА В КОРЗИНУ
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -123,11 +128,23 @@ const ProductCard = ({
                 className="z-10 h-full flex-1"
                 onMouseEnter={() => setActiveIndex(idx)}
                 onPointerDown={(e) => {
+                  lastPointer.current = e.pointerType;
                   if (e.pointerType === "mouse") return;
                   setActiveIndex((i) => (i + 1) % imagesCount);
                 }}
-                // Касание по фото листает кадры, а не открывает окно
-                onClick={(e) => e.stopPropagation()}
+                /* Нажатие ПАЛЬЦЕМ листает кадры и дальше не идёт: тап уже
+                   отработал, и открывать им же окно значило бы делать два
+                   дела одним движением.
+
+                   Нажатие МЫШЬЮ должно дойти до карточки и открыть
+                   «Подробнее». Раньше клик глушился здесь для любого
+                   устройства — а зоны листания накрывают всю фотографию,
+                   то есть бо́льшую часть карточки. Из-за этого у карточек
+                   с несколькими фото окно не открывалось вообще: нажать
+                   мимо зон можно было только по цене или названию. */
+                onClick={(e) => {
+                  if (lastPointer.current !== "mouse") e.stopPropagation();
+                }}
               />
             ))}
           </div>

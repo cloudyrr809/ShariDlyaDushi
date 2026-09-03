@@ -240,3 +240,13 @@ drop policy if exists "админ удаляет снимки" on storage.object
 create policy "админ удаляет снимки"
   on storage.objects for delete
   to authenticated using (bucket_id = 'feed');
+
+-- ─────────────── ОБНОВИТЬ СЛЕПОК СХЕМЫ ───────────────
+-- Supabase ходит в базу не напрямую, а через PostgREST, и тот держит в
+-- памяти слепок структуры таблиц. После alter table слепок какое-то время
+-- остаётся старым, и сайт получает «Could not find the 'composition'
+-- column ... in the schema cache», хотя колонка уже добавлена.
+--
+-- Эта строка просит обновить слепок сразу. Должна идти ПОСЛЕДНЕЙ — после
+-- всех create и alter выше.
+notify pgrst, 'reload schema';

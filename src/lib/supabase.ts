@@ -42,14 +42,33 @@ export function explain(e: unknown, what: string): string {
   const code = err?.code ?? "";
   const msg = err?.message ?? "";
 
-  // Таблицы нет в базе
-  if (code === "PGRST205" || code === "42P01" || /does not exist|schema cache/i.test(msg)) {
-    return `Таблица для раздела «${what}» ещё не создана. Откройте Supabase → SQL Editor и выполните заново файл supabase/schema.sql — он создаёт все три таблицы и не портит уже существующие.`;
+  /* ПОРЯДОК ПРОВЕРОК ВАЖЕН: сначала колонка, потом таблица.
+
+     PostgREST на пропавшую КОЛОНКУ отвечает «Could not find the
+     'composition' column of 'products' in the schema cache», и в этой
+     строке есть слова «schema cache». Раньше проверка на отсутствие
+     таблицы стояла первой и ловила по ним что угодно — из-за одной
+     недостающей колонки админка писала «таблица ещё не создана», и
+     человек перепрогонял схему, хотя таблица была на месте, а не хватало
+     ровно одного столбца. */
+  const noColumn = /Could not find the '([^']+)' column/i.exec(msg);
+  if (
+    code === "PGRST204" ||
+    code === "42703" ||
+    noColumn ||
+    /column .* does not exist/i.test(msg)
+  ) {
+    const which = noColumn ? ` В ней не хватает колонки «${noColumn[1]}».` : "";
+    return `Строение таблицы «${what}» устарело.${which} Выполните заново supabase/schema.sql в Supabase → SQL Editor: он добавит недостающее и не тронет то, что уже есть. Если сразу после этого ошибка повторится — подождите полминуты, Supabase обновляет свой слепок схемы не мгновенно.`;
   }
 
-  // Колонка не та — схему поменяли, а базу не обновили
-  if (code === "42703" || /column .* does not exist/i.test(msg)) {
-    return `Строение таблицы «${what}» устарело. Выполните заново supabase/schema.sql в Supabase → SQL Editor: он приведёт её к нужному виду.`;
+  // Таблицы нет в базе
+  if (
+    code === "PGRST205" ||
+    code === "42P01" ||
+    /Could not find the table|relation .* does not exist/i.test(msg)
+  ) {
+    return `Таблица для раздела «${what}» ещё не создана. Откройте Supabase → SQL Editor и выполните заново файл supabase/schema.sql — он создаёт все три таблицы и не портит уже существующие.`;
   }
 
   // Правила доступа не пустили
