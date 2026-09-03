@@ -4,28 +4,20 @@ import { careCards } from "../../constants";
 
 /* ═════════════════════ ПАМЯТКА ПО ОБРАЩЕНИЮ С ШАРАМИ ═════════════════════
 
-   Шесть правил в асимметричной сетке (bento): карточки разной ширины, а не
-   шесть одинаковых квадратов. Разный размер здесь работает как иерархия —
-   что крупнее, то важнее, — и заодно снимает монотонность, которой сетка
-   2×3 страдала по построению.
+   Шесть правил компактными карточками: значок слева, правило справа.
 
-   Раскладка на широком экране, три колонки:
-     ряд 1   «Держите за ленту» на две колонки + «Убирайте от питомцев»
-     ряд 2   три карточки по колонке
-     ряд 3   «Не отпускайте в небо» во всю ширину, на своей подложке
+   Строгая сетка 3×2: два ряда по три равноправные карточки. Прежние
+   широкие карточки на две и три колонки разваливали ряд и растягивали
+   памятку на три этажа.
 
-   Сами колонки чуть неровные (1.035 / 0.965 / 1 доли), так что и внутри
-   ряда карточки на пару десятков пикселей разной ширины. Ровно настолько,
-   чтобы ряд не выглядел отмеренным по линейке.
+   Колонки при этом чуть неровные (1.035 / 0.965 / 1 доли) — разброс
+   ширины 28px из 400. Сетка от этого остаётся сеткой 3×2, просто ряд не
+   выглядит отмеренным по линейке.
 
-   ВНУТРИ карточки раскладка горизонтальная: значок слева, правило
+   ВНУТРИ карточки раскладка горизонтальная: значок 56px слева, правило
    справа. Картинка во всю ширину съедала полторы сотни пикселей высоты и
-   отодвигала текст, ради которого карточка и стоит; в компактном виде
-   вся памятка помещается в один экран.
-
-   Ширина задана в самих данных (span), а не таблицей по номеру карточки:
-   порядок в памятке ещё поменяется, а привязка к индексу такое переживает
-   молча и неверно.
+   отодвигала текст, ради которого карточка и стоит. Вся памятка от
+   надстрочки до низа второго ряда укладывается примерно в 400px.
    ───────────────────────────────────────────────────────────────────────── */
 
 // Карточки выходят РЯДАМИ: сначала верхний ряд целиком, потом следующий.
@@ -34,7 +26,7 @@ const ROW_MS = 280; // пауза между рядами, если оба вы�
 const LAYER_MS = 90; // сдвиг между слоями внутри карточки
 const EASE = "cubic-bezier(0.33, 0, 0.2, 1)"; // плавный старт и плавное торможение
 
-/* Плитка под картинкой — квадрат 72×72 у всех карточек без исключения.
+/* Плитка под картинкой — квадрат 56×56 у всех карточек без исключения.
    Иллюстрация в ней работает как значок при тексте, а не как картина: за
    этим карточки и стали компактными.
 
@@ -46,10 +38,10 @@ const EASE = "cubic-bezier(0.33, 0, 0.2, 1)"; // плавный старт и п
    означало бы, что один значок занимает плитку целиком, а соседний
    болтается в ней вдвое мельче. Ровно ту разнокалиберность плитка и
    призвана убрать. */
-const TILE = 72;
-const SOLO = { h: 54, w: 58 };
+const TILE = 56;
+const SOLO = { h: 42, w: 46 };
 // Пара умещается в ту же плитку: две картинки по ширине, с наклоном ±7°
-const PAIR = { h: 46, w: 27 };
+const PAIR = { h: 36, w: 21 };
 
 /* Пастельные подложки по кругу — три оттенка, чтобы шесть плиток подряд не
    читались как одна повторённая. */
@@ -159,7 +151,7 @@ export const CareCards = () => {
   });
 
   return (
-    <section className="relative overflow-hidden bg-[#F8F4F9] px-6 py-20 md:py-24">
+    <section className="relative overflow-hidden bg-[#F8F4F9] px-6 py-10 md:py-12">
       {/* ЦВЕТНЫЕ ПЯТНА ПОД КАРТОЧКАМИ. Без них стекло не работает:
           полупрозрачный белый поверх ровной заливки — это просто белый. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -169,40 +161,39 @@ export const CareCards = () => {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[76rem]">
-        <p className="font-miana pb-[0.5em] text-center text-2xl leading-none text-[#C46B8A] md:text-3xl">
+        <p className="font-miana pb-[0.55em] text-center text-xl leading-none text-[#C46B8A] md:text-2xl">
           бережно
         </p>
 
-        <h2 className="text-center text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
+        <h2 className="text-center text-[1.6rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.1rem] md:leading-[1.12]">
           Памятка по обращению с шарами
         </h2>
 
-        <p className="mx-auto mt-4 max-w-xl text-center text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
+        <p className="mx-auto mt-2 max-w-xl text-center text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
           Несколько простых правил — и шарики будут летать очень долго!
         </p>
 
-        {/* ЛЕНТА ВБОК НА ТЕЛЕФОНЕ, BENTO-СЕТКА НА ДЕСКТОПЕ.
-            Шесть карточек в столбик — это два экрана прокрутки ради
-            памятки, мимо которой пролистывают.
+        {/* СТРОГАЯ СЕТКА 3×2. Никаких объединений колонок: все шесть
+            карточек — равноправные ячейки по одной колонке, два ряда по
+            три. Прежние широкие карточки на две и три колонки ломали ряд
+            и разваливали памятку на три этажа.
 
-            Колонки НЕРОВНЫЕ: 1.035 / 0.965 / 1 доли вместо трёх равных.
-            Разница едва заметна — десяток пикселей, — но её хватает,
-            чтобы ряд перестал выглядеть отмеренным по линейке. Дроби
-            подобраны так, чтобы в сумме остаться ровно тремя долями:
-            широкие карточки на две и три колонки от этого не смещаются.
+            Колонки чуть неровные — 1.035 / 0.965 / 1 доли вместо трёх
+            ровных. Это по-прежнему repeat(3): три колонки, два ряда,
+            каждая карточка в своей ячейке. Разброс ширины 28px из 400 —
+            ряд просто не выглядит отмеренным по линейке.
 
-            grid-cols-3 здесь НЕТ намеренно. Обе записи задают одно и то же
-            свойство grid-template-columns, и в собранном файле короткая
-            утилита оказывалась ниже — три ровные колонки просто затирали
-            неровные. Шаблон объявлен один раз и целиком. */}
-        <div className="scrollbar-hide -mx-6 mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pt-2 pb-8 md:mx-0 md:mt-14 md:grid md:gap-5 md:overflow-visible md:px-0 md:pb-2 md:[grid-template-columns:1.035fr_0.965fr_1fr]">
+            Одной записью grid-template-columns, без grid-cols-3: обе
+            задают одно свойство, и короткая утилита в собранном файле
+            оказывалась ниже — три ровные колонки затирали неровные.
+
+            Высота ряда общая у всех трёх карточек: сетка по умолчанию
+            тянет ячейки на всю строку (align-items: stretch), поэтому
+            плашка у одной из них не делает её выше соседок. */}
+        <div className="scrollbar-hide -mx-6 mt-6 flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-6 pt-1 pb-6 md:mx-0 md:grid md:gap-3.5 md:overflow-visible md:px-0 md:pb-1 md:[grid-template-columns:1.035fr_0.965fr_1fr]">
           {careCards.map((card, idx) => {
             const pair = card.images.length > 1;
             const box = pair ? PAIR : SOLO;
-            // Карточка во всю ширину: заголовку и тексту тесно в одну
-            // колонку рядом со значком — там их хватает на строку каждому,
-            // и вместе они разводятся в ряд.
-            const banner = card.span === 3;
 
             return (
               /* Внешняя обёртка держит ПОЯВЛЕНИЕ и место в сетке, внутренняя —
@@ -215,38 +206,26 @@ export const CareCards = () => {
                   cardRefs.current[idx] = el;
                 }}
                 data-card={idx}
-                /* Шире, чем было: значок съедает 72px + отступ, и в прежних
-                     78% на текст оставалась колонка в двадцать знаков —
-                     заголовок ломался пополам, описание шло лесенкой в
-                     пять строк. Край следующей карточки всё равно
-                     выглядывает и показывает, что тут листают. */
-                className={`w-[86%] shrink-0 snap-center sm:w-[56%] md:w-auto ${
-                  card.span === 3
-                    ? "md:col-span-3"
-                    : card.span === 2
-                      ? "md:col-span-2"
-                      : ""
-                }`}
+                className="w-[86%] shrink-0 snap-center sm:w-[56%] md:w-auto"
                 style={{
                   opacity: isShown(idx) ? 1 : 0,
                   transform: isShown(idx)
                     ? "none"
-                    : "translateY(22px) scale(0.975)",
+                    : "translateY(18px) scale(0.98)",
                   transition: `opacity ${REVEAL_MS}ms ${EASE}, transform ${REVEAL_MS}ms ${EASE}`,
                   transitionDelay: isShown(idx) ? `${delays[idx]}ms` : "0ms",
                 }}
               >
                 {/* МАТОВОЕ СТЕКЛО. У карточки со смысловым акцентом
-                    подложка своя — сиреневая: выделяем не размером и не
-                    рамкой, а тоном.
+                    подложка своя — сиреневая: после перехода на строгую
+                    сетку это единственный способ её выделить, размером и
+                    местом в ряду там уже не выделишь.
 
-                    Раскладка теперь ГОРИЗОНТАЛЬНАЯ: значок слева, текст
-                    справа. Карточка от этого стала вдвое ниже — картинка
-                    во всю ширину съедала полторы сотни пикселей высоты и
-                    отодвигала правило, ради которого карточка и стоит.
-                    Внутреннее поле 16px вместо прежних 24-28. */}
+                    items-center, а не items-start: значок 56px и текст в
+                    две-три строки — примерно одной высоты, и по центру они
+                    стоят ровнее, чем прижатые к верху. */}
                 <article
-                  className={`memo-card flex h-full items-start gap-4 rounded-[22px] border border-white/80 p-4 shadow-[0_10px_28px_-10px_rgba(100,60,140,0.10)] transition duration-500 ease-out md:p-5 md:backdrop-blur-md md:hover:-translate-y-1 md:hover:border-white md:hover:shadow-[0_20px_40px_-14px_rgba(100,60,140,0.20)] ${
+                  className={`memo-card flex h-full flex-row items-center gap-3 rounded-[18px] border border-white/80 px-4 py-3 shadow-[0_8px_22px_-10px_rgba(100,60,140,0.12)] transition duration-500 ease-out md:backdrop-blur-md md:hover:-translate-y-1 md:hover:border-white md:hover:shadow-[0_16px_34px_-14px_rgba(100,60,140,0.22)] ${
                     card.accent
                       ? "bg-[#EFE4F8]/70 md:hover:bg-[#EFE4F8]/85"
                       : "bg-white/65 md:hover:bg-white/80"
@@ -260,14 +239,14 @@ export const CareCards = () => {
                       под длинный текст рядом, и плитки перестали бы быть
                       одинаковыми — то есть ровно то, ради чего они есть. */}
                   <div
-                    className={`flex shrink-0 items-center justify-center rounded-2xl ${PLINTHS[idx % PLINTHS.length]}`}
+                    className={`flex shrink-0 items-center justify-center rounded-xl ${PLINTHS[idx % PLINTHS.length]}`}
                     style={{
                       width: TILE,
                       height: TILE,
-                      ...layer(idx, LAYER_MS, "translateY(8px) scale(0.9)"),
+                      ...layer(idx, LAYER_MS, "translateY(6px) scale(0.9)"),
                     }}
                   >
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-0.5">
                       {card.images.map((img, i) => {
                         // Вписываем по той стороне, которая упирается первой
                         const byWidth = img.ar > box.w / box.h;
@@ -300,48 +279,31 @@ export const CareCards = () => {
                   {/* ТЕКСТ. min-w-0 обязателен флекс-ребёнку с текстом: без
                       него длинное слово распирает колонку и выдавливает
                       значок из карточки. */}
-                  <div
-                    className={`flex min-w-0 flex-1 flex-col text-left ${
-                      banner ? "md:flex-row md:items-baseline md:gap-6" : ""
-                    }`}
-                  >
-                    <div className={banner ? "md:shrink-0" : ""}>
-                      {/* Плашка стоит не у всех: у большинства карточек она
-                          повторяла заголовок другими словами. Осталась там,
-                          где ставит акцент, которого в заголовке нет.
+                  <div className="flex min-w-0 flex-1 flex-col text-left">
+                    {/* Плашка стоит В СТРОКУ с заголовком, а не над ним, и
+                        только у двух карточек из шести. Отдельной строкой
+                        она делала бы эти две выше соседок — а высоту ряда
+                        задаёт самая высокая карточка, и разъезжались бы
+                        все три. */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <h3 className="text-[15px] leading-tight font-semibold tracking-[-0.01em] text-[#2D2433]">
+                        {card.title}
+                      </h3>
 
-                          В компактной карточке она встала В СТРОКУ с
-                          заголовком, а не над ним: отдельной строкой она
-                          съедала треть высоты карточки ради одного слова. */}
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                        <h3
-                          className="text-base leading-snug font-semibold tracking-[-0.01em] text-[#2D2433]"
-                          style={layer(idx, LAYER_MS * 2, "translateY(6px)")}
+                      {card.tag && (
+                        <span
+                          className={`inline-block shrink-0 rounded-full border px-2 py-px text-[13px] font-bold tracking-[0.08em] uppercase ${
+                            card.accent
+                              ? "border-[#D9C2EA] bg-white/70 text-[#513A6B]"
+                              : "border-[#EADFF2] bg-white/70 text-[#6B4E81]"
+                          }`}
                         >
-                          {card.title}
-                        </h3>
-
-                        {card.tag && (
-                          <span
-                            className={`inline-block shrink-0 rounded-full border px-2.5 py-0.5 text-[13px] font-bold tracking-[0.1em] uppercase ${
-                              card.accent
-                                ? "border-[#D9C2EA] bg-white/70 text-[#513A6B]"
-                                : "border-[#EADFF2] bg-white/70 text-[#6B4E81]"
-                            }`}
-                            style={layer(idx, LAYER_MS * 3, "translateY(6px)")}
-                          >
-                            {card.tag}
-                          </span>
-                        )}
-                      </div>
+                          {card.tag}
+                        </span>
+                      )}
                     </div>
 
-                    <p
-                      className={`text-sm leading-[1.45] font-medium text-[#4A3A5C] ${
-                        banner ? "mt-1.5 md:mt-0 md:flex-1" : "mt-1.5"
-                      }`}
-                      style={layer(idx, LAYER_MS * 4, "translateY(6px)")}
-                    >
+                    <p className="mt-[3px] text-[13px] leading-[1.35] font-medium text-[#4A3A5C]">
                       {card.description}
                     </p>
                   </div>

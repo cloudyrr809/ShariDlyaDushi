@@ -33,23 +33,28 @@ const INN = "762707157039";
    • rot — наклон. Ни один шар не стоит строго вертикально;
    • w — размер через clamp: на телефоне куча ужимается сама, без
      отдельной раскладки. Разброс размеров даёт ближний и дальний план;
-   • op — прозрачность. Шары не должны спорить с текстом над ними, а
-     разная плотность добавляет глубины;
-   • z — кто перед кем. Мелкие и бледные уходят назад, крупные выходят
-     вперёд, и куча перестаёт быть плоской аппликацией.
+   • op — прозрачность, и разведена она по планам широко: дальний почти
+     растворён (0.14-0.17), ближний вполне плотный (0.48-0.55). Узкий
+     разброс, который был раньше, глубины не давал — все шары выходили
+     одинаково бледными и сливались в общее пятно;
+   • z — кто перед кем, и это НЕ только порядок наложения. По нему шар
+     попадает в один из трёх планов (см. footer-balloon--back/mid/front в
+     index.css): дальний идёт под лёгким размытием и высветленным, ближний
+     получает чёткую тень по силуэту. Одной прозрачности не хватало — шары
+     сливались в общее пятно, потому что все были одинаково плоскими.
 
    Значения подобраны на глаз и намеренно «некруглые»: ровные числа
    складываются в узор, а узор — это уже не куча. */
 const FALLEN = [
   // ── первый слой: мелкие и бледные, лежат глубже всех ──
-  { src: "/assets/ballon2.png", left: "-2%", w: "clamp(58px, 10vw, 138px)", sink: 70, rot: -24, op: 0.18, z: 1 },
-  { src: "/assets/ballon4.png", left: "9%", w: "clamp(62px, 11vw, 150px)", sink: 72, rot: 13, op: 0.19, z: 1 },
-  { src: "/assets/ballon6.png", left: "21%", w: "clamp(56px, 10vw, 132px)", sink: 69, rot: -16, op: 0.17, z: 1 },
-  { src: "/assets/ballon1.png", left: "36%", w: "clamp(64px, 11vw, 154px)", sink: 73, rot: 21, op: 0.2, z: 1 },
-  { src: "/assets/ballon3.png", left: "50%", w: "clamp(59px, 10vw, 142px)", sink: 71, rot: -11, op: 0.18, z: 1 },
-  { src: "/assets/ballon5.png", left: "64%", w: "clamp(63px, 11vw, 148px)", sink: 74, rot: 18, op: 0.19, z: 1 },
-  { src: "/assets/ballon2.png", left: "78%", w: "clamp(57px, 10vw, 136px)", sink: 70, rot: -20, op: 0.17, z: 1 },
-  { src: "/assets/ballon4.png", left: "93%", w: "clamp(61px, 11vw, 146px)", sink: 72, rot: 9, op: 0.19, z: 1 },
+  { src: "/assets/ballon2.png", left: "-2%", w: "clamp(58px, 10vw, 138px)", sink: 70, rot: -24, op: 0.15, z: 1 },
+  { src: "/assets/ballon4.png", left: "9%", w: "clamp(62px, 11vw, 150px)", sink: 72, rot: 13, op: 0.16, z: 1 },
+  { src: "/assets/ballon6.png", left: "21%", w: "clamp(56px, 10vw, 132px)", sink: 69, rot: -16, op: 0.14, z: 1 },
+  { src: "/assets/ballon1.png", left: "36%", w: "clamp(64px, 11vw, 154px)", sink: 73, rot: 21, op: 0.17, z: 1 },
+  { src: "/assets/ballon3.png", left: "50%", w: "clamp(59px, 10vw, 142px)", sink: 71, rot: -11, op: 0.15, z: 1 },
+  { src: "/assets/ballon5.png", left: "64%", w: "clamp(63px, 11vw, 148px)", sink: 74, rot: 18, op: 0.16, z: 1 },
+  { src: "/assets/ballon2.png", left: "78%", w: "clamp(57px, 10vw, 136px)", sink: 70, rot: -20, op: 0.14, z: 1 },
+  { src: "/assets/ballon4.png", left: "93%", w: "clamp(61px, 11vw, 146px)", sink: 72, rot: 9, op: 0.16, z: 1 },
 
   // ── второй слой: средние ──
   { src: "/assets/ballon1.png", left: "4%", w: "clamp(72px, 12vw, 168px)", sink: 63, rot: 9, op: 0.24, z: 2 },
@@ -62,17 +67,17 @@ const FALLEN = [
   { src: "/assets/ballon6.png", left: "-8%", w: "clamp(80px, 13vw, 186px)", sink: 62, rot: 16, op: 0.25, z: 2 },
 
   // ── третий слой: крупные, выходят вперёд ──
-  { src: "/assets/ballon3.png", left: "-4%", w: "clamp(96px, 17vw, 232px)", sink: 50, rot: -13, op: 0.36, z: 3 },
-  { src: "/assets/ballon5.png", left: "11%", w: "clamp(88px, 15vw, 204px)", sink: 42, rot: 17, op: 0.33, z: 4 },
-  { src: "/assets/ballon6.png", left: "25%", w: "clamp(92px, 16vw, 218px)", sink: 47, rot: 6, op: 0.35, z: 3 },
-  { src: "/assets/ballon1.png", left: "39%", w: "clamp(98px, 17vw, 240px)", sink: 40, rot: 14, op: 0.38, z: 4 },
-  { src: "/assets/ballon5.png", left: "53%", w: "clamp(90px, 15vw, 210px)", sink: 45, rot: 11, op: 0.32, z: 3 },
-  { src: "/assets/ballon6.png", left: "67%", w: "clamp(94px, 16vw, 224px)", sink: 43, rot: 19, op: 0.35, z: 3 },
-  { src: "/assets/ballon3.png", left: "81%", w: "clamp(97px, 17vw, 236px)", sink: 46, rot: 8, op: 0.37, z: 4 },
+  { src: "/assets/ballon3.png", left: "-4%", w: "clamp(96px, 17vw, 232px)", sink: 50, rot: -13, op: 0.52, z: 3 },
+  { src: "/assets/ballon5.png", left: "11%", w: "clamp(88px, 15vw, 204px)", sink: 42, rot: 17, op: 0.5, z: 4 },
+  { src: "/assets/ballon6.png", left: "25%", w: "clamp(92px, 16vw, 218px)", sink: 47, rot: 6, op: 0.51, z: 3 },
+  { src: "/assets/ballon1.png", left: "39%", w: "clamp(98px, 17vw, 240px)", sink: 40, rot: 14, op: 0.55, z: 4 },
+  { src: "/assets/ballon5.png", left: "53%", w: "clamp(90px, 15vw, 210px)", sink: 45, rot: 11, op: 0.48, z: 3 },
+  { src: "/assets/ballon6.png", left: "67%", w: "clamp(94px, 16vw, 224px)", sink: 43, rot: 19, op: 0.51, z: 3 },
+  { src: "/assets/ballon3.png", left: "81%", w: "clamp(97px, 17vw, 236px)", sink: 46, rot: 8, op: 0.53, z: 4 },
   // Крайний правый утоплен глубже соседей нарочно. При мелком заглублении
   // от него оставался виден ровно круглый бок, который читался не как часть
   // кучи, а как отдельный шарик, случайно подлетевший к логотипу.
-  { src: "/assets/ballon5.png", left: "91%", w: "clamp(92px, 16vw, 236px)", sink: 56, rot: 15, op: 0.34, z: 3 },
+  { src: "/assets/ballon5.png", left: "91%", w: "clamp(92px, 16vw, 236px)", sink: 56, rot: 15, op: 0.49, z: 3 },
 ];
 
 /** Разделы сайта — тот же набор и порядок, что в шапке. */
@@ -151,12 +156,19 @@ export const Footer = () => {
     /* overflow-hidden — то, что срезает шары по нижнему краю. Без него они
        вылезли бы за подвал и растянули страницу вниз пустотой.
 
-       Фон уходит книзу в сиреневый: шары лежат на тоне чуть плотнее, чем
-       поле под текстом, и куча читается как земля, а не как наклейки на
-       белом. */
+       ГДЕ КОНЧАЕТСЯ СТРАНИЦА И НАЧИНАЕТСЯ ПОДВАЛ. Раньше градиент
+       стартовал с #FDFBFD — ровно фон страницы, — и на «Каталоге»,
+       «Услугах» и «О нас», где секция над подвалом тоже светлая, граница
+       пропадала: подвал читался как продолжение последнего блока.
+
+       Теперь две вещи разом. Волосяная черта сверху — та же, что делит
+       секции по всему сайту. И сам фон начинается с заметно более
+       плотного сиреневого, а не с белого: подвал стал отдельной полосой,
+       а не хвостом страницы. Книзу тон ещё плотнее — шары лежат на нём
+       как на земле, а не наклейками на белом. */
     <footer
       ref={footerRef}
-      className="relative mt-auto overflow-hidden bg-gradient-to-b from-[#FDFBFD] via-[#F8F3FA] to-[#F0E5F5] px-6 pt-16 pb-24 md:pt-20 md:pb-32"
+      className="relative mt-auto overflow-hidden border-t border-[#E3D4EE] bg-gradient-to-b from-[#F6EEFA] via-[#F1E6F7] to-[#E9DAF2] px-6 pt-16 pb-24 md:pt-20 md:pb-32"
     >
       {/* СЛОЙ С ШАРАМИ. Декоративный: из озвучки убран, курсор не ловит —
           иначе он накрыл бы ссылки над собой. */}
@@ -174,7 +186,9 @@ export const Footer = () => {
              на сколько качаться. */
           <span
             key={i}
-            className={`footer-balloon ${live ? "is-live" : ""}`}
+            className={`footer-balloon footer-balloon--${
+              b.z >= 3 ? "front" : b.z === 2 ? "mid" : "back"
+            } ${live ? "is-live" : ""}`}
             style={
               {
                 left: b.left,
