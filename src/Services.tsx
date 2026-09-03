@@ -286,6 +286,54 @@ const fallbackServices: Service[] = servicesData.map(
   (s: ServiceSeed, i): Service => ({ ...s, sort: i, published: true }),
 );
 
+/* ─────────────────────────── НАШ ПОДХОД ───────────────────────────
+
+   Три карточки внизу страницы. Оформление то же, что у шагов «как
+   получить скидку» на Акциях: свой оттенок, свои скругления, своя тень,
+   свой вертикальный сдвиг и свой шарик, свисающий над верхней кромкой.
+   Три одинаковых белых прямоугольника подряд читались как заготовка.
+
+   Ритм при этом свой, а не копия соседней страницы: поджатый угол идёт
+   в обратную сторону, оттенки в другом порядке, шарики другие — те три,
+   что не заняты на Акциях. Одна манера, разный узор. */
+const approachCards = [
+  {
+    title: "Под ключ",
+    text: "Полный комплекс услуг для создания идеального праздника",
+    shape: "rounded-[2.5rem] rounded-bl-xl",
+    tint: "bg-[#F6F0FA]",
+    shadow:
+      "shadow-[0_14px_40px_-20px_rgba(107,78,129,0.35)] hover:shadow-[0_26px_58px_-22px_rgba(107,78,129,0.42)]",
+    // Сдвиг только на широком экране, где карточки стоят рядом. В колонку
+    // на телефоне он превратился бы в кривые отступы.
+    offset: "md:mt-6",
+    art: "/assets/ballon1.png",
+    artClass: "-top-10 left-6 w-[4.5rem] -rotate-[12deg]",
+  },
+  {
+    title: "Команда",
+    text: "От визажиста до ведущего — мы соберем лучших специалистов",
+    shape: "rounded-[2.5rem] rounded-tr-xl",
+    tint: "bg-white",
+    shadow:
+      "shadow-[0_10px_34px_-18px_rgba(45,36,56,0.28)] hover:shadow-[0_22px_50px_-20px_rgba(107,78,129,0.35)]",
+    offset: "md:mt-0",
+    art: "/assets/ballon3.png",
+    artClass: "-top-11 right-6 w-20 rotate-[9deg]",
+  },
+  {
+    title: "Спокойствие",
+    text: "Доверьте организацию профессионалам, а сами наслаждайтесь моментом",
+    shape: "rounded-[2.5rem] rounded-br-xl",
+    tint: "bg-[#FCF2F6]",
+    shadow:
+      "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
+    offset: "md:mt-9",
+    art: "/assets/ballon5.png",
+    artClass: "-top-8 left-8 w-[3.75rem] rotate-[15deg]",
+  },
+];
+
 // --- ГЛАВНЫЙ КОМПОНЕНТ ---
 export default function Services() {
   const location = useLocation();
@@ -434,34 +482,34 @@ export default function Services() {
             Не только дизайнерские шары
           </h2>
 
-          {/* Строгая сетка вместо разбросанных карточек: одинаковая ширина,
-              одна базовая линия, равные промежутки. items-stretch по умолчанию,
-              поэтому карточки с разным объёмом текста держат общую высоту. */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {[
-              {
-                title: "Под ключ",
-                text: "Полный комплекс услуг для создания идеального праздника",
-              },
-              {
-                title: "Команда",
-                text: "От визажиста до ведущего — мы соберем лучших специалистов",
-              },
-              {
-                title: "Спокойствие",
-                text: "Доверьте организацию профессионалам, а сами наслаждайтесь моментом",
-              },
-            ].map((card) => (
+          {/* items-start, а не растянутые на общую высоту: у карточек разный
+              объём текста, и пусть они будут разной высоты — вместе со
+              сдвигами по вертикали это и даёт асимметрию. Верхний отступ
+              увеличен: шарики выступают за кромку и им нужно место, иначе
+              они лезли бы на заголовок. */}
+          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-3 md:gap-7">
+            {approachCards.map((card) => (
               <div
                 key={card.title}
-                className="flex flex-col items-center justify-center rounded-3xl bg-white px-8 py-10 text-center shadow-[0_4px_20px_rgba(45,36,56,0.05)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_12px_40px_rgba(45,36,56,0.10)]"
+                /* Верхний внутренний отступ больше остальных: шарик свисает
+                   за кромку и заходит на карточку на 30-40px, заголовок
+                   должен начинаться ниже этой границы. */
+                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${card.shape} ${card.tint} ${card.shadow} ${card.offset}`}
               >
+                <img
+                  src={card.art}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className={`pointer-events-none absolute select-none drop-shadow-[0_10px_18px_rgba(107,78,129,0.22)] ${card.artClass}`}
+                />
+
                 {/* Мини-заголовок держит фирменный тёмный, описание идёт на
                     тон мягче — иерархия читается сразу, без линеек и иконок. */}
-                <h3 className="mb-3 text-sm font-bold tracking-widest text-[#2D2433] uppercase">
+                <h3 className="text-sm font-bold tracking-widest text-[#2D2433] uppercase">
                   {card.title}
                 </h3>
-                <p className="text-base leading-relaxed font-normal text-[#5A4D66]">
+                <p className="mt-3 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
                   {card.text}
                 </p>
               </div>
