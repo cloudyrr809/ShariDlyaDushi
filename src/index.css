@@ -142,8 +142,8 @@
      Тень — drop-shadow, а не box-shadow: она идёт по альфа-каналу и
      повторяет силуэт шара, а не рисует прямоугольник вокруг него. */
   .memo-card:hover .memo-figure img {
-    transform: translateY(-4px) scale(1.04);
-    filter: drop-shadow(0 12px 14px rgba(107, 78, 129, 0.28));
+    transform: translateY(-5px) scale(1.05);
+    filter: drop-shadow(0 14px 18px rgba(107, 78, 129, 0.3));
   }
 
   /* Свисающая сверху связка растёт от верхнего края вниз, будто
