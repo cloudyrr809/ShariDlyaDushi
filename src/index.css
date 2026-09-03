@@ -146,14 +146,11 @@
     filter: drop-shadow(0 14px 18px rgba(107, 78, 129, 0.3));
   }
 
-  /* Свисающая сверху связка растёт от верхнего края вниз, будто
-     надувается. Подъём ей не нужен: она и так прижата к кромке подложки,
-     и сдвиг вверх просто съел бы её под обрезкой. */
-  .memo-figure--hang img {
-    transform-origin: 50% 0;
-  }
-  .memo-card:hover .memo-figure--hang img {
-    transform: scale(1.05);
+  /* Перевёрнутая связка в большой карточке памятки. Знак сдвига здесь
+     обратный: внутри родителя с scaleY(-1) плюс означает вверх. Без этого
+     картинка на наведении уезжала бы вниз, под кромку карточки. */
+  .memo-card:hover .memo-figure--flip img {
+    transform: translateY(5px) scale(1.05);
   }
 }
 
@@ -163,10 +160,21 @@
   .memo-figure img {
     transition: filter 200ms linear;
   }
-  .memo-card:hover .memo-figure img,
-  .memo-card:hover .memo-figure--hang img {
+  .memo-card:hover .memo-figure img {
     transform: none;
   }
+  /* Переворот — не движение, а положение картинки: остаётся. */
+  .memo-card:hover .memo-figure--flip img {
+    transform: none;
+  }
+}
+
+/* Переворот связки в большой карточке памятки: в исходнике она нарисована
+   свисающей сверху, а у нижней кромки карточки нужна растущей снизу.
+   Объявлен вне блока про наведение — это положение картинки, а не эффект,
+   и работать должно на любом устройстве. */
+.memo-figure--flip {
+  transform: scaleY(-1);
 }
 
 /* Горизонтальная прокрутка без видимой полосы. Плагина tailwind-scrollbar-hide
