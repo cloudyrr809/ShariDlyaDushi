@@ -1,4 +1,5 @@
 // src/components/Footer.tsx
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
 /* ═════════════════ ДАННЫЕ ПРОДАВЦА — ЗАПОЛНИТЬ ЗДЕСЬ ═════════════════
@@ -83,6 +84,52 @@ const COL_LINK =
   "text-[15px] font-semibold tracking-[0.08em] text-[#4A3A5C] uppercase transition-colors hover:text-[#A64D6C]";
 
 export const Footer = () => {
+  const footerRef = useRef<HTMLElement | null>(null);
+
+  /* ДВЕ АНИМАЦИИ ШАРОВ И ОДИН НАБЛЮДАТЕЛЬ НА ОБЕ.
+
+     fell  — падение отыгрывается один раз, когда до подвала долистали.
+             Пока не долистали, шары стоят на первом кадре: высоко над
+             кромкой и невидимые. Отсюда и «попадали откуда-то» — они
+             честно прилетают сверху ровно в тот момент, когда на них
+             смотрят, а не оказываются на месте заранее.
+     inView — покачивание. Идёт, только пока подвал на экране. Это не
+             украшательство ради украшательства: пятнадцать непрерывно
+             анимированных слоёв незачем считать всё время, пока человек
+             читает страницу вверху. Ушёл подвал за край — покачивание
+             встало.
+
+     Обе анимации трогают только transform, поэтому считает их
+     композитор, а не основной поток.
+
+     «Меньше движения» — уважаем в CSS: там обе анимации выключаются, а
+     шары остаются лежать на своих местах. */
+  const [fell, setFell] = useState(false);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setFell(true);
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      ([e]) => {
+        setInView(e.isIntersecting);
+        if (e.isIntersecting) setFell(true);
+      },
+      // Небольшой запас снизу: падение должно начаться чуть раньше, чем
+      // кромка подвала войдёт в кадр, иначе первые шары приземляются уже
+      // на виду и фокус пропадает.
+      { rootMargin: "0px 0px 120px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     /* overflow-hidden — то, что срезает шары по нижнему краю. Без него они
        вылезли бы за подвал и растянули страницу вниз пустотой.
@@ -90,28 +137,65 @@ export const Footer = () => {
        Фон уходит книзу в сиреневый: шары лежат на тоне чуть плотнее, чем
        поле под текстом, и куча читается как земля, а не как наклейки на
        белом. */
-    <footer className="relative mt-auto overflow-hidden bg-gradient-to-b from-[#FDFBFD] via-[#F8F3FA] to-[#F0E5F5] px-6 pt-16 pb-44 md:pt-20 md:pb-52">
+    <footer
+      ref={footerRef}
+      className="relative mt-auto overflow-hidden bg-gradient-to-b from-[#FDFBFD] via-[#F8F3FA] to-[#F0E5F5] px-6 pt-16 pb-24 md:pt-20 md:pb-32"
+    >
       {/* СЛОЙ С ШАРАМИ. Декоративный: из озвучки убран, курсор не ловит —
           иначе он накрыл бы ссылки над собой. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         {FALLEN.map((b, i) => (
-          <img
+          /* ДВА СЛОЯ НА ШАР, И ЭТО НЕ ЛИШНЕЕ. Обе анимации меняют
+             transform, а на одном элементе из двух анимаций одного
+             свойства побеждает последняя — покачивание просто затёрло бы
+             падение. Поэтому обёртка отвечает за высоту (падение и
+             глубину погружения), картинка внутри — за наклон
+             (покачивание).
+
+             Величины уходят в CSS-переменные: кадры анимации живут в
+             index.css и должны знать, куда конкретно этому шару падать и
+             на сколько качаться. */
+          <span
             key={i}
-            src={b.src}
-            alt=""
-            loading="lazy"
-            className="absolute bottom-0 max-w-none select-none"
-            style={{
-              left: b.left,
-              width: b.w,
-              opacity: b.op,
-              zIndex: b.z,
-              // translate в процентах считается от размера самой картинки,
-              // поэтому «утопить наполовину» работает одинаково и на
-              // телефоне, и на широком экране, где шар вчетверо больше.
-              transform: `translateY(${b.sink}%) rotate(${b.rot}deg)`,
-            }}
-          />
+            className={`footer-balloon ${fell ? "is-falling" : ""}`}
+            style={
+              {
+                left: b.left,
+                width: b.w,
+                zIndex: b.z,
+                "--sink": b.sink,
+                // Прозрачность через переменную, а не напрямую: её должны
+                // видеть кадры анимации падения, иначе они возвращают шару
+                // полную непрозрачность (см. index.css).
+                "--op": b.op,
+                // Разбег старта: шары сыплются один за другим, а не падают
+                // строем. Числа взяты из индекса, чтобы не держать в
+                // таблице ещё одну колонку.
+                "--fall-delay": `${(i % 5) * 70 + (i % 3) * 45}ms`,
+                "--fall-dur": `${900 + (i % 4) * 150}ms`,
+              } as CSSProperties
+            }
+          >
+            <img
+              src={b.src}
+              alt=""
+              loading="lazy"
+              className="footer-balloon__img"
+              style={
+                {
+                  "--rot": b.rot,
+                  // Качается вокруг нижней точки — как предмет, который
+                  // лежит и кренится, а не висит и болтается целиком.
+                  "--sway": i % 2 ? 3.2 : -2.6,
+                  "--sway-dur": `${4.6 + (i % 5) * 0.7}s`,
+                  // Отрицательная задержка = каждый шар стартует со своей
+                  // фазы сразу, без волны в начале.
+                  "--sway-delay": `${-(i * 0.41).toFixed(2)}s`,
+                  animationPlayState: inView ? "running" : "paused",
+                } as CSSProperties
+              }
+            />
+          </span>
         ))}
       </div>
 
@@ -137,7 +221,7 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h2 className={COL_TITLE}>Мы в сети</h2>
+            <h2 className={COL_TITLE}>Социальные сети</h2>
             <ul className="mt-6 space-y-3.5">
               {SOCIAL.map((s) => (
                 <li key={s.href}>
@@ -184,7 +268,11 @@ export const Footer = () => {
         {/* НИЖНЯЯ ПОЛОСА. Слева обязательные сведения о продавце, справа
             логотип — на образце в этих же местах стоят копирайт и подпись
             студии, сделавшей сайт. */}
-        <div className="mt-16 flex flex-col gap-6 border-t border-[#E2D3EC] pt-8 md:mt-20 md:flex-row md:items-end md:justify-between">
+        {/* Отступ до черты небольшой. Высоту ряда задаёт самая длинная
+            колонка («Разделы», пять пунктов), и под короткими колонками и
+            так остаётся воздух — прежние 64/80px сверху добавляли к нему
+            ещё столько же, и между «О нас» и чертой зияла дыра. */}
+        <div className="mt-8 flex flex-col gap-6 border-t border-[#E2D3EC] pt-8 md:mt-10 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1.5 text-[13px] font-medium text-[#7E6E8A]">
             {/* Кегль 13px, а не 12: мелкий текст на сайте под запретом, а
                 этот блок вдобавок обязан быть читаемым — его для того и

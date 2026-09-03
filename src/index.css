@@ -371,6 +371,98 @@
    нельзя — компонент ждёт событие её окончания, чтобы назначить следующий
    вылет, и без анимации шарик застрял бы невидимым за нижней кромкой. */
 
+/* ─────────────── ШАРЫ, УПАВШИЕ НА КРОМКУ ПОДВАЛА ───────────────
+
+   Два движения на каждый шар, разведённые по двум элементам: обёртка
+   ходит по высоте, картинка внутри кренится. На одном элементе они бы
+   подрались — обе меняют transform, а побеждает последняя объявленная.
+
+   Все величины приходят из разметки переменными: у каждого шара своя
+   глубина погружения, свой наклон и своя фаза. calc(var(--x) * 1%) —
+   способ подставить в кадр голое число из инлайнового стиля. */
+
+.footer-balloon {
+  position: absolute;
+  bottom: 0;
+  max-width: none;
+  user-select: none;
+  /* Положение покоя: шар утоплен за нижнюю кромку на свою долю высоты */
+  transform: translateY(calc(var(--sink) * 1%));
+  /* Прозрачность тоже переменной, а не инлайновым стилем. Кадры анимации
+     сильнее инлайнового стиля, и пока в них стояло opacity: 1, после
+     приземления все шары становились непрозрачными — вся куча
+     проявлялась в полную силу и лезла на текст. */
+  opacity: var(--op);
+}
+
+/* ПАДЕНИЕ. До сигнала анимация стоит на первом кадре (fill-mode both +
+   paused), то есть шар висит высоко над кромкой и невидим. Долистали до
+   подвала — класс переключает play-state, и шары сыплются вниз.
+
+   В конце два коротких отскока: шар приземляется, чуть проваливается и
+   встаёт на место. Без них падение выглядит как приезд лифта. */
+.footer-balloon {
+  animation: footer-balloon-fall var(--fall-dur, 1s)
+    cubic-bezier(0.3, 0.7, 0.25, 1) var(--fall-delay, 0ms) both paused;
+}
+.footer-balloon.is-falling {
+  animation-play-state: running;
+}
+
+@keyframes footer-balloon-fall {
+  0% {
+    transform: translateY(calc(var(--sink) * 1% - 360%));
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--op);
+  }
+  72% {
+    transform: translateY(calc(var(--sink) * 1% + 9%));
+  }
+  86% {
+    transform: translateY(calc(var(--sink) * 1% - 4%));
+  }
+  100% {
+    transform: translateY(calc(var(--sink) * 1%));
+    opacity: var(--op);
+  }
+}
+
+/* ПОКАЧИВАНИЕ. Идёт бесконечно, но play-state ставит разметка: пока
+   подвал за краем экрана, считать пятнадцать анимаций незачем.
+   transform-origin внизу — шар лежит и кренится, а не болтается целиком. */
+.footer-balloon__img {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 100%;
+  transform: rotate(calc(var(--rot) * 1deg));
+  animation: footer-balloon-sway var(--sway-dur, 5s) ease-in-out
+    var(--sway-delay, 0s) infinite;
+}
+
+@keyframes footer-balloon-sway {
+  0%,
+  100% {
+    transform: rotate(calc(var(--rot) * 1deg));
+  }
+  50% {
+    transform: rotate(calc(var(--rot) * 1deg + var(--sway) * 1deg));
+  }
+}
+
+/* «Меньше движения» — шары просто лежат на своих местах. */
+@media (prefers-reduced-motion: reduce) {
+  .footer-balloon,
+  .footer-balloon__img {
+    animation: none !important;
+  }
+  .footer-balloon {
+    transform: translateY(calc(var(--sink) * 1%));
+    opacity: var(--op);
+  }
+}
+
 /* ─────────────────── ПЛАВНАЯ ПРОКРУТКА (Lenis) ───────────────────
    Служебные классы Lenis навешивает на <html> сам. Правила — те же, что
    в официальном lenis.css: пока плавный скролл включён, родной
