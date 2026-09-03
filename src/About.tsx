@@ -193,7 +193,7 @@ export default function About() {
     {
       value: "±15 мин",
       tag: "доставка",
-      label: "Привозим заказ к точному времени, чтобы не сорвать сюрприз",
+      label: "Привозим заказ к точному времени",
     },
   ];
 
@@ -696,10 +696,21 @@ export default function About() {
             <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:col-span-7 md:gap-x-10 md:gap-y-14">
               {stats.map((stat) => (
                 <div key={stat.label}>
-                  {/* tabular-nums — цифры одинаковой ширины. Без него
+                  {/* Розовый — тот же, что у заголовков колонок в подвале и
+                      у рукописных надстрочек по сайту. Тёмным эта четвёрка
+                      весила как заголовок блока и спорила с ним за
+                      внимание; фирменным розовым цифры остаются такими же
+                      крупными, но читаются как акцент, а не как второй
+                      заголовок.
+
+                      Взят более глубокий #A64D6C, а не светлый #C46B8A:
+                      надпись стоит на просвечивающем фото, и светлый
+                      розовый на нём терял контраст.
+
+                      tabular-nums — цифры одинаковой ширины. Без него
                       строка едва заметно дёргается на каждом кадре
                       отсчёта, пока меняется разряд. */}
-                  <p className="text-[2.75rem] leading-[0.9] font-extrabold tracking-[-0.035em] text-[#2D2433] tabular-nums md:text-[3.6rem]">
+                  <p className="text-[2.75rem] leading-[0.9] font-extrabold tracking-[-0.035em] text-[#A64D6C] tabular-nums md:text-[3.6rem]">
                     {stat.counter ? (
                       <>
                         <span ref={stat.counter.ref}>{stat.counter.value}</span>
