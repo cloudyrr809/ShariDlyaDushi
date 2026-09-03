@@ -277,22 +277,54 @@ function PromoTile({ promo, index }: { promo: Promo; index: number }) {
   );
 }
 
-/* ─────────────────────────── ШАГИ ПОЛУЧЕНИЯ ─────────────────────────── */
+/* ─────────────────────────── ШАГИ ПОЛУЧЕНИЯ ───────────────────────────
+
+   Номеров у шагов больше нет. Три плитки стоят в ряд и читаются слева
+   направо сами по себе, а фиолетовые кружки с цифрами были самым тяжёлым
+   пятном в блоке: глаз цеплялся за них раньше, чем за текст, ради
+   которого блок и существует.
+
+   Взамен у каждой плитки свой характер — оттенок, скруглния, тень,
+   вертикальный сдвиг и свой шарик в углу. Три одинаковых белых
+   прямоугольника подряд выглядели как заготовка, при том что вокруг вся
+   страница построена на разноформатных плитках акций. */
 const steps = [
   {
-    n: "1",
     title: "Выберите композицию",
     text: "Найдите готовый вариант в каталоге или пришлите свою картинку — сделаем по вашему референсу.",
+    // Скругления разные у каждой: один угол намеренно поджат, и какой
+    // именно — по кругу слева направо, чтобы ряд шёл волной.
+    shape: "rounded-[2.5rem] rounded-tr-xl",
+    tint: "bg-white",
+    shadow:
+      "shadow-[0_10px_34px_-18px_rgba(45,36,56,0.28)] hover:shadow-[0_22px_50px_-20px_rgba(107,78,129,0.35)]",
+    // Сдвиг по вертикали — только на широком экране, где плитки стоят
+    // рядом. В колонку на телефоне он превратился бы в кривые отступы.
+    offset: "md:mt-0",
+    art: "/assets/ballon2.png",
+    artClass: "-top-9 right-5 w-16 rotate-[12deg]",
   },
   {
-    n: "2",
     title: "Скажите о поводе",
     text: "При заказе просто упомяните день рождения, оставленный отзыв или имя друга.",
+    shape: "rounded-[2.5rem] rounded-bl-xl",
+    tint: "bg-[#F6F0FA]",
+    shadow:
+      "shadow-[0_14px_40px_-20px_rgba(107,78,129,0.35)] hover:shadow-[0_26px_58px_-22px_rgba(107,78,129,0.42)]",
+    offset: "md:mt-10",
+    art: "/assets/ballon4.png",
+    artClass: "-top-11 left-4 w-20 -rotate-[10deg]",
   },
   {
-    n: "3",
     title: "Получите выгоду",
     text: "Сразу пересчитаем цену со скидкой и сделаем подарок к заказу.",
+    shape: "rounded-[2.5rem] rounded-tl-xl",
+    tint: "bg-[#FCF2F6]",
+    shadow:
+      "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
+    offset: "md:mt-4",
+    art: "/assets/ballon6.png",
+    artClass: "-top-8 right-7 w-14 rotate-[16deg]",
   },
 ];
 
@@ -367,19 +399,38 @@ export default function Promotions() {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3 md:gap-8">
+        {/* items-start, а не растянутые на общую высоту: у плиток разный
+            объём текста, и пусть они будут разной высоты — вместе со
+            сдвигами по вертикали это и даёт ту асимметрию, ради которой
+            блок переверстан. Верхний отступ увеличен: шарики выступают за
+            кромку плиток и им нужно место, иначе они лезли бы на
+            подзаголовок. */}
+        <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-7">
           {steps.map((step) => (
             <div
-              key={step.n}
-              // Сплошной белый, а не white/85: на светлом фоне полупрозрачная
-              // плашка сливалась с ним и карточка переставала читаться как
-              // карточка. Тень — та же, что у блока «наш подход» на Услугах.
-              className="rounded-3xl bg-white p-8 shadow-[0_4px_20px_rgba(45,36,56,0.05)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_14px_40px_rgba(107,78,129,0.10)]"
+              key={step.title}
+              /* Верхний отступ больше остальных: шарик свисает за кромку
+                 плитки и заходит на неё на 30-40px, заголовок должен
+                 начинаться ниже этой границы. */
+              className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
             >
-              <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#6B4E81] text-xl font-bold text-white">
-                {step.n}
-              </span>
-              <h3 className="text-lg font-semibold text-[#2D2433] md:text-xl">
+              {/* Шарик свисает над верхней кромкой и заходит на плитку
+                  только нижней частью — так он читается как привязанный
+                  к ней, а не наклеенный поверх текста. Сторона у каждой
+                  плитки своя: справа, слева, справа — ряд не выглядит
+                  проштампованным. Декор: из озвучки убран, курсор не
+                  ловит. */}
+              <img
+                src={step.art}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                className={`pointer-events-none absolute select-none drop-shadow-[0_10px_18px_rgba(107,78,129,0.22)] ${step.artClass}`}
+              />
+
+              {/* Тот же набор, что у блока «наш подход» на Услугах:
+                  мини-заголовок капсом вразрядку, описание тоном мягче. */}
+              <h3 className="text-sm font-bold tracking-widest text-[#2D2433] uppercase">
                 {step.title}
               </h3>
               <p className="mt-3 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">

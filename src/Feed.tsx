@@ -116,7 +116,20 @@ function PostCard({
           поста ссылка «Собрать такую же» проваливалась к нижней кромке —
           между текстом и ссылкой зиял пустой блок. Теперь всё идёт
           потоком: дата, заголовок, текст, ссылка сразу под ним. */}
-      <div className="flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem]">
+      {/* Зеркалим и НАБОР, а не только порядок колонок: у поста, прижатого
+          к правому краю, текст выключен вправо и прижат к правой стенке
+          вместе с коллажем. Иначе строка обрывалась по левому краю, а
+          справа между текстом и краем ленты оставалась дыра — пост
+          выглядел не перевёрнутым, а съехавшим.
+
+          ml-auto/mr-auto нужны отдельно от text-right: колонка у́же
+          отведённого ей места (max-w держит длину строки читаемой), и без
+          этого она осталась бы у внутреннего края. */}
+      <div
+        className={`flex min-w-0 flex-1 flex-col max-w-[34rem] lg:max-w-[42rem] ${
+          flushRight ? "lg:ml-auto lg:text-right" : "lg:mr-auto"
+        }`}
+      >
         {/* ШАПКА ПОСТА — дата и заголовок стоят на месте, не уезжают с
             прокруткой текста. */}
         <Meta post={post} />
@@ -154,7 +167,9 @@ function PostCard({
             реклама. Идёт сразу под текстом на любой высоте поста. */}
         <Link
           to="/catalog"
-          className="group mt-6 inline-flex items-center gap-2 self-start text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B]"
+          className={`group mt-6 inline-flex items-center gap-2 self-start text-base font-semibold text-[#6B4E81] transition-colors hover:text-[#513A6B] ${
+            flushRight ? "lg:self-end" : ""
+          }`}
         >
           Собрать такую же
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

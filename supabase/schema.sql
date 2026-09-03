@@ -87,9 +87,12 @@ create table if not exists public.products (
   created_at  timestamptz not null default now()
 );
 
--- Описание и характеристики карточки — для окна «Подробнее».
--- specs: [{"name": "Состав", "value": "12 латексных шаров"}, ...]
+-- Описание, состав и характеристики карточки — для окна «Подробнее».
+-- composition: ["цифра 4 «Пончик» 86 см", "шары латекс 3 шт. 30 см"] —
+--   строка на позицию, показывается списком с галочками сразу при открытии.
+-- specs: [{"name": "Высота", "value": "1,2 м"}, ...]
 alter table public.products add column if not exists description text not null default '';
+alter table public.products add column if not exists composition jsonb not null default '[]'::jsonb;
 alter table public.products add column if not exists specs jsonb not null default '[]'::jsonb;
 
 -- Если таблицу успели создать с одиночной колонкой category_id —

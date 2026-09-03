@@ -164,31 +164,35 @@ const ProductCard = ({
         {product.title}
       </h3>
 
-      {/* Две кнопки, а не одна: «в корзину» — для тех, кто уже выбрал
-          глазами, «подробнее» — для тех, у кого остались вопросы про
-          состав, доставку и возврат. Раньше со вторыми делать было
-          нечего: они уходили спрашивать в личку или просто уходили.
+      {/* Две кнопки в один ряд. «Подробнее» занимает всю оставшуюся
+          ширину — это основной путь: сначала человек смотрит состав,
+          доставку и возврат, и только потом кладёт в корзину. «В
+          корзину» ужата до одного значка и стоит справа: подпись рядом
+          с «Подробнее» не помещалась — на телефоне карточка шириной
+          163px, и две надписи ужались бы до нечитаемых.
 
-          Кнопки в столбик, а не в ряд: на телефоне карточка шириной
-          163px, и две подписи рядом ужались бы до нечитаемых. */}
-      <div className="grid gap-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAddToCart(e);
-          }}
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#E8DEEE] bg-[#F8F4F9] py-2.5 text-[13px] font-semibold text-[#6B4E81] transition-all hover:border-[#6B4E81] hover:bg-[#6B4E81] hover:text-white"
-        >
-          <ShoppingCart className="h-3.5 w-3.5" />В корзину
-        </button>
+          Заливка при этом досталась значку, а не широкой кнопке: без
+          подписи он держится на цвете, иначе бы потерялся у края. */}
+      <div className="flex items-stretch gap-2">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onDetails(product);
           }}
-          className="w-full cursor-pointer rounded-xl py-1.5 text-[13px] font-semibold text-[#7E6E8A] transition-colors hover:text-[#6B4E81]"
+          className="flex-1 cursor-pointer rounded-xl border border-[#E8DEEE] bg-[#F8F4F9] py-2.5 text-[13px] font-semibold text-[#6B4E81] transition-all hover:border-[#6B4E81] hover:bg-white"
         >
           Подробнее
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddToCart(e);
+          }}
+          aria-label={`Добавить «${product.title}» в корзину`}
+          title="В корзину"
+          className="flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#6B4E81] text-white transition-all hover:bg-[#513A6B]"
+        >
+          <ShoppingCart className="h-4 w-4" />
         </button>
       </div>
     </div>

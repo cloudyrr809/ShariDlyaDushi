@@ -51,7 +51,11 @@ export type Product = {
   images: string[];
   /** Пара абзацев о композиции — то, что не видно на фотографии. */
   description: string;
-  /** Характеристики парами «что — сколько»: состав, размер, срок. */
+  /** Состав: что именно входит в композицию, по строке на позицию.
+      Показывается в окне «Подробнее» СРАЗУ, списком с галочками — это
+      первое, что хотят увидеть: из чего собрано и сколько чего. */
+  composition: string[];
+  /** Характеристики парами «что — сколько»: размер, срок, повод. */
   specs: { name: string; value: string }[];
   /** Чем меньше, тем выше в списке. */
   sort: number;
@@ -68,6 +72,7 @@ export function blankProduct(): Product {
     oldPrice: null,
     images: [],
     description: "",
+    composition: [],
     specs: [],
     sort: 0,
     published: true,
@@ -88,6 +93,7 @@ type Row = {
   old_price: number | null;
   images: string[] | null;
   description: string | null;
+  composition: string[] | null;
   specs: { name: string; value: string }[] | null;
   sort: number | null;
   published: boolean;
@@ -101,6 +107,7 @@ const fromRow = (r: Row): Product => ({
   oldPrice: r.old_price,
   images: r.images ?? [],
   description: r.description ?? "",
+  composition: r.composition ?? [],
   specs: r.specs ?? [],
   sort: r.sort ?? 0,
   published: r.published,
@@ -113,6 +120,8 @@ const toRow = (p: Product) => ({
   old_price: p.oldPrice ? Math.round(p.oldPrice) : null,
   images: p.images,
   description: p.description.trim(),
+  // Пустые строки состава не храним: в окне они дали бы галочку без текста
+  composition: p.composition.map((x) => x.trim()).filter(Boolean),
   // Пустые пары не храним: на карточке они дали бы пустую строку таблицы
   specs: p.specs
     .map((x) => ({ name: x.name.trim(), value: x.value.trim() }))
@@ -191,6 +200,7 @@ export const fallbackProducts: Product[] = (() => {
       oldPrice: (p as { oldPrice?: number }).oldPrice ?? null,
       images,
       description: "",
+      composition: [],
       specs: [],
       sort: i,
       published: true,
