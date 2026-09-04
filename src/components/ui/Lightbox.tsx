@@ -117,13 +117,11 @@ export function Lightbox({
   const strip = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    strip.current
-      ?.querySelector('[data-active="true"]')
-      ?.scrollIntoView({
-        inline: "center",
-        block: "nearest",
-        behavior: "smooth",
-      });
+    strip.current?.querySelector('[data-active="true"]')?.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: "smooth",
+    });
   }, [open, index]);
 
   if (!open || index === null) return null;

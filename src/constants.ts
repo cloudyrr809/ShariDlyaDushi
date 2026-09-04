@@ -1,7 +1,7 @@
 // src/constants.ts
 
 export const catalogCategories = [
-  { id: "numbers", name: "Цифры"},
+  { id: "numbers", name: "Цифры" },
   { id: "girls", name: "Для девочек" },
   { id: "boys", name: "Для мальчиков" },
   { id: "women", name: "Для девушек" },
@@ -413,17 +413,6 @@ export const productsData = [
   },
 
   // --- ЛАТЕКСНЫЕ, ФОЛЬГИРОВАННЫЕ, БАБЛС ---
-
-
-
-
-
-
-
-
-
-
-
 ];
 
 // Отзывы клиентов. У отзыва может быть несколько фотографий — тогда внутри
@@ -516,26 +505,107 @@ type MemoImage = {
 };
 
 const memo: Record<string, MemoImage> = {
-  iceballon: { src: "/assets/memo/iceballon.webp", fx: 0.1377, fy: 0.0597, fw: 0.7195, fh: 0.8909, ar: 0.8076 },
-  fireballon: { src: "/assets/memo/fireballon.webp", fx: 0.138, fy: 0.0667, fw: 0.7157, fh: 0.8852, ar: 0.8086 },
+  iceballon: {
+    src: "/assets/memo/iceballon.webp",
+    fx: 0.1377,
+    fy: 0.0597,
+    fw: 0.7195,
+    fh: 0.8909,
+    ar: 0.8076,
+  },
+  fireballon: {
+    src: "/assets/memo/fireballon.webp",
+    fx: 0.138,
+    fy: 0.0667,
+    fw: 0.7157,
+    fh: 0.8852,
+    ar: 0.8086,
+  },
   // bleed "top" — шар прижат к верхней кромке карточки во всю её ширину,
   // будто основная связка спрятана выше края
-  downballon: { src: "/assets/memo/downballon.webp", fx: 0.0491, fy: 0, fw: 0.9361, fh: 0.5194, ar: 1.8021, bleed: "top" as const },
-  sharp: { src: "/assets/memo/sharp.webp", fx: 0.2639, fy: 0.2241, fw: 0.4722, fh: 0.5519, ar: 0.8557 },
-  sunballon: { src: "/assets/memo/sunballon.webp", fx: 0.1389, fy: 0.0593, fw: 0.7204, fh: 0.8935, ar: 0.8062 },
+  downballon: {
+    src: "/assets/memo/downballon.webp",
+    fx: 0.0491,
+    fy: 0,
+    fw: 0.9361,
+    fh: 0.5194,
+    ar: 1.8021,
+    bleed: "top" as const,
+  },
+  sharp: {
+    src: "/assets/memo/sharp.webp",
+    fx: 0.2639,
+    fy: 0.2241,
+    fw: 0.4722,
+    fh: 0.5519,
+    ar: 0.8557,
+  },
+  sunballon: {
+    src: "/assets/memo/sunballon.webp",
+    fx: 0.1389,
+    fy: 0.0593,
+    fw: 0.7204,
+    fh: 0.8935,
+    ar: 0.8062,
+  },
   // Котёнок переснят в 1080×1080 вместо 411×411 — геометрия снята заново
   // по альфа-каналу. Расхождение со старыми числами в пределах 0.5%,
   // плотность та же (47.8% против 47.9%) — поправка k остаётся.
-  catballon: { src: "/assets/memo/catballon.webp", fx: 0.1213, fy: 0.1435, fw: 0.763, fh: 0.7083, ar: 1.0771, k: 0.9 },
+  catballon: {
+    src: "/assets/memo/catballon.webp",
+    fx: 0.1213,
+    fy: 0.1435,
+    fw: 0.763,
+    fh: 0.7083,
+    ar: 1.0771,
+    k: 0.9,
+  },
   // Сцена «температура»: шар в центре, снежинка слева снизу,
   // солнце справа сверху. Раскладка — в поле scene у карточки.
-  ballon: { src: "/assets/memo/ballon.webp", fx: 0.2269, fy: 0.137, fw: 0.5472, fh: 0.7269, ar: 0.7529 },
-  snow: { src: "/assets/memo/snow.webp", fx: 0.1065, fy: 0.0491, fw: 0.788, fh: 0.9009, ar: 0.8746 },
-  sun: { src: "/assets/memo/sun.webp", fx: 0.0963, fy: 0.0917, fw: 0.825, fh: 0.8185, ar: 1.0079 },
-  carballon: { src: "/assets/memo/carballon.webp", fx: 0.088, fy: 0.3787, fw: 0.6444, fh: 0.5037, ar: 1.2794 },
+  ballon: {
+    src: "/assets/memo/ballon.webp",
+    fx: 0.2269,
+    fy: 0.137,
+    fw: 0.5472,
+    fh: 0.7269,
+    ar: 0.7529,
+  },
+  snow: {
+    src: "/assets/memo/snow.webp",
+    fx: 0.1065,
+    fy: 0.0491,
+    fw: 0.788,
+    fh: 0.9009,
+    ar: 0.8746,
+  },
+  sun: {
+    src: "/assets/memo/sun.webp",
+    fx: 0.0963,
+    fy: 0.0917,
+    fw: 0.825,
+    fh: 0.8185,
+    ar: 1.0079,
+  },
+  carballon: {
+    src: "/assets/memo/carballon.webp",
+    fx: 0.088,
+    fy: 0.3787,
+    fw: 0.6444,
+    fh: 0.5037,
+    ar: 1.2794,
+  },
   // bleed "bottom" — шар крупный по центру, а лента уходит вниз за текст
   // headFrac снят по профилю альфа-канала: шар занимает верхние 67% содержимого
-  cloud: { src: "/assets/memo/cloud.webp", fx: 0.0843, fy: 0.037, fw: 0.8315, fh: 0.963, ar: 0.8635, bleed: "bottom" as const, headFrac: 0.667 },
+  cloud: {
+    src: "/assets/memo/cloud.webp",
+    fx: 0.0843,
+    fy: 0.037,
+    fw: 0.8315,
+    fh: 0.963,
+    ar: 0.8635,
+    bleed: "bottom" as const,
+    headFrac: 0.667,
+  },
 };
 
 /* Памятка по обращению с шарами. У карточки может быть два изображения —

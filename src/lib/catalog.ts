@@ -1,6 +1,10 @@
 import { supabase } from "./supabase";
 import { localWebp } from "./media";
-import { catalogCategories, themeSubcategories, productsData } from "../constants";
+import {
+  catalogCategories,
+  themeSubcategories,
+  productsData,
+} from "../constants";
 
 /* ─────────────────────────── ТОВАРЫ КАТАЛОГА ───────────────────────────
 

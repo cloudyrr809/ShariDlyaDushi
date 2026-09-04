@@ -138,9 +138,7 @@ const toRow = (p: Promo) => ({
   published: p.published,
 });
 
-export async function fetchPromos(
-  withDrafts = false,
-): Promise<Promo[] | null> {
+export async function fetchPromos(withDrafts = false): Promise<Promo[] | null> {
   if (!supabase) return null;
 
   let q = supabase.from("promotions").select("*").order("sort", {

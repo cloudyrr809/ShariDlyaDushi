@@ -153,7 +153,10 @@ let hasSort = true;
 
 const noSortColumn = (e: unknown) => {
   const err = e as { code?: string; message?: string };
-  return err?.code === "42703" || /'?sort'? column|column .*sort/i.test(err?.message ?? "");
+  return (
+    err?.code === "42703" ||
+    /'?sort'? column|column .*sort/i.test(err?.message ?? "")
+  );
 };
 
 /**
