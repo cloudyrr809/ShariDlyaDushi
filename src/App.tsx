@@ -121,7 +121,13 @@ export default function App() {
     if (lenis) {
       markOwnScroll();
       lenis.scrollTo(top, {
-        duration: 0.9,
+        duration: 1.15,
+        // Свой, более мягкий ход, а не общий expo-out страницы: у того
+        // самый разгон приходится на первые доли секунды, и короткий
+        // прыжок наверх читался почти рывком. easeInOutCubic набирает
+        // скорость постепенно и так же постепенно её гасит — заметно
+        // спокойнее на дистанции в один экран.
+        easing: (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2),
         onComplete: () => setShowMore(false),
       });
     } else {
