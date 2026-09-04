@@ -132,7 +132,7 @@ function PromoTile({ promo, index }: { promo: Promo; index: number }) {
 
   return (
     <article
-      className={`relative flex min-h-[26rem] flex-col overflow-hidden rounded-[2.25rem] p-8 transition-transform duration-500 hover:-translate-y-1 lg:min-h-[30rem] lg:p-10 ${ART_VARS}`}
+      className={`relative flex min-h-[26rem] flex-col overflow-hidden rounded-[2.25rem] p-8 transition-transform duration-500 hover:-translate-y-1 md:p-6 lg:min-h-[30rem] lg:p-10 ${ART_VARS}`}
       style={{ backgroundColor: skin.bg, color: skin.ink }}
     >
       {/* Свечение под шаром — мягкая глубина без единой линии */}
@@ -200,7 +200,10 @@ function PromoTile({ promo, index }: { promo: Promo; index: number }) {
           Ширина колонки расчётная — упирается в левый край самого широкого
           из шаров. Три ступени, а не две: на lg карточка ещё 472px, и 64%
           залезали на шар. */}
-      <div className="relative z-10 mt-7 max-w-[70%] lg:max-w-[56%] xl:max-w-[64%]">
+      {/* На планшете плитка вдвое уже десктопной, и те же 70% давали
+          колонку в 191px. Шар там тоже меньше, поэтому текст может
+          занять больше, не залезая на него. */}
+      <div className="relative z-10 mt-7 max-w-[70%] md:max-w-[78%] lg:max-w-[56%] xl:max-w-[64%]">
         <p
           className="text-[15px] leading-relaxed font-medium lg:text-base"
           style={{ color: skin.body }}
@@ -290,7 +293,7 @@ export default function Promotions() {
           Текст подзаголовка — без счёта акций: список будет пополняться, а
           «шесть поводов» пришлось бы править каждый раз и однажды забыть. */}
       <CoverHeader
-        eyebrow="выгодно и приятно"
+        eyebrow="выгодно и приятно "
         title="Акции"
         lead="Следите за актуальными специальными предложениями на этой странице и первыми узнавайте о новых акциях студии."
       />
@@ -338,14 +341,18 @@ export default function Promotions() {
             блок переверстан. Верхний отступ увеличен: шарики выступают за
             кромку плиток и им нужно место, иначе они лезли бы на
             подзаголовок. */}
-        <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-7">
+        {/* Просвет на планшете уже: три колонки остаются, но каждой
+            достаётся больше ширины. Как в «Заказе и получении» на главной. */}
+        <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-4 lg:gap-7">
           {steps.map((step) => (
             <div
               key={step.title}
               /* Верхний отступ больше остальных: шарик свисает за кромку
                  плитки и заходит на неё на 30-40px, заголовок должен
                  начинаться ниже этой границы. */
-              className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
+              /* Поля на планшете поджаты: при md:px-9 тексту оставалось
+                 144px, по три слова в строке. */
+              className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
             >
               {/* Шарик свисает над верхней кромкой и заходит на плитку
                   только нижней частью — так он читается как привязанный
@@ -364,10 +371,10 @@ export default function Promotions() {
 
               {/* Тот же набор, что у блока «наш подход» на Услугах:
                   мини-заголовок капсом вразрядку, описание тоном мягче. */}
-              <h3 className="text-sm font-bold tracking-widest text-[#2D2433] uppercase">
+              <h3 className="text-sm font-bold tracking-widest text-[#2D2433] uppercase md:tracking-[0.08em] lg:tracking-widest">
                 {step.title}
               </h3>
-              <p className="mt-3 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
+              <p className="mt-3 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-[14px] lg:text-base">
                 {step.text}
               </p>
             </div>

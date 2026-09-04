@@ -391,14 +391,21 @@ export default function App() {
           {/* items-start, а не растянутые на общую высоту: у плиток разный
               объём текста, и разная высота вместе со сдвигами по вертикали
               и даёт ту асимметрию, ради которой блок переверстан. */}
-          <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-7">
+          {/* Просвет между плитками на планшете уже, чем на десктопе: три
+              колонки остаются, но каждой достаётся больше ширины. При
+              md:gap-7 карточке доставалось 216px, при gap-4 — 224px. */}
+          <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-4 lg:gap-7">
             {orderSteps.map((step) => (
               <div
                 key={step.title}
                 /* Верхний внутренний отступ больше остальных: шарик свисает
                    за кромку и заходит на плитку на 30-40px, заголовок
                    должен начинаться ниже этой границы. */
-                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
+                /* Внутренние поля на планшете поджаты: при md:px-9 из 216px
+                   плитки тексту оставалось 144, то есть по три слова в
+                   строке. С md:px-5 и более узким просветом — 184px. С lg
+                   возвращаются прежние. */
+                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
               >
                 <img
                   decoding="async"
@@ -414,10 +421,14 @@ export default function App() {
                     не 14: текста под ним втрое больше, чем в плитках на
                     Акциях, и заголовку нужно вести за собой не одну строку,
                     а четыре. */}
-                <h3 className="text-[15px] font-bold tracking-[0.16em] text-[#2D2433] uppercase">
+                {/* Разрядка 0.16em — это 16% ширины на каждый пробел между
+                    буквами: именно она ломала «КАК ОФОРМИТЬ ЗАКАЗ» на три
+                    строки в узкой колонке планшета. На этой полосе она
+                    вдвое уже, на десктопе прежняя. */}
+                <h3 className="text-[15px] font-bold tracking-[0.16em] text-[#2D2433] uppercase md:tracking-[0.08em] lg:tracking-[0.16em]">
                   {step.title}
                 </h3>
-                <p className="mt-3.5 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
+                <p className="mt-3.5 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-[14px] lg:text-base">
                   {step.text}
                 </p>
               </div>
