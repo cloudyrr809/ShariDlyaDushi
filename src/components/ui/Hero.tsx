@@ -1154,7 +1154,14 @@ export const Hero = () => {
               className="group/cta pointer-events-auto mt-8 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[17px] font-semibold text-white transition-colors hover:border-white lg:mt-10 lg:text-[19px]"
             >
               Посмотреть каталог
-              <ArrowRight className="h-[1.15em] w-[1.15em] transition-transform duration-300 ease-out group-hover/cta:translate-x-1.5" />
+              {/* Тоньше подписи: у lucide обводка по умолчанию 2px, и рядом со
+                  строкой весом 600 стрелка выглядела жирнее самих букв.
+                  1.25 держит её на весе тонкой линии, размер чуть крупнее —
+                  тонкая и мелкая читалась бы как соринка. */}
+              <ArrowRight
+                strokeWidth={1.25}
+                className="h-[1.3em] w-[1.3em] transition-transform duration-300 ease-out group-hover/cta:translate-x-1.5"
+              />
             </Link>
           </div>
         </div>

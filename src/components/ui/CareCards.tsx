@@ -86,39 +86,36 @@ type Img = {
 type Card = (typeof careCards)[number];
 
 /** Картинка, обрезанная по своему содержимому: прозрачные поля уходят за
-    край обёртки, а сама обёртка и есть видимый шар.
-
-    shade — собственная тень по силуэту. Нужна светлым картинкам на
-    светлой подложке; на наведении её перебивает более плотная тень из
-    index.css (правило там специфичнее утилиты). */
-const Cropped = ({ img, shade }: { img: Img; shade?: boolean }) => (
+    край обёртки, а сама обёртка и есть видимый шар. */
+const Cropped = ({ img, opacity }: { img: Img; opacity?: number }) => (
   <img
     src={img.src}
     alt=""
     aria-hidden="true"
     loading="lazy"
-    className={`absolute max-w-none select-none ${
-      shade ? "drop-shadow-[0_1px_2px_rgba(107,78,129,0.35)]" : ""
-    }`}
+    className="absolute max-w-none select-none"
     style={{
       width: `${100 / img.fw}%`,
       height: `${100 / img.fh}%`,
       left: `${(-img.fx / img.fw) * 100}%`,
       top: `${(-img.fy / img.fh) * 100}%`,
+      opacity,
     }}
   />
 );
 
-/** СЦЕНА: несколько картинок, расставленных по коробке абсолютом.
+/** СЦЕНА: несколько картинок слоями по коробке значка.
 
-    Нужна там, где значок — не один предмет, а маленькая композиция:
-    у «перепадов» это шар посередине, снежинка слева снизу и солнце
-    справа сверху. Обычный Art выстраивает картинки В РЯД и для такого
-    не годится.
+    Нужна там, где значок — не один предмет, а композиция: у «перепадов»
+    это солнце сзади, шар посередине и снежинка спереди. Обычный Art
+    выстраивает картинки в РЯД и для такого не годится.
 
-    Координаты — доли коробки в процентах, высота считается из пропорций
-    содержимого. Каждый элемент получает memo-figure, поэтому вся сцена
-    оживает на наведении разом, как и одиночные значки. */
+    Порядок в массиве — порядок слоёв. Координаты в процентах от коробки,
+    высота берётся из пропорций содержимого.
+
+    memo-scene приглушает наведение: подъём и тень тут вчетверо мельче,
+    чем у одиночного значка (см. index.css). Общая тень в 18px размывала
+    предметы величиной с ноготь в одно пятно. */
 const Scene = ({
   scene,
 }: {
@@ -127,14 +124,14 @@ const Scene = ({
     left: number;
     top: number;
     w: number;
-    shade?: boolean;
+    opacity?: number;
   }[];
 }) => (
   /* self-stretch: коробка значка выстроена по нижнему краю (items-end), и
      без него сцена схлопнулась бы в ноль — все её элементы лежат
      абсолютом и своей высоты не дают. */
-  <div className="relative w-full self-stretch">
-    {scene.map(({ img, left, top, w, shade }, i) => (
+  <div className="memo-scene relative w-full self-stretch">
+    {scene.map(({ img, left, top, w, opacity }, i) => (
       <div
         key={`${img.src}-${i}`}
         className="memo-figure absolute"
@@ -145,7 +142,7 @@ const Scene = ({
           aspectRatio: `${img.ar}`,
         }}
       >
-        <Cropped img={img} shade={shade} />
+        <Cropped img={img} opacity={opacity} />
       </div>
     ))}
   </div>

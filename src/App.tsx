@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+
+import { getLenis } from "./lib/smoothScroll";
 import { ChevronDown } from "lucide-react";
 
 import { Hero } from "./components/ui/Hero";
@@ -110,18 +112,34 @@ export default function App() {
     }
 
     /* Схлопываем НЕ СРАЗУ. Сначала возвращаем экран к началу блока и
-       только потом убираем нижний ряд: иначе страница укорачивается
-       под уже едущей прокруткой и та промахивается мимо цели. */
+       только потом убираем нижний ряд: иначе страница укорачивается под
+       уже едущей прокруткой и та промахивается мимо цели.
+
+       Прокрутка идёт ЧЕРЕЗ LENIS, а не через window.scrollTo. Пока
+       плавная прокрутка включена, она глушит родной scroll-behavior
+       (scroll-behavior: auto !important в её собственных стилях), и
+       родное behavior: "smooth" превращалось в мгновенный прыжок —
+       экран не поднимался, а телепортировался.
+
+       Момент схлопывания берём из onComplete, а не из таймера на 400 мс:
+       таймер угадывал длительность добега, а она зависит от того, как
+       далеко вниз уехал экран. */
     const el = section.current;
     if (!el) {
       setShowMore(false);
       return;
     }
-    window.scrollTo({
-      top: el.getBoundingClientRect().top + window.scrollY - 80,
-      behavior: "smooth",
-    });
-    setTimeout(() => setShowMore(false), 400);
+
+    const top = el.getBoundingClientRect().top + window.scrollY - 80;
+    const lenis = getLenis();
+
+    if (lenis) {
+      lenis.scrollTo(top, { duration: 0.9, onComplete: () => setShowMore(false) });
+    } else {
+      // «Меньше движения» или Lenis не запустился — родная прокрутка
+      window.scrollTo({ top, behavior: "smooth" });
+      setTimeout(() => setShowMore(false), 400);
+    }
   };
 
   const onStripScroll = () => {

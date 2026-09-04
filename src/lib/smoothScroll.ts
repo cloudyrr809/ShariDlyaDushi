@@ -79,15 +79,27 @@ export function startSmoothScroll(): () => void {
      нарисовал в прошлом кадре, значит её сдвинули мимо него — принимаем
      новую позицию за свою и гасим анимацию. Порог 2px: собственная
      запись расходится максимум на пиксель округления. */
+  /* Свои вызовы scrollTo из-под сторожа выводим: сторож должен ловить
+     ТОЛЬКО постороннее движение страницы (ползунок), а не наши же
+     переходы к якорю и возвраты к началу блока. Иначе он гасил бы
+     собственную анимацию, стоит вёрстке под ней поменять высоту. */
+  const rawScrollTo = instance.scrollTo.bind(instance);
+  let ownScrollUntil = 0;
+  instance.scrollTo = ((...args: Parameters<typeof rawScrollTo>) => {
+    ownScrollUntil = performance.now() + 2000;
+    return rawScrollTo(...args);
+  }) as typeof instance.scrollTo;
+
   let raf = 0;
   const loop = (time: number) => {
     const lenis = instance;
     if (lenis) {
       if (
+        time > ownScrollUntil &&
         lenis.isScrolling === "smooth" &&
         Math.abs(window.scrollY - lenis.animatedScroll) > 2
       ) {
-        lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+        rawScrollTo(window.scrollY, { immediate: true, force: true });
       }
       lenis.raf(time);
     }
