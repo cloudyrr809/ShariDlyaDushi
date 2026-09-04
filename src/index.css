@@ -161,6 +161,36 @@
   }
 }
 
+/* ВИДИМЫЙ ФОКУС — одним правилом на весь сайт.
+
+   Обвод был ровно у двух компонентов из двадцати, а местами его ещё и
+   гасил outline-none: при переходе клавишей Tab по шапке, вкладкам,
+   крошкам и ссылкам подвала не было видно ничего.
+
+   Правило намеренно НЕ внутри @layer: слои Tailwind проигрывают всему,
+   что вне них, поэтому обвод перебивает точечные outline-none, не требуя
+   !important и не заставляя править два десятка файлов.
+
+   :focus-visible, а не :focus, — мышью и пальцем обвод не появляется,
+   только при работе с клавиатуры. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #6b4e81;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* На тёмном фоне первого экрана фиолетовый обвод сливается — там белый. */
+.hero-dark a:focus-visible,
+.hero-dark button:focus-visible {
+  outline-color: #ffffff;
+}
+
 /* Горизонтальная прокрутка без видимой полосы. Плагина tailwind-scrollbar-hide
    в проекте нет, поэтому утилита своя. Три строки, а не одна: у Firefox своё
    свойство, у старых IE/Edge своё, а WebKit понимает только псевдоэлемент —

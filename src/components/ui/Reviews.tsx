@@ -164,16 +164,24 @@ export const Reviews = () => {
 
               <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
                 {review.photos.map((_, i) => (
+                  /* Точка осталась прежней, нажимается ОБЁРТКА вокруг неё:
+                     6×6 пикселей пальцем не берутся. Высота 36, а не 44:
+                     кнопка лежит поверх самой фотографии, и полоса во всю
+                     норму перехватывала бы касания по её нижнему краю. */
                   <button
                     key={i}
                     onClick={() => setPhoto(i)}
                     aria-label={`Фото ${i + 1}`}
-                    className={`h-1.5 cursor-pointer rounded-full transition-all ${
-                      i === photo
-                        ? "w-6 bg-[#6B4E81]"
-                        : "w-1.5 bg-white/80 hover:bg-white"
-                    }`}
-                  />
+                    className="flex h-9 w-7 cursor-pointer items-center justify-center"
+                  >
+                    <span
+                      className={`block h-1.5 rounded-full transition-all ${
+                        i === photo
+                          ? "w-6 bg-[#6B4E81]"
+                          : "w-1.5 bg-white/80"
+                      }`}
+                    />
+                  </button>
                 ))}
               </div>
             </>
@@ -182,7 +190,7 @@ export const Reviews = () => {
       </div>
 
       {/* Позиция в списке */}
-      <div className="mt-5 flex items-center justify-center gap-2">
+      <div className="mt-2 flex items-center justify-center gap-1">
         {reviews.map((_, i) => (
           <button
             key={i}
@@ -191,12 +199,14 @@ export const Reviews = () => {
               setPhoto(0);
             }}
             aria-label={`Отзыв ${i + 1}`}
-            className={`h-1.5 cursor-pointer rounded-full transition-all ${
-              i === current
-                ? "w-6 bg-[#6B4E81]"
-                : "w-1.5 bg-[#D9C6E4] hover:bg-[#B99BCB]"
-            }`}
-          />
+            className="flex h-11 w-7 cursor-pointer items-center justify-center"
+          >
+            <span
+              className={`block h-1.5 rounded-full transition-all ${
+                i === current ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4]"
+              }`}
+            />
+          </button>
         ))}
       </div>
 

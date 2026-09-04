@@ -168,7 +168,7 @@ export function WorkHeader({
                       {c.to ? (
                         <Link
                           to={c.to}
-                          className="text-[#756583] transition-colors hover:text-[#513A6B]"
+                          className="-my-3 inline-block py-3 text-[#756583] transition-colors hover:text-[#513A6B]"
                         >
                           {c.label}
                         </Link>

@@ -282,8 +282,14 @@ const SOCIAL = [
    отдельные буквы. */
 const COL_TITLE =
   "text-lg font-extrabold tracking-[0.14em] text-[#A64D6C] uppercase";
+/* py-3 без отрицательного отступа. Сначала стояло -my-3: поле росло, а
+   строка оставалась на месте — и соседние ссылки в колонке начали
+   перекрываться на 9px, то есть промах по одной попадал в другую. Теперь
+   ссылка честно занимает 43px, а список раздвинут ровно настолько, чтобы
+   между целями осталось 12px. Подвал от этого выше на ~90px, но это
+   последний экран страницы, а не то, что читают по дороге. */
 const COL_LINK =
-  "text-[15px] font-semibold tracking-[0.08em] text-[#4A3A5C] uppercase transition-colors hover:text-[#A64D6C]";
+  "inline-block py-3 text-[15px] font-semibold tracking-[0.08em] text-[#4A3A5C] uppercase transition-colors hover:text-[#A64D6C]";
 
 export const Footer = () => {
   const footerRef = useRef<HTMLElement | null>(null);
@@ -404,7 +410,7 @@ export const Footer = () => {
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3 md:gap-8">
           <div>
             <h2 className={COL_TITLE}>Разделы</h2>
-            <ul className="mt-6 space-y-3.5">
+            <ul className="mt-6 space-y-3">
               {SECTIONS.map((s) => (
                 <li key={s.to}>
                   <Link to={s.to} className={COL_LINK}>
@@ -417,7 +423,7 @@ export const Footer = () => {
 
           <div>
             <h2 className={COL_TITLE}>Социальные сети</h2>
-            <ul className="mt-6 space-y-3.5">
+            <ul className="mt-6 space-y-3">
               {SOCIAL.map((s) => (
                 <li key={s.href}>
                   <a
@@ -438,7 +444,7 @@ export const Footer = () => {
               оторвалась бы от соседней колонки. */}
           <div className="col-span-2 md:col-span-1 md:text-right">
             <h2 className={COL_TITLE}>Контакты</h2>
-            <ul className="mt-6 space-y-3.5">
+            <ul className="mt-6 space-y-3">
               <li>
                 <a href="mailto:info@sharidlyadushi.com" className={COL_LINK}>
                   info@sharidlyadushi.com

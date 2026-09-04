@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // <-- ВЕРНУЛИ useLocation
 import { Menu, X, Phone, ChevronDown, ShoppingCart } from "lucide-react";
 
@@ -102,17 +102,57 @@ export const Header = () => {
 
   /* Пока открыто меню, страница под ним не прокручивается. Без этого палец
      на списке разделов уводит вниз саму страницу — меню стоит на месте, а
-     под ним всё уезжает, и при закрытии оказываешься не там, где был. */
+     под ним всё уезжает, и при закрытии оказываешься не там, где был.
+
+     Здесь же — Esc и ловушка фокуса. Меню лежит поверх страницы, но в
+     дереве документа стоит перед ней: без ловушки Tab из последней ссылки
+     уходил на разделы ПОД панелью, невидимые и незакрывающие меню. */
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!mobileMenuOpen) return;
+
     const was = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     // Плавная прокрутка живёт своей жизнью и запрет на теле не видит —
     // её тоже надо остановить, иначе колесо всё равно двигало бы фон.
     const resume = pauseSmoothScroll();
+
+    // Куда вернуть фокус после закрытия — на ту же кнопку, откуда открыли
+    const opener = document.activeElement as HTMLElement | null;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const panel = panelRef.current;
+      if (!panel) return;
+      const items = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!items.length) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      // Замыкаем кольцо в обе стороны: Tab с последнего и Shift+Tab с первого
+      if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKey);
     return () => {
+      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = was;
       resume();
+      opener?.focus?.();
     };
   }, [mobileMenuOpen]);
 
@@ -167,7 +207,7 @@ export const Header = () => {
              375px — порог, а не sm (640px): при 375 полноразмерный логотип
              ещё влезает с запасом 16px, и ужимать его на iPhone SE и всех
              экранах шире незачем. Ниже порога 18px дают 167px и запас 17px. */
-          className="font-miana text-lg tracking-wide text-[#6B4E81] transition hover:opacity-90 min-[375px]:text-2xl"
+          className="font-miana inline-flex items-center py-2 text-lg tracking-wide text-[#6B4E81] transition hover:opacity-90 min-[375px]:text-2xl"
         >
           ШарыДляДуши
         </Link>
@@ -245,7 +285,9 @@ export const Header = () => {
           <button
             id="cart-icon-header"
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2 text-[#6B4E81] hover:text-[#5A4D66] hover:scale-110 transition-transform duration-200 cursor-pointer"
+            /* p-2.5, а не p-2: 24px значка плюс поля давали 40px, до нормы
+               в 44 не хватало четырёх. Значок не изменился. */
+            className="relative cursor-pointer p-2.5 text-[#6B4E81] transition-transform duration-200 hover:scale-110 hover:text-[#5A4D66]"
           >
             <ShoppingCart className="w-6 h-6" />
             {totalItems > 0 && (
@@ -318,7 +360,7 @@ export const Header = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={mobileMenuOpen}
-            className="cursor-pointer p-2 text-[#2D2433] lg:hidden"
+            className="cursor-pointer p-2.5 text-[#2D2433] lg:hidden"
           >
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
@@ -342,7 +384,13 @@ export const Header = () => {
           Прежняя версия начиналась сразу с девяти категорий каталога, и
           «Лента» с «Акциями» терялись среди них. */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-[#FDFBFD] lg:hidden">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Меню сайта"
+          className="fixed inset-0 z-[60] flex flex-col bg-[#FDFBFD] lg:hidden"
+        >
           {/* Строка ровно на месте шапки — панель открывается без прыжка */}
           <div className="flex shrink-0 items-center justify-between border-b border-[#E8DEEE] px-6 py-4">
             <span className="font-miana text-lg tracking-wide text-[#6B4E81] min-[375px]:text-2xl">

@@ -196,7 +196,7 @@ const ProductCard = ({
             e.stopPropagation();
             onDetails(product);
           }}
-          className="flex-1 cursor-pointer rounded-xl border border-[#E8DEEE] bg-[#F8F4F9] py-2.5 text-[13px] font-semibold text-[#6B4E81] transition-all hover:border-[#6B4E81] hover:bg-white"
+          className="min-h-11 flex-1 cursor-pointer rounded-xl border border-[#E8DEEE] bg-[#F8F4F9] py-2.5 text-[13px] font-semibold text-[#6B4E81] transition-all hover:border-[#6B4E81] hover:bg-white"
         >
           Подробнее
         </button>
@@ -207,7 +207,7 @@ const ProductCard = ({
           }}
           aria-label={`Добавить «${product.title}» в корзину`}
           title="В корзину"
-          className="flex w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#6B4E81] text-white transition-all hover:bg-[#513A6B]"
+          className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#6B4E81] text-white transition-all hover:bg-[#513A6B]"
         >
           <ShoppingCart className="h-4 w-4" />
         </button>
@@ -292,7 +292,7 @@ export default function Catalog() {
       </div>
 
       {/* РЕНДЕР ТОВАРОВ ВЫБРАННОЙ ВКЛАДКИ */}
-      <div className="max-w-[79rem] mx-auto px-6 pb-12 min-h-[40vh]">
+      <div className="max-w-[79rem] mx-auto px-6 pb-12 min-h-[40dvh]">
         {activeTab === "theme" ? (
           <div className="space-y-16">
             {themeSubcategories.map((subCat) => {

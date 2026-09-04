@@ -240,7 +240,13 @@ export default function App() {
               ))}
             </div>
 
-            <div className="mt-5 flex justify-center gap-2">
+            {/* Поле под палец 28×44. По ширине не 44: семь точек по 44
+                плюс просветы дали бы 356px — шире экрана в 360. 28 с
+                просветом 12 укладываются в 268 и оставляют между
+                соседними целями требуемые 12px.
+                mt-2 вместо mt-5 — точка стоит там же, где стояла: выросло
+                поле вокруг неё, а не отступ. */}
+            <div className="mt-2 flex justify-center gap-3">
               {COMPOSITIONS.map((c, i) => (
                 <button
                   key={c.alt}
@@ -248,9 +254,7 @@ export default function App() {
                   onClick={() => goToShot(i)}
                   aria-label={`Снимок ${i + 1} из ${COMPOSITIONS.length}`}
                   aria-current={i === shot}
-                  /* Точка мелкая, а поле нажатия вокруг неё — 24px:
-                     попасть пальцем в четыре пикселя невозможно. */
-                  className="cursor-pointer p-2.5"
+                  className="flex h-11 w-7 cursor-pointer items-center justify-center"
                 >
                   <span
                     className={`block h-1.5 rounded-full transition-all duration-300 ${

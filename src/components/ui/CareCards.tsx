@@ -248,7 +248,7 @@ export const CareCards = () => {
     /* Верхний падинг 84px = 73 прилипшей шапки + 11 воздуха: иначе
        надстрочка «бережно» целиком уезжает под шапку, стоит секции дойти
        до верха экрана. */
-    <section className="relative flex flex-col justify-center overflow-hidden bg-[#F8F4F9] px-6 pt-[5.25rem] pb-12 md:min-h-[85vh] md:pb-10">
+    <section className="relative flex flex-col justify-center overflow-hidden bg-[#F8F4F9] px-6 pt-[5.25rem] pb-12 md:min-h-[85dvh] md:pb-10">
       {/* Цветные пятна: без них полупрозрачные карточки поверх ровной
           заливки — это просто белый прямоугольник. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">

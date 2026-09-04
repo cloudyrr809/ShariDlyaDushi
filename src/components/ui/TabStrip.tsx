@@ -59,7 +59,10 @@ export function TabStrip({
   return (
     <div
       ref={box}
-      className={`scrollbar-hide w-full overflow-x-auto pt-6 ${className}`}
+      /* pt-6 → pt-[1.125rem]: ровно на те 6px, что добавлены кнопкам
+         ниже. Поле под палец выросло с 38 до 44px, а текст остался на
+         прежнем месте — и на телефоне, и на десктопе. */
+      className={`scrollbar-hide w-full overflow-x-auto pt-[1.125rem] ${className}`}
     >
       {/* 79rem = 76rem контента + 2×24px (px-6): внутренний край совпадает
           с логотипом и кнопкой шапки, у которой padding снаружи контейнера */}
@@ -83,7 +86,7 @@ export function TabStrip({
 
                  Активная вкладка — тёмная полоса и тот же тёмный, что у
                  заголовка страницы: связывает панель с ней в один блок. */
-              className={`shrink-0 cursor-pointer border-b-2 pb-4 text-[13px] font-semibold tracking-wider whitespace-nowrap uppercase transition-colors duration-300 ${
+              className={`shrink-0 cursor-pointer border-b-2 pt-1.5 pb-4 text-[13px] font-semibold tracking-wider whitespace-nowrap uppercase transition-colors duration-300 ${
                 active === tab.id
                   ? "border-[#2D2433] text-[#2D2433]"
                   : "border-transparent text-[#7E6E8A] hover:border-[#D9C6E4] hover:text-[#2D2433]"

@@ -144,7 +144,8 @@ export const CartDrawer = () => {
                   placeholder="Пожелания: дата, цвета, повод"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl font-medium border border-[#E8DEEE] text-[15px] focus:outline-none focus:border-[#6B4E81] bg-white resize-none h-20"
+                  /* 16px: ниже этого размера iOS зумит страницу при фокусе */
+                  className="h-20 w-full resize-none rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-base font-medium focus:border-[#6B4E81]"
                 />
               </div>
 

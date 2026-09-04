@@ -444,8 +444,8 @@ export const Hero = () => {
   /* Считается один раз за жизнь компонента: от этого зависит сама
      разметка, а не только поведение, и переключать её на лету незачем —
      мышь посреди сеанса не появляется. */
-  const lite = useMemo(wantsLite, []);
-  const still = useMemo(wantsStill, []);
+  const lite = useMemo(() => wantsLite(), []);
+  const still = useMemo(() => wantsStill(), []);
 
   const heroRef = useRef<HTMLElement | null>(null);
   const clusterRef = useRef<HTMLDivElement | null>(null);
@@ -1106,7 +1106,7 @@ export const Hero = () => {
           <div className="flex items-center gap-6">
             <a
               href="tel:+79806616888"
-              className="pointer-events-auto inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase transition-colors hover:text-white"
+              className="pointer-events-auto -my-3 inline-flex items-center gap-2 py-3 text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase transition-colors hover:text-white"
             >
               <Phone className="h-3.5 w-3.5" strokeWidth={1.5} />8 (980)
               661-68-88
@@ -1118,13 +1118,16 @@ export const Hero = () => {
                 по природе знак, Instagram — контурный квадрат. При равной
                 высоте залитый знак читался бы тяжелее, поэтому ВК чуть ниже:
                 оптически они уравновешены, хотя в пикселях не равны. */}
-            <div className="flex items-center gap-4">
+            {/* Просвет убран внутрь самих ссылок: поле под палец выросло
+                с 20 до 44px, а расстояние между значками почти не
+                изменилось — было 36px между центрами, стало 44. */}
+            <div className="flex items-center">
               <a
                 href="https://vk.ru/sharydlyadushi"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="ВКонтакте"
-                className="pointer-events-auto flex h-5 w-5 items-center justify-center text-white/80 transition-colors hover:text-white"
+                className="pointer-events-auto flex h-11 w-11 items-center justify-center text-white/80 transition-colors hover:text-white"
               >
                 <VkIcon className="h-[11px] w-auto fill-current" />
               </a>
@@ -1133,7 +1136,7 @@ export const Hero = () => {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
-                className="pointer-events-auto flex h-5 w-5 items-center justify-center text-white/80 transition-colors hover:text-white"
+                className="pointer-events-auto flex h-11 w-11 items-center justify-center text-white/80 transition-colors hover:text-white"
               >
                 <InstagramIcon className="h-4 w-4 fill-current" />
               </a>

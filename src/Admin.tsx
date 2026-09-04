@@ -79,8 +79,11 @@ import { Collage } from "./components/ui/PhotoCollage";
    единственного набора текстов, и список слева был бы списком из одной
    строки. */
 
+/* text-base (16px), а не 15: Safari на iOS увеличивает страницу, когда
+   фокус попадает в поле с текстом мельче 16px, и сам обратно не
+   возвращает — после каждого поля админка оставалась зумленной. */
 const FIELD =
-  "w-full rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-[15px] font-medium text-[#2D2433] outline-none transition-colors focus:border-[#6B4E81]";
+  "w-full rounded-xl border border-[#E8DEEE] bg-white px-4 py-3 text-base font-medium text-[#2D2433] outline-none transition-colors focus:border-[#6B4E81]";
 const LABEL =
   "mb-2 block text-sm font-semibold tracking-widest text-[#7E6E8A] uppercase";
 const BTN =
@@ -120,7 +123,7 @@ function Shell({
   onExit?: () => void;
 }) {
   return (
-    <div className="min-h-[70vh] bg-[#FDFBFD]">
+    <div className="min-h-[70dvh] bg-[#FDFBFD]">
       <div className="mx-auto w-full max-w-[79rem] px-6 pt-8 pb-20 md:pt-12">
         <div className="mb-6 flex items-center justify-between gap-4">
           <h1 className="text-4xl font-extrabold tracking-[-0.02em] text-[#2D2433] uppercase md:text-5xl">

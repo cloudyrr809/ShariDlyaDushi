@@ -463,7 +463,7 @@ export default function Services() {
       </div>
 
       {/* СОДЕРЖИМОЕ АКТИВНОЙ УСЛУГИ */}
-      <div className="relative z-20 max-w-[79rem] mx-auto px-4 md:px-6 pb-12 min-h-[40vh]">
+      <div className="relative z-20 max-w-[79rem] mx-auto px-4 md:px-6 pb-12 min-h-[40dvh]">
         {/* Все услуги могли быть сняты с публикации — тогда показывать
             нечего, и обращение к current уронило бы страницу. */}
         {current && (

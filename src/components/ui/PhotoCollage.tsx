@@ -316,7 +316,7 @@ export function Collage({
       /* Без mx-auto: ширина коллажа у каждого поста своя (372-800px), и
          при центрировании левый край ленты гулял бы от поста к посту.
          --collage-w — потолок по ширине, приходит снаружи. */
-      className="flex w-[min(var(--collage-w,100%),calc(var(--collage-h)*var(--collage-span)))] shrink-0 flex-col overflow-hidden rounded-[1.5rem] [--collage-h:70vh] md:[--collage-h:62vh]"
+      className="flex w-[min(var(--collage-w,100%),calc(var(--collage-h)*var(--collage-span)))] shrink-0 flex-col overflow-hidden rounded-[1.5rem] [--collage-h:70dvh] md:[--collage-h:62dvh]"
       style={
         { "--collage-span": span.toFixed(4), gap: GAP } as React.CSSProperties
       }

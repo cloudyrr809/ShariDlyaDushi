@@ -117,7 +117,7 @@ function PostCard({
           узких коллажах; min-w-0 нужен flex-детям с overflow внутри.
 
           НЕ flex-col с flex-1 у текста и без max-h у самой колонки: раньше
-          прокручиваемая область забирала всю высоту до 62vh, и у короткого
+          прокручиваемая область забирала всю высоту до 62dvh, и у короткого
           поста ссылка «Собрать такую же» проваливалась к нижней кромке —
           между текстом и ссылкой зиял пустой блок. Теперь всё идёт
           потоком: дата, заголовок, текст, ссылка сразу под ним. */}
@@ -145,7 +145,7 @@ function PostCard({
           </h3>
         )}
 
-        {/* ПРОКРУЧИВАЕТСЯ ТОЛЬКО ТЕКСТ, и не выше 38vh — длинный пост не
+        {/* ПРОКРУЧИВАЕТСЯ ТОЛЬКО ТЕКСТ, и не выше 38dvh — длинный пост не
             растягивает страницу. Короткий текст остаётся короткой высоты,
             и ссылка идёт вплотную под ним.
 
@@ -160,7 +160,7 @@ function PostCard({
         {post.text && (
           <div
             data-lenis-prevent
-            className="mt-3 min-h-0 lg:max-h-[38vh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]"
+            className="mt-3 min-h-0 lg:max-h-[38dvh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]"
           >
             <p className="text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
               {post.text}
@@ -199,7 +199,7 @@ function PostSkeleton() {
       aria-hidden="true"
       className="flex animate-pulse flex-col gap-7 lg:flex-row lg:items-start lg:gap-10"
     >
-      <div className="h-[46vh] w-full rounded-[1.5rem] bg-[#E5D8EE] lg:h-[62vh] lg:w-[68%] xl:w-[70%]" />
+      <div className="h-[46dvh] w-full rounded-[1.5rem] bg-[#E5D8EE] lg:h-[62dvh] lg:w-[68%] xl:w-[70%]" />
       <div className="flex-1 space-y-4 pt-1">
         <div className="h-4 w-44 rounded bg-[#E5D8EE]" />
         <div className="h-7 w-3/4 rounded bg-[#E5D8EE]" />
