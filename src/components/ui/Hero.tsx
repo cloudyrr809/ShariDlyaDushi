@@ -1058,7 +1058,7 @@ export const Hero = () => {
             разделитель оказывается внутри строки. */}
         <div className="mx-auto w-full max-w-[76rem] text-center [text-wrap:balance] lg:text-left">
           <span className="pointer-events-auto text-[13px] font-medium tracking-[0.18em] text-white/95 uppercase">
-            Студия шаров и праздников · Ярославль
+            Воздушные шары · Ярославль
           </span>
         </div>
       </div>

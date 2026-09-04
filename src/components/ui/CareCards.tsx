@@ -48,9 +48,31 @@ type Img = {
 
 type Card = (typeof careCards)[number];
 
+/** Насыщенней и с белой обводкой-стикером — для бледной картинки на
+    цветной подложке. Снежинка из «перепадов» рисована почти белым
+    (средний цвет rgb(226,236,251)) и без этого тонула в розовом фоне:
+    другой человек её не замечал вовсе. Обводка — два наложенных
+    drop-shadow по альфа-каналу вместо одного: тонкий белый контур сразу
+    у края даёт чистую обводку, широкий и мягкий — лёгкое свечение вокруг
+    неё, чтобы граница со сложным фоном (тут ещё и балкон солнца) не
+    терялась ни на одном участке. */
+const VIVID_FILTER =
+  "saturate(1.6) brightness(1.1) " +
+  "drop-shadow(0 0 1px rgba(255,255,255,0.95)) " +
+  "drop-shadow(0 0 3px rgba(255,255,255,0.75)) " +
+  "drop-shadow(0 1px 2px rgba(107,78,129,0.3))";
+
 /** Картинка, обрезанная по содержимому: прозрачные поля уходят за край
     обёртки, а сама обёртка и есть видимый шар. */
-const Cropped = ({ img, opacity }: { img: Img; opacity?: number }) => (
+const Cropped = ({
+  img,
+  opacity,
+  vivid,
+}: {
+  img: Img;
+  opacity?: number;
+  vivid?: boolean;
+}) => (
   <img
     decoding="async"
     src={img.src}
@@ -64,6 +86,7 @@ const Cropped = ({ img, opacity }: { img: Img; opacity?: number }) => (
       left: `${(-img.fx / img.fw) * 100}%`,
       top: `${(-img.fy / img.fh) * 100}%`,
       opacity,
+      filter: vivid ? VIVID_FILTER : undefined,
     }}
   />
 );
@@ -71,6 +94,9 @@ const Cropped = ({ img, opacity }: { img: Img; opacity?: number }) => (
 /** СЦЕНА: несколько картинок слоями по коробке значка — там, где значок
     не один предмет, а композиция. Порядок в массиве = порядок слоёв,
     координаты в процентах от коробки, высота из пропорций содержимого.
+    z-10 у каждого слоя (а не просто DOM-порядок) — иначе filter с
+    drop-shadow у vivid-слоя создал бы свой стекинг-контекст и мог
+    неожиданно перекрыть слой, который должен быть выше по смыслу.
 
     memo-scene приглушает наведение (index.css): общая тень в 18px
     размывала предметы величиной с ноготь в одно пятно. */
@@ -83,12 +109,13 @@ const Scene = ({
     top: number;
     w: number;
     opacity?: number;
+    vivid?: boolean;
   }[];
 }) => (
   /* self-stretch: коробка выстроена по нижнему краю, а элементы сцены
      лежат абсолютом и своей высоты не дают — без него схлопнется в ноль. */
   <div className="memo-scene relative w-full self-stretch">
-    {scene.map(({ img, left, top, w, opacity }, i) => (
+    {scene.map(({ img, left, top, w, opacity, vivid }, i) => (
       <div
         key={`${img.src}-${i}`}
         className="memo-figure absolute"
@@ -97,9 +124,10 @@ const Scene = ({
           top: `${top}%`,
           width: `${w}%`,
           aspectRatio: `${img.ar}`,
+          zIndex: i,
         }}
       >
-        <Cropped img={img} opacity={opacity} />
+        <Cropped img={img} opacity={opacity} vivid={vivid} />
       </div>
     ))}
   </div>

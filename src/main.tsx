@@ -19,7 +19,7 @@ import { Header } from "./components/ui/Header.tsx";
 import { Footer } from "./components/ui/Footer.tsx";
 import { CartDrawer } from "./components/ui/CartDrawer.tsx";
 import { PopBalloons } from "./components/ui/PopBalloon.tsx";
-import { startSmoothScroll, getLenis } from "./lib/smoothScroll.ts";
+import { startSmoothScroll, getLenis, markOwnScroll } from "./lib/smoothScroll.ts";
 import "./index.css";
 
 /* ПЛАВНАЯ ПРОКРУТКА (Lenis) — как на augen.pro.
@@ -57,13 +57,16 @@ function ScrollToTop() {
     const lenis = getLenis();
 
     if (!hash) {
-      if (lenis) lenis.scrollTo(0, { immediate: true });
-      else window.scrollTo(0, 0);
+      if (lenis) {
+        markOwnScroll();
+        lenis.scrollTo(0, { immediate: true });
+      } else window.scrollTo(0, 0);
     } else {
       setTimeout(() => {
         const element = document.getElementById(hash.replace("#", ""));
         if (!element) return;
         if (lenis) {
+          markOwnScroll();
           lenis.scrollTo(element, { offset: -100 });
         } else {
           const y = element.getBoundingClientRect().top + window.scrollY - 100;

@@ -220,17 +220,25 @@ export default function About() {
     }
   };
 
-  const handleHoldStart = (idx: number) => {
-    if (idx === activeIndex && videoRefs.current[idx]) {
-      videoRefs.current[idx]!.pause();
-      setIsPaused(true);
+  /* Клик по активному ролику ставит его на паузу и возвращает тем же
+     кликом — а не «зажать, чтобы приостановить», как было раньше.
+     Зажатие приходится держать до конца просмотра момента, и палец
+     соскальзывает: пауза срывалась в самый неподходящий момент. Клик по
+     боковому ролику по-прежнему делает его активным — это тот же
+     обработчик, только для чужого idx. */
+  const handleCardClick = (idx: number) => {
+    if (idx !== activeIndex) {
+      setActiveIndex(idx);
+      return;
     }
-  };
-
-  const handleHoldEnd = (idx: number) => {
-    if (idx === activeIndex && videoRefs.current[idx]) {
-      videoRefs.current[idx]!.play();
+    const video = videoRefs.current[idx];
+    if (!video) return;
+    if (video.paused) {
+      video.play();
       setIsPaused(false);
+    } else {
+      video.pause();
+      setIsPaused(true);
     }
   };
 
@@ -359,12 +367,7 @@ export default function About() {
               <div
                 key={reel.id}
                 aria-label={reel.title}
-                onClick={() => !isActive && setActiveIndex(idx)}
-                onMouseDown={() => handleHoldStart(idx)}
-                onMouseUp={() => handleHoldEnd(idx)}
-                onMouseLeave={() => handleHoldEnd(idx)}
-                onTouchStart={() => handleHoldStart(idx)}
-                onTouchEnd={() => handleHoldEnd(idx)}
+                onClick={() => handleCardClick(idx)}
                 style={{
                   transform: `translateX(${translateX}px) scale(${scale})`,
                   zIndex,

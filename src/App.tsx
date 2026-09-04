@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-import { getLenis } from "./lib/smoothScroll";
+import { getLenis, markOwnScroll } from "./lib/smoothScroll";
 import { ChevronDown } from "lucide-react";
 
 import { Hero } from "./components/ui/Hero";
@@ -119,6 +119,7 @@ export default function App() {
     const lenis = getLenis();
 
     if (lenis) {
+      markOwnScroll();
       lenis.scrollTo(top, {
         duration: 0.9,
         onComplete: () => setShowMore(false),
