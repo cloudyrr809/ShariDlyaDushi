@@ -30,8 +30,6 @@ import {
    остальным слоем данных — там же, где запасные товары и услуги.
    ───────────────────────────────────────────────────────────────────────── */
 
-
-
 /* ─────────────────────── ГЕОМЕТРИЯ ШАРОВ ───────────────────────
    У каждого PNG вокруг шара свои прозрачные поля: содержимое занимает
    от 61% кадра (ballon6) до 93% (ballon3). Если задавать размер самому
@@ -46,17 +44,15 @@ import {
    Ровно это и случилось 31.08, когда файлы заменили на 1080×1080:
    таблица осталась от прежних кадров. Та же таблица продублирована в
    Hero.tsx (SOURCES) — обновлять надо обе. Замерено 31.08.2026. */
-const art: Record<
-  string,
-  { fx: number; fy: number; fw: number; fh: number }
-> = {
-  "/assets/ballon1.png": { fx: 0.1602, fy: 0.0639, fw: 0.6852, fh: 0.8713 },
-  "/assets/ballon2.png": { fx: 0.2685, fy: 0.1759, fw: 0.4667, fh: 0.65 },
-  "/assets/ballon3.png": { fx: 0.113, fy: 0.05, fw: 0.7741, fh: 0.9259 },
-  "/assets/ballon4.png": { fx: 0.1361, fy: 0.0611, fw: 0.7194, fh: 0.8898 },
-  "/assets/ballon5.png": { fx: 0.1731, fy: 0.0296, fw: 0.6565, fh: 0.9269 },
-  "/assets/ballon6.png": { fx: 0.1935, fy: 0.0852, fw: 0.6139, fh: 0.8222 },
-};
+const art: Record<string, { fx: number; fy: number; fw: number; fh: number }> =
+  {
+    "/assets/ballon1.webp": { fx: 0.1602, fy: 0.0639, fw: 0.6852, fh: 0.8713 },
+    "/assets/ballon2.webp": { fx: 0.2685, fy: 0.1759, fw: 0.4667, fh: 0.65 },
+    "/assets/ballon3.webp": { fx: 0.113, fy: 0.05, fw: 0.7741, fh: 0.9259 },
+    "/assets/ballon4.webp": { fx: 0.1361, fy: 0.0611, fw: 0.7194, fh: 0.8898 },
+    "/assets/ballon5.webp": { fx: 0.1731, fy: 0.0296, fw: 0.6565, fh: 0.9269 },
+    "/assets/ballon6.webp": { fx: 0.1935, fy: 0.0852, fw: 0.6139, fh: 0.8222 },
+  };
 
 /* Размер шара и вынос за края заданы CSS-переменными, а не константами в
    JS: инлайновый стиль не умеет в медиазапросы, а на телефоне пропорции
@@ -158,7 +154,7 @@ function PromoTile({ promo, index }: { promo: Promo; index: number }) {
   const Icon = PROMO_ICONS[promo.icon].Icon;
   // Шар мог остаться от файла, которого больше нет: без запасного значения
   // g был бы undefined и плитка уронила бы страницу целиком.
-  const g = art[promo.art] ?? art["/assets/ballon1.png"];
+  const g = art[promo.art] ?? art["/assets/ballon1.webp"];
 
   /* Размер и положение считаем от ВИДИМОГО шара, а не от кадра файла.
      height — насколько нужно раздуть картинку, чтобы её непрозрачная
@@ -301,7 +297,7 @@ const steps = [
     // Сдвиг по вертикали — только на широком экране, где плитки стоят
     // рядом. В колонку на телефоне он превратился бы в кривые отступы.
     offset: "md:mt-0",
-    art: "/assets/ballon2.png",
+    art: "/assets/ballon2.webp",
     artClass: "-top-9 right-5 w-16 rotate-[12deg]",
   },
   {
@@ -312,7 +308,7 @@ const steps = [
     shadow:
       "shadow-[0_14px_40px_-20px_rgba(107,78,129,0.35)] hover:shadow-[0_26px_58px_-22px_rgba(107,78,129,0.42)]",
     offset: "md:mt-10",
-    art: "/assets/ballon4.png",
+    art: "/assets/ballon4.webp",
     artClass: "-top-11 left-4 w-20 -rotate-[10deg]",
   },
   {
@@ -323,7 +319,7 @@ const steps = [
     shadow:
       "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
     offset: "md:mt-4",
-    art: "/assets/ballon6.png",
+    art: "/assets/ballon6.webp",
     artClass: "-top-8 right-7 w-14 rotate-[16deg]",
   },
 ];
@@ -421,6 +417,7 @@ export default function Promotions() {
                   проштампованным. Декор: из озвучки убран, курсор не
                   ловит. */}
               <img
+                decoding="async"
                 src={step.art}
                 alt=""
                 aria-hidden="true"

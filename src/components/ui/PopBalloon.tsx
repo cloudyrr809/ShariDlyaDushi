@@ -79,8 +79,8 @@ type Flight = {
    шарики нужны одинаковые везде, и четыре одинаковых массива по файлам —
    это заготовка для расхождения. Разные наборы у сторон только чтобы
    соседние шарики не оказались одинаковыми. */
-const LEFT = ["/assets/ballon2.png", "/assets/ballon4.png"];
-const RIGHT = ["/assets/ballon6.png", "/assets/ballon3.png"];
+const LEFT = ["/assets/ballon2.webp", "/assets/ballon4.webp"];
+const RIGHT = ["/assets/ballon6.webp", "/assets/ballon3.webp"];
 
 export function PopBalloons({
   left = LEFT,
@@ -199,8 +199,7 @@ export function PopBalloons({
     later(() => setFlights((f) => f.filter((x) => x.id !== id)), 700);
   };
 
-  const done = (id: number) =>
-    setFlights((f) => f.filter((x) => x.id !== id));
+  const done = (id: number) => setFlights((f) => f.filter((x) => x.id !== id));
 
   if (calm) return null;
 
@@ -283,6 +282,7 @@ export function PopBalloons({
                   <div className="relative aspect-square w-full">
                     {/* Сам шарик коротко раздувается и гаснет */}
                     <img
+                      decoding="async"
                       src={f.src}
                       alt=""
                       aria-hidden="true"

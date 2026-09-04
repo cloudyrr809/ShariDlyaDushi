@@ -85,14 +85,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Balloons />
         <div className="min-h-screen bg-[#FDFBFD] text-[#2D2433] flex flex-col">
           <Header />
-          
+
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<App />} />
               <Route path="/about" element={<About />} />
               <Route path="/promotions" element={<Promotions />} />
               <Route path="/catalog" element={<Catalog />} />
-              <Route path="/services" element={<Services />} /> {/* <-- ИСПРАВЛЕННЫЙ СИНТАКСИС */}
+              <Route path="/services" element={<Services />} />{" "}
+              {/* <-- ИСПРАВЛЕННЫЙ СИНТАКСИС */}
               <Route path="/feed" element={<Feed />} />
               {/* Админка «Ленты». В меню её намеренно нет: адрес набирают
                   вручную, а доступ закрывает вход по паролю и правила
@@ -107,7 +108,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 path="/photoprojects"
                 element={<Navigate to="/feed" replace />}
               />
-              <Route path="/gallery" element={<Navigate to="/feed" replace />} />
+              <Route
+                path="/gallery"
+                element={<Navigate to="/feed" replace />}
+              />
               <Route path="*" element={<App />} />
             </Routes>
           </main>

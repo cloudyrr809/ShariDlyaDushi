@@ -16,8 +16,6 @@ import { useCart } from "./CartContext";
 import { servicesData, type ServiceSeed } from "./lib/servicesData";
 import { fetchServices, type Service } from "./lib/services";
 
-
-
 /* ═══════════════════════ КАРТОЧКА ОДНОЙ УСЛУГИ ═══════════════════════
 
    ЖУРНАЛЬНЫЙ РАЗВОРОТ, А НЕ КОРОБКА.
@@ -394,7 +392,7 @@ const approachCards = [
     // Сдвиг только на широком экране, где карточки стоят рядом. В колонку
     // на телефоне он превратился бы в кривые отступы.
     offset: "md:mt-6",
-    art: "/assets/ballon1.png",
+    art: "/assets/ballon1.webp",
     artClass: "-top-10 left-6 w-[4.5rem] -rotate-[12deg]",
   },
   {
@@ -405,7 +403,7 @@ const approachCards = [
     shadow:
       "shadow-[0_10px_34px_-18px_rgba(45,36,56,0.28)] hover:shadow-[0_22px_50px_-20px_rgba(107,78,129,0.35)]",
     offset: "md:mt-0",
-    art: "/assets/ballon3.png",
+    art: "/assets/ballon3.webp",
     artClass: "-top-11 right-6 w-20 rotate-[9deg]",
   },
   {
@@ -416,7 +414,7 @@ const approachCards = [
     shadow:
       "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
     offset: "md:mt-9",
-    art: "/assets/ballon5.png",
+    art: "/assets/ballon5.webp",
     artClass: "-top-8 left-8 w-[3.75rem] rotate-[15deg]",
   },
 ];
@@ -476,7 +474,7 @@ export default function Services() {
         title="Услуги"
         lead="Мы подходим к каждому проекту с особым вниманием, предоставляя целый комплекс услуг, чтобы сделать ваше мероприятие незабываемым."
         photo={{
-          src: "/assets/backservices.jpg",
+          src: "/assets/backservices.webp",
           alt: "Оформление праздника композициями из воздушных шаров",
           /* Кадр вдвое шире исходника, поэтому по вертикали его режет — и
              при обрезке по центру в шапку попадали пустые длинные шары
@@ -588,6 +586,7 @@ export default function Services() {
                 className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${card.shape} ${card.tint} ${card.shadow} ${card.offset}`}
               >
                 <img
+                  decoding="async"
                   src={card.art}
                   alt=""
                   aria-hidden="true"

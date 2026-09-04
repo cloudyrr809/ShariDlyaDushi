@@ -89,6 +89,7 @@ type Card = (typeof careCards)[number];
     край обёртки, а сама обёртка и есть видимый шар. */
 const Cropped = ({ img, opacity }: { img: Img; opacity?: number }) => (
   <img
+    decoding="async"
     src={img.src}
     alt=""
     aria-hidden="true"
@@ -186,10 +187,14 @@ const Art = ({ card, box }: { card: Card; box: typeof SOLO }) => (
   </div>
 );
 
-/* Общий вид карточки: матовое стекло. Размытие подложки — только с md:
-   стекло имеет смысл там, где под ним есть что размывать, а на телефоне
-   пятна за карточками мелкие и разницы не видно, зато слои размытия
-   платятся каждым кадром прокрутки. */
+/* Общий вид карточки.
+
+   РАЗМЫТИЯ ПОДЛОЖКИ (backdrop-blur) БОЛЬШЕ НЕТ. Замер прокрутки всей
+   главной: худший кадр 67 мс, из них 50 приходилось ровно на эти пять
+   карточек — отключение backdrop-filter только у них давало 17 мс.
+   Стекло размывало три мягких пятна под собой, то есть почти ничего;
+   вместо него подложка чуть плотнее (80% против 75%), и разницы на глаз
+   нет. */
 /* Тень КОРОТКАЯ, а контур настоящий. Прежняя тень уходила на 36px и на
    светлом фоне не читалась вовсе — только мылила края карточки. Тонкая
    линия очерчивает форму честнее, а тень в 6px просто отрывает карточку
@@ -198,7 +203,7 @@ const Art = ({ card, box }: { card: Card; box: typeof SOLO }) => (
 const CARD =
   "memo-card flex h-full flex-col rounded-3xl border " +
   "shadow-[0_2px_6px_rgba(45,36,51,0.05)] " +
-  "transition duration-500 ease-out md:backdrop-blur-[16px] " +
+  "transition duration-500 ease-out " +
   "md:hover:-translate-y-1.5 " +
   "md:hover:shadow-[0_10px_20px_rgba(45,36,51,0.10)]";
 
@@ -343,7 +348,7 @@ export const CareCards = () => {
                непрозрачности (16, 11, 7): втрое заметнее. */
             const tone = tag
               ? "border-[#EFD4E0] bg-[#FBEFF5] md:hover:border-[#D9A7C0] md:hover:bg-[#FDF5F9]"
-              : "border-[#E8DEEE] bg-white/75 md:hover:border-[#D9C6E4] md:hover:bg-white/90";
+              : "border-[#E8DEEE] bg-white/80 md:hover:border-[#D9C6E4] md:hover:bg-white/95";
 
             return (
               /* Внешняя обёртка держит ПОЯВЛЕНИЕ и место в сетке,

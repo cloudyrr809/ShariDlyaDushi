@@ -5,12 +5,7 @@ import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
 import { Lightbox } from "./components/ui/Lightbox";
 import { Collage } from "./components/ui/PhotoCollage";
-import {
-  demoPosts,
-  fetchPosts,
-  isRenderablePost,
-  type Post,
-} from "./lib/feed";
+import { demoPosts, fetchPosts, isRenderablePost, type Post } from "./lib/feed";
 import { isConfigured } from "./lib/supabase";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -31,8 +26,18 @@ import { isConfigured } from "./lib/supabase";
    бы как сломанный раздел.
    ───────────────────────────────────────────────────────────────────────── */
 const MONTHS = [
-  "января", "февраля", "марта", "апреля", "мая", "июня",
-  "июля", "августа", "сентября", "октября", "ноября", "декабря",
+  "января",
+  "февраля",
+  "марта",
+  "апреля",
+  "мая",
+  "июня",
+  "июля",
+  "августа",
+  "сентября",
+  "октября",
+  "ноября",
+  "декабря",
 ];
 
 /** «2026-07-16» → «16 июля 2026». Свой форматтер, а не toLocaleDateString:

@@ -66,9 +66,9 @@ const demo: Omit<Post, "sort">[] = [
     text: "Фотозона к первому сентября: кленовые листья, тёплая охра и зелень. Такую собираем и в школу, и в сад — под размер зала и цвета класса.",
     published: true,
     photos: [
-      V("/assets/girl_2350_1.jpg"),
-      V("/assets/girl_2350_2.jpg"),
-      V("/assets/girl_2350_3.jpg"),
+      V("/assets/girl_2350_1.webp"),
+      V("/assets/girl_2350_2.webp"),
+      V("/assets/girl_2350_3.webp"),
     ],
   },
   {
@@ -78,10 +78,10 @@ const demo: Omit<Post, "sort">[] = [
     text: "Сирень, баклажан и матовое серебро. Эту палитру чаще всего просят для съёмок — она хорошо держится в кадре и не спорит с нарядом.",
     published: true,
     photos: [
-      V("/assets/girl_1850_1.jpg"),
-      V("/assets/girl_1850_2.jpg"),
-      V("/assets/girl_1850_3.jpg"),
-      V("/assets/girl_1850_4.jpg"),
+      V("/assets/girl_1850_1.webp"),
+      V("/assets/girl_1850_2.webp"),
+      V("/assets/girl_1850_3.webp"),
+      V("/assets/girl_1850_4.webp"),
     ],
   },
   {
@@ -90,7 +90,7 @@ const demo: Omit<Post, "sort">[] = [
     title: "Мини-фотозона в розовом",
     text: "Занимает меньше двух метров, а кадры получаются как в студии.",
     published: true,
-    photos: [V("/assets/women_2650.jpg")],
+    photos: [V("/assets/women_2650.webp")],
   },
   {
     id: "demo-4",
@@ -99,9 +99,9 @@ const demo: Omit<Post, "sort">[] = [
     text: "Для маленького гонщика. Каждую фигуру собираем вручную под размер и цвет — двух одинаковых не бывает.",
     published: true,
     photos: [
-      V("/assets/boy_2400_1.jpg"),
-      S("/assets/boy_2400_2.jpg"),
-      S("/assets/boy_2400_3.jpg"),
+      V("/assets/boy_2400_1.webp"),
+      S("/assets/boy_2400_2.webp"),
+      S("/assets/boy_2400_3.webp"),
     ],
   },
   {
@@ -110,7 +110,7 @@ const demo: Omit<Post, "sort">[] = [
     title: "Цифра три в розовом",
     text: "Немного золота, много розового и целый вечер восторга.",
     published: true,
-    photos: [V("/assets/num_2650_1.jpg"), S("/assets/num_2650_2.jpg")],
+    photos: [V("/assets/num_2650_1.webp"), S("/assets/num_2650_2.webp")],
   },
 ];
 

@@ -24,10 +24,6 @@ export function SkyBackdrop({
   /* Одна и та же картинка сверху и снизу, но кадрируется по-разному:
      сверху берём верхнюю треть неба, снизу — нижнюю. Иначе на длинной
      странице дважды виден один и тот же рисунок облаков. */
-  const sky = {
-    filter: "blur(2px) brightness(1.1) saturate(0.75)",
-  };
-
   return (
     <>
       {/* Размытые пятна — убирают стерильную белизну без единой линии */}
@@ -62,12 +58,12 @@ export function SkyBackdrop({
         }}
       >
         <img
-          src="/assets/back1.jpg"
+          src="/assets/back1-sky.webp"
           alt=""
           fetchPriority="high"
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ ...sky, objectPosition: "50% 38%" }}
+          style={{ objectPosition: "50% 38%" }}
         />
         <div className="absolute inset-0 bg-[#FDFBFD]/68" />
       </div>
@@ -88,12 +84,12 @@ export function SkyBackdrop({
           }}
         >
           <img
-            src="/assets/back1.jpg"
+            src="/assets/back1-sky.webp"
             alt=""
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover"
-            style={{ ...sky, objectPosition: "50% 62%" }}
+            style={{ objectPosition: "50% 62%" }}
           />
           <div className="absolute inset-0 bg-[#FDFBFD]/68" />
         </div>

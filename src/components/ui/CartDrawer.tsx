@@ -81,12 +81,16 @@ export const CartDrawer = () => {
           </div>
         ) : (
           <>
-            <div data-lenis-prevent className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div
+              data-lenis-prevent
+              className="flex-1 overflow-y-auto p-6 space-y-6"
+            >
               {cart.map((item: CartItem) => (
                 <div key={item.id} className="flex gap-4 items-center">
                   <div className="w-20 h-24 bg-[#F0E8F4] rounded-xl overflow-hidden shrink-0">
                     {item.image ? (
                       <img
+                        decoding="async"
                         src={item.image}
                         alt={item.title}
                         className="w-full h-full object-cover"
@@ -196,8 +200,8 @@ export const CartDrawer = () => {
                 </p>
               ) : (
                 <p className="mt-3 text-center text-[15px] leading-snug font-medium text-[#5A4D66]">
-                  Нажмите кнопку, заказ скопируется и вы сможете вставить
-                  его в диалог
+                  Нажмите кнопку, заказ скопируется и вы сможете вставить его в
+                  диалог
                 </p>
               )}
 

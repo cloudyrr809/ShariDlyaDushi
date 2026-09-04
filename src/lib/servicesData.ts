@@ -42,10 +42,10 @@ export const servicesData: ServiceSeed[] = [
       "50 обработанных кадров + все исходники",
     ],
     images: [
-      "/assets/composition-1.jpg",
-      "/assets/composition-2.jpg",
-      "/assets/composition-3.jpg",
-      "/assets/composition-4.jpg",
+      "/assets/composition-1.webp",
+      "/assets/composition-2.webp",
+      "/assets/composition-3.webp",
+      "/assets/composition-4.webp",
     ],
   },
   {
@@ -69,9 +69,9 @@ export const servicesData: ServiceSeed[] = [
       "Закрытая галерея для родителей",
     ],
     images: [
-      "/assets/composition-5.jpg",
-      "/assets/composition-6.jpg",
-      "/assets/composition-7.jpg",
+      "/assets/composition-5.webp",
+      "/assets/composition-6.webp",
+      "/assets/composition-7.webp",
     ],
   },
   {
@@ -95,9 +95,9 @@ export const servicesData: ServiceSeed[] = [
       "Опция AR-видео на страницах",
     ],
     images: [
-      "/assets/composition-2.jpg",
-      "/assets/composition-4.jpg",
-      "/assets/composition-6.jpg",
+      "/assets/composition-2.webp",
+      "/assets/composition-4.webp",
+      "/assets/composition-6.webp",
     ],
   },
   {
@@ -121,10 +121,10 @@ export const servicesData: ServiceSeed[] = [
       "Встреча и репетиция до праздника",
     ],
     images: [
-      "/assets/composition-7.jpg",
-      "/assets/composition-1.jpg",
-      "/assets/composition-3.jpg",
-      "/assets/composition-5.jpg",
+      "/assets/composition-7.webp",
+      "/assets/composition-1.webp",
+      "/assets/composition-3.webp",
+      "/assets/composition-5.webp",
     ],
   },
   {
@@ -148,10 +148,10 @@ export const servicesData: ServiceSeed[] = [
       "Доставка и сборка на площадке",
     ],
     images: [
-      "/assets/composition-3.jpg",
-      "/assets/composition-5.jpg",
-      "/assets/composition-2.jpg",
-      "/assets/composition-7.jpg",
+      "/assets/composition-3.webp",
+      "/assets/composition-5.webp",
+      "/assets/composition-2.webp",
+      "/assets/composition-7.webp",
     ],
   },
   {
@@ -175,9 +175,9 @@ export const servicesData: ServiceSeed[] = [
       "Подбор комплекта под тематику",
     ],
     images: [
-      "/assets/composition-6.jpg",
-      "/assets/composition-4.jpg",
-      "/assets/composition-1.jpg",
+      "/assets/composition-6.webp",
+      "/assets/composition-4.webp",
+      "/assets/composition-1.webp",
     ],
   },
   {
@@ -201,9 +201,9 @@ export const servicesData: ServiceSeed[] = [
       "Выезд к вам и опция сопровождения",
     ],
     images: [
-      "/assets/composition-1.jpg",
-      "/assets/composition-5.jpg",
-      "/assets/composition-4.jpg",
+      "/assets/composition-1.webp",
+      "/assets/composition-5.webp",
+      "/assets/composition-4.webp",
     ],
   },
   {
@@ -227,10 +227,10 @@ export const servicesData: ServiceSeed[] = [
       "Отдача первых роликов за 24 часа",
     ],
     images: [
-      "/assets/composition-7.jpg",
-      "/assets/composition-2.jpg",
-      "/assets/composition-6.jpg",
-      "/assets/composition-3.jpg",
+      "/assets/composition-7.webp",
+      "/assets/composition-2.webp",
+      "/assets/composition-6.webp",
+      "/assets/composition-3.webp",
     ],
   },
 ];

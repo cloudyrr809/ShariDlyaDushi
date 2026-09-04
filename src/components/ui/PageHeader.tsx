@@ -120,7 +120,11 @@ export function WorkHeader({
   crumbs: Crumb[];
   title: string;
   lead: string;
-  photo: { src: string; alt: string; /** object-position, если нужен */ position?: string };
+  photo: {
+    src: string;
+    alt: string;
+    /** object-position, если нужен */ position?: string;
+  };
 }) {
   return (
     <section
@@ -231,7 +235,9 @@ export function CoverHeader({
   const optical = useOpticalCenter(eyebrow);
 
   return (
-    <header className={`relative z-10 ${BOX} ${TOP} pb-14 text-center md:pb-16`}>
+    <header
+      className={`relative z-10 ${BOX} ${TOP} pb-14 text-center md:pb-16`}
+    >
       {/* pb-[0.5em] — место под росчерк рукописного шрифта: у «д» и «у» он
           уходит на 0.867em ниже базовой линии, тогда как метрический
           descent у шрифта всего 0.2em, и при leading-none хвост лёг бы на

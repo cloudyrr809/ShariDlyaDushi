@@ -9,13 +9,13 @@ import { CareCards } from "./components/ui/CareCards";
 import { Faq } from "./components/ui/Faq";
 
 // Импортируем картинки из assets
-import comp3 from "./assets/composition-3.jpg";
-import comp4 from "./assets/composition-4.jpg";
-import comp5 from "./assets/composition-5.jpg";
-import comp6 from "./assets/composition-6.jpg";
-import comp7 from "./assets/composition-7.jpg";
-import comp1_1 from "./assets/composition1.1.jpg";
-import comp1_2 from "./assets/composition1.2.jpg";
+import comp3 from "./assets/composition-3.webp";
+import comp4 from "./assets/composition-4.webp";
+import comp5 from "./assets/composition-5.webp";
+import comp6 from "./assets/composition-6.webp";
+import comp7 from "./assets/composition-7.webp";
+import comp1_1 from "./assets/composition1.1.webp";
+import comp1_2 from "./assets/composition1.2.webp";
 
 /* ─────────────────── ЗАКАЗ И ПОЛУЧЕНИЕ ───────────────────
 
@@ -38,7 +38,7 @@ const orderSteps = [
     // Сдвиг только на широком экране, где плитки стоят рядом. В колонку
     // на телефоне он превратился бы в кривые отступы.
     offset: "md:mt-8",
-    art: "/assets/ballon6.png",
+    art: "/assets/ballon6.webp",
     artClass: "-top-9 right-7 w-[4.25rem] rotate-[13deg]",
   },
   {
@@ -49,7 +49,7 @@ const orderSteps = [
     shadow:
       "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
     offset: "md:mt-0",
-    art: "/assets/ballon2.png",
+    art: "/assets/ballon2.webp",
     artClass: "-top-11 left-5 w-[4.75rem] -rotate-[11deg]",
   },
   {
@@ -60,7 +60,7 @@ const orderSteps = [
     shadow:
       "shadow-[0_14px_40px_-20px_rgba(107,78,129,0.35)] hover:shadow-[0_26px_58px_-22px_rgba(107,78,129,0.42)]",
     offset: "md:mt-6",
-    art: "/assets/ballon4.png",
+    art: "/assets/ballon4.webp",
     artClass: "-top-8 right-8 w-[3.5rem] rotate-[17deg]",
   },
 ];
@@ -84,7 +84,11 @@ const COMPOSITIONS = [
   { src: comp3, alt: "Композиция с цифрой", pos: "object-[50%_76%]" },
   { src: comp1_2, alt: "Детская фотосессия", pos: "" },
   { src: comp1_1, alt: "Праздник с шарами", pos: "object-[50%_26%]" },
-  { src: comp4, alt: "Композиция из шаров пастельных тонов", pos: "object-top" },
+  {
+    src: comp4,
+    alt: "Композиция из шаров пастельных тонов",
+    pos: "object-top",
+  },
   { src: comp5, alt: "Композиция с фольгированными шарами", pos: "" },
   { src: comp6, alt: "Оформление праздника шарами", pos: "object-[40%_6%]" },
   { src: comp7, alt: "Связка шаров с цифрой", pos: "object-[50%_40%]" },
@@ -134,7 +138,10 @@ export default function App() {
     const lenis = getLenis();
 
     if (lenis) {
-      lenis.scrollTo(top, { duration: 0.9, onComplete: () => setShowMore(false) });
+      lenis.scrollTo(top, {
+        duration: 0.9,
+        onComplete: () => setShowMore(false),
+      });
     } else {
       // «Меньше движения» или Lenis не запустился — родная прокрутка
       window.scrollTo({ top, behavior: "smooth" });
@@ -238,6 +245,7 @@ export default function App() {
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               <div className="group h-96 overflow-hidden rounded-3xl shadow-sm md:col-span-2">
                 <img
+                  decoding="async"
                   src={COMPOSITIONS[0].src}
                   alt={COMPOSITIONS[0].alt}
                   className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${COMPOSITIONS[0].pos}`}
@@ -250,6 +258,7 @@ export default function App() {
                     className="group h-44 overflow-hidden rounded-3xl shadow-sm"
                   >
                     <img
+                      decoding="async"
                       src={c.src}
                       alt={c.alt}
                       className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${c.pos}`}
@@ -275,6 +284,7 @@ export default function App() {
                       className="group aspect-square overflow-hidden rounded-3xl shadow-sm"
                     >
                       <img
+                        decoding="async"
                         src={c.src}
                         alt={c.alt}
                         loading="lazy"
@@ -334,14 +344,15 @@ export default function App() {
               object-position подобран так, чтобы полоса с шарами легла в
               верхнюю часть секции — над плитками. */}
           <img
-            src="/assets/back2.jpg"
+            decoding="async"
+            /* Размытие и подсветка ЗАПЕЧЕНЫ В ФАЙЛ (scripts/to-webp.mjs
+               рядом, вариант «-soft»). CSS-фильтр пересчитывал их на
+               каждой перерисовке слоя во всю секцию — 1440×725 точек, — и
+               это стоило кадра в 58-83 мс при первом показе. */
+            src="/assets/back2-soft.webp"
             alt=""
             className="absolute top-0 left-1/2 h-full max-w-none -translate-x-1/2 object-cover"
-            style={{
-              width: "158%",
-              objectPosition: "50% 85%",
-              filter: "blur(3px) brightness(1.04) saturate(0.62)",
-            }}
+            style={{ width: "158%", objectPosition: "50% 85%" }}
           />
           {/* Светлая вуаль вместо тёмной: фотография остаётся фактурой,
               а не фоном под белый текст. */}
@@ -363,8 +374,8 @@ export default function App() {
             </h2>
 
             <p className="mx-auto mt-5 max-w-2xl text-base font-medium text-[#7E6E8A] md:text-[17px]">
-              Собираем, привозим и отвечаем за результат — по всему
-              Ярославлю и пригороду.
+              Собираем, привозим и отвечаем за результат — по всему Ярославлю и
+              пригороду.
             </p>
           </div>
 
@@ -381,6 +392,7 @@ export default function App() {
                 className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
               >
                 <img
+                  decoding="async"
                   src={step.art}
                   alt=""
                   aria-hidden="true"

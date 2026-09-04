@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Check, ChevronLeft, ChevronRight, ShoppingCart, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 
 import { useCart } from "../../CartContext";
 import { pauseSmoothScroll } from "../../lib/smoothScroll";
 import type { Product } from "../../lib/catalog";
-import { defaultSettings, fetchSettings, type Settings } from "../../lib/settings";
+import {
+  defaultSettings,
+  fetchSettings,
+  type Settings,
+} from "../../lib/settings";
 
 /* ═══════════════════ ПОДРОБНО О КОМПОЗИЦИИ ═══════════════════
 
@@ -248,6 +258,7 @@ export function ProductDialog({
             <div className="group relative aspect-4/5 overflow-hidden rounded-2xl bg-[#F0E8F4]">
               {images.map((src, i) => (
                 <img
+                  decoding="async"
                   key={src}
                   src={src}
                   alt={`${product.title} — фото ${i + 1}`}
@@ -296,7 +307,12 @@ export function ProductDialog({
                         : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img src={src} alt="" className="h-full w-full object-cover" />
+                    <img
+                      decoding="async"
+                      src={src}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -382,7 +398,11 @@ export function ProductDialog({
               <Fold title="Доставка" items={terms.delivery} />
               <Fold title="Оплата" items={terms.payment} />
               <Fold title="Возврат и обмен" items={terms.returns} />
-              <Fold title="Чтобы шары прожили дольше" items={terms.care} bullets />
+              <Fold
+                title="Чтобы шары прожили дольше"
+                items={terms.care}
+                bullets
+              />
             </div>
           </div>
         </div>
@@ -395,8 +415,8 @@ export function ProductDialog({
             onClick={toCart}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#6B4E81] px-6 py-4 text-[15px] font-semibold text-white transition hover:bg-[#513A6B]"
           >
-            <ShoppingCart className="h-5 w-5 shrink-0" />
-            В корзину за {product.price} ₽
+            <ShoppingCart className="h-5 w-5 shrink-0" />В корзину за{" "}
+            {product.price} ₽
           </button>
         </div>
       </div>

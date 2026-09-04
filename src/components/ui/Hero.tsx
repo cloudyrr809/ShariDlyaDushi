@@ -38,7 +38,7 @@ const InstagramIcon = ({
  */
 const SOURCES = {
   b1: {
-    src: "/assets/ballon1.png",
+    src: "/assets/ballon1.webp",
     fx: 0.1602,
     fy: 0.0639,
     fw: 0.6852,
@@ -47,7 +47,7 @@ const SOURCES = {
     kx: 0.5066,
   },
   b2: {
-    src: "/assets/ballon2.png",
+    src: "/assets/ballon2.webp",
     fx: 0.2685,
     fy: 0.1759,
     fw: 0.4667,
@@ -56,7 +56,7 @@ const SOURCES = {
     kx: 0.5114,
   },
   b3: {
-    src: "/assets/ballon3.png",
+    src: "/assets/ballon3.webp",
     fx: 0.113,
     fy: 0.05,
     fw: 0.7741,
@@ -65,7 +65,7 @@ const SOURCES = {
     kx: 0.4937,
   },
   b4: {
-    src: "/assets/ballon4.png",
+    src: "/assets/ballon4.webp",
     fx: 0.1361,
     fy: 0.0611,
     fw: 0.7194,
@@ -74,7 +74,7 @@ const SOURCES = {
     kx: 0.5315,
   },
   b5: {
-    src: "/assets/ballon5.png",
+    src: "/assets/ballon5.webp",
     fx: 0.1731,
     fy: 0.0296,
     fw: 0.6565,
@@ -83,7 +83,7 @@ const SOURCES = {
     kx: 0.5109,
   },
   b6: {
-    src: "/assets/ballon6.png",
+    src: "/assets/ballon6.webp",
     fx: 0.1935,
     fy: 0.0852,
     fw: 0.6139,
@@ -782,7 +782,8 @@ export const Hero = () => {
           className="absolute -inset-[4%] will-change-transform"
         >
           <img
-            src="/assets/back1.jpg"
+            decoding="async"
+            src="/assets/back1.webp"
             alt=""
             draggable={false}
             className="h-full w-full object-cover"
@@ -798,7 +799,7 @@ export const Hero = () => {
             // отдельный композитный (will-change: transform), фильтр
             // растрируется один раз, а каждый кадр меняется только
             // transform — пересчёта размытия не происходит.
-                        // Звонкость вернули почти к исходной. Прежние contrast(0.84) и
+            // Звонкость вернули почти к исходной. Прежние contrast(0.84) и
             // saturate(0.74) действительно убирали спор фона с контентом, но
             // ценой пасмурности: замер показал 60% пикселей экрана в узкой
             // полосе светлоты 20-40 и ноль ниже 20 — ни теней, ни светов, одна
@@ -818,9 +819,9 @@ export const Hero = () => {
           {/* Зерно смешивается с тем, что под ним, на каждом кадре. На
             телефоне это чистый расход без выигрыша: фактуру на таком
             экране почти не видно. */}
-        {!lite && (
-          <div className="hero-grain absolute inset-0 opacity-[0.28] mix-blend-overlay" />
-        )}
+          {!lite && (
+            <div className="hero-grain absolute inset-0 opacity-[0.28] mix-blend-overlay" />
+          )}
         </div>
         {/* Одна ровная вуаль на всю площадь — без растяжек и пятен.
             Плотность взята ровно та, что была под заголовком в варианте с
@@ -839,46 +840,47 @@ export const Hero = () => {
           не видно, незачем. */}
       {!lite &&
         CLOUDS.map((c, i) => (
-        <div
-          key={`cloud-${i}`}
-          ref={(el) => {
-            cloudRefs.current[i] = el;
-          }}
-          className="pointer-events-none absolute z-10"
-          style={{
-            top: c.top,
-            bottom: c.bottom,
-            left: c.left,
-            right: c.right,
-            width: c.w,
-            // Облака двигаются каждый кадр, но своего слоя не имели: внутри
-            // тяжёлая картинка с blur и маской, и без промотирования браузер
-            // перерисовывал её на каждом сдвиге. Теперь размытие и маска
-            // растеризуются один раз, а слой просто едет.
-            willChange: "transform",
-          }}
-        >
-          <img
-            /* cloudy-trim.png — это cloudy.png с обрезанными прозрачными
+          <div
+            key={`cloud-${i}`}
+            ref={(el) => {
+              cloudRefs.current[i] = el;
+            }}
+            className="pointer-events-none absolute z-10"
+            style={{
+              top: c.top,
+              bottom: c.bottom,
+              left: c.left,
+              right: c.right,
+              width: c.w,
+              // Облака двигаются каждый кадр, но своего слоя не имели: внутри
+              // тяжёлая картинка с blur и маской, и без промотирования браузер
+              // перерисовывал её на каждом сдвиге. Теперь размытие и маска
+              // растеризуются один раз, а слой просто едет.
+              willChange: "transform",
+            }}
+          >
+            <img
+              decoding="async"
+              /* cloudy-trim.png — это cloudy.png с обрезанными прозрачными
                полями. В исходнике облако занимало лишь 64.8% ширины холста и
                35.2% высоты, остальное — пустота: подключённое как есть, оно
                выходило втрое мельче прежнего, а квадратный холст ломал
                позиционирование по краям. Обрезка 700x380 из 1080x1080.
                Оригинал cloudy.png лежит рядом нетронутым. */
-            src="/assets/cloudy-trim.png"
-            alt=""
-            draggable={false}
-            className="pointer-events-auto h-auto w-full transition-transform duration-700 ease-out hover:scale-105"
-            style={{
-              opacity: c.op * 1.5,
-              // без тени: именно она давала ощущение наклейки. Вместо неё —
-              // лёгкое размытие и растушёванный к краям контур
-              filter: `blur(${c.blur}px) ${c.grade}`,
-              maskImage:
-                "radial-gradient(ellipse 78% 76% at 50% 50%, #000 42%, rgba(0,0,0,0.55) 72%, transparent 100%)",
-              WebkitMaskImage:
-                "radial-gradient(ellipse 78% 76% at 50% 50%, #000 42%, rgba(0,0,0,0.55) 72%, transparent 100%)",
-            }}
+              src="/assets/cloudy-trim.webp"
+              alt=""
+              draggable={false}
+              className="pointer-events-auto h-auto w-full transition-transform duration-700 ease-out hover:scale-105"
+              style={{
+                opacity: c.op * 1.5,
+                // без тени: именно она давала ощущение наклейки. Вместо неё —
+                // лёгкое размытие и растушёванный к краям контур
+                filter: `blur(${c.blur}px) ${c.grade}`,
+                maskImage:
+                  "radial-gradient(ellipse 78% 76% at 50% 50%, #000 42%, rgba(0,0,0,0.55) 72%, transparent 100%)",
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 78% 76% at 50% 50%, #000 42%, rgba(0,0,0,0.55) 72%, transparent 100%)",
+              }}
             />
           </div>
         ))}
@@ -1205,7 +1207,8 @@ export const Hero = () => {
               href="tel:+79806616888"
               className="pointer-events-auto inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.18em] text-white/85 uppercase transition-colors hover:text-white"
             >
-              <Phone className="h-3.5 w-3.5" strokeWidth={1.5} />8 (980) 661-68-88
+              <Phone className="h-3.5 w-3.5" strokeWidth={1.5} />8 (980)
+              661-68-88
             </a>
 
             {/* Обе иконки — в одинаковых квадратах 20×20 с центрированием,

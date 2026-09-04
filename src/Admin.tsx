@@ -170,9 +170,9 @@ function Setup() {
     <Shell>
       <div className="max-w-2xl space-y-4">
         <p className="text-[17px] leading-relaxed font-medium text-[#5A4D66]">
-          База ещё не подключена, поэтому сайт показывает содержимое,
-          зашитое в коде. Чтобы включить админку, нужно один раз завести
-          бесплатный проект в Supabase и положить два его ключа в файл{" "}
+          База ещё не подключена, поэтому сайт показывает содержимое, зашитое в
+          коде. Чтобы включить админку, нужно один раз завести бесплатный проект
+          в Supabase и положить два его ключа в файл{" "}
           <code className="rounded bg-[#F0E5F5] px-1.5 py-0.5 font-semibold">
             .env
           </code>{" "}
@@ -320,7 +320,12 @@ function Gallery({
             key={src}
             className="relative h-28 w-28 overflow-hidden rounded-xl border border-[#E8DEEE] bg-white"
           >
-            <img src={src} alt="" className="h-full w-full object-cover" />
+            <img
+              decoding="async"
+              src={src}
+              alt=""
+              className="h-full w-full object-cover"
+            />
 
             <div className="absolute inset-x-0 bottom-0 flex justify-between bg-[#2D2433]/60 px-1 py-0.5">
               <button
@@ -903,8 +908,8 @@ function ProductEditor({
           })}
         </div>
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Можно не отмечать ни одного — тогда композиция будет только в
-          разделе «Все». Он собирает весь каталог в любом случае.
+          Можно не отмечать ни одного — тогда композиция будет только в разделе
+          «Все». Он собирает весь каталог в любом случае.
         </p>
       </div>
 
@@ -934,9 +939,9 @@ function ProductEditor({
           className={`${FIELD} resize-y leading-relaxed`}
         />
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Видно в окне «Подробнее», которое открывается по нажатию на
-          карточку. Можно не заполнять — тогда окно покажет только состав,
-          характеристики и условия.
+          Видно в окне «Подробнее», которое открывается по нажатию на карточку.
+          Можно не заполнять — тогда окно покажет только состав, характеристики
+          и условия.
         </p>
       </div>
 
@@ -950,11 +955,11 @@ function ProductEditor({
           rows={1}
         />
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          По строке на позицию: что именно входит и сколько. В окне
-          «Подробнее» этот список стоит сразу под ценой, с галочками —
-          галочки ставит сайт, писать их не нужно. Например: «цифра 4
-          „Пончик“ 86 см», «шары латекс 3 шт. 30 см, принт „разноцветные
-          пончики“». Пустые строки не сохраняются.
+          По строке на позицию: что именно входит и сколько. В окне «Подробнее»
+          этот список стоит сразу под ценой, с галочками — галочки ставит сайт,
+          писать их не нужно. Например: «цифра 4 „Пончик“ 86 см», «шары латекс 3
+          шт. 30 см, принт „разноцветные пончики“». Пустые строки не
+          сохраняются.
         </p>
       </div>
 
@@ -1005,7 +1010,9 @@ function ProductEditor({
 
           <button
             type="button"
-            onClick={() => set("specs", [...draft.specs, { name: "", value: "" }])}
+            onClick={() =>
+              set("specs", [...draft.specs, { name: "", value: "" }])
+            }
             className={`${GHOST} inline-flex items-center gap-2`}
           >
             <Plus className="h-5 w-5" />
@@ -1013,8 +1020,8 @@ function ProductEditor({
           </button>
         </div>
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Например: «Состав — 12 шаров», «Высота — 1,2 м», «Держится — до
-          двух недель». Пустые строки не сохраняются.
+          Например: «Состав — 12 шаров», «Высота — 1,2 м», «Держится — до двух
+          недель». Пустые строки не сохраняются.
         </p>
       </div>
 
@@ -1129,8 +1136,8 @@ function ServiceEditor({
             className={FIELD}
           />
           <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-            Ссылка будет /services#{draft.key || "…"}. Латиницей, без
-            пробелов. После публикации лучше не менять.
+            Ссылка будет /services#{draft.key || "…"}. Латиницей, без пробелов.
+            После публикации лучше не менять.
           </p>
         </div>
 
@@ -1312,6 +1319,7 @@ function PromoEditor({
           style={{ backgroundColor: "#6B4E81", color: "#FFFFFF" }}
         >
           <img
+            decoding="async"
             src={draft.art}
             alt=""
             aria-hidden="true"
@@ -1347,8 +1355,8 @@ function PromoEditor({
           </div>
         </div>
         <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-          Цвет плитки на сайте зависит от места в списке — они чередуются
-          сами. Здесь он всегда фиолетовый, это только проверка текста.
+          Цвет плитки на сайте зависит от места в списке — они чередуются сами.
+          Здесь он всегда фиолетовый, это только проверка текста.
         </p>
       </div>
 
@@ -1496,6 +1504,7 @@ function PromoEditor({
                   }`}
                 >
                   <img
+                    decoding="async"
                     src={src}
                     alt=""
                     className="h-full w-full object-contain"
@@ -1523,8 +1532,8 @@ function PromoEditor({
             className="w-full accent-[#6B4E81]"
           />
           <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
-            {draft.artScale.toFixed(2)} — плитки специально разные, чтобы
-            ряд не выглядел под копирку.
+            {draft.artScale.toFixed(2)} — плитки специально разные, чтобы ряд не
+            выглядел под копирку.
           </p>
         </div>
 
@@ -1614,8 +1623,7 @@ function SeedButton({
 /* ──────────────────────── РАБОЧИЙ СТОЛ ──────────────────────── */
 
 const PANE = "grid gap-10 lg:grid-cols-[20rem_minmax(0,1fr)]";
-const EMPTY =
-  "text-[17px] leading-relaxed font-medium text-[#5A4D66]";
+const EMPTY = "text-[17px] leading-relaxed font-medium text-[#5A4D66]";
 
 function FeedPane() {
   const [items, setItems] = useState<Post[] | null>(null);
@@ -1695,9 +1703,9 @@ function FeedPane() {
             />
           ) : (
             <p className={EMPTY}>
-              Выберите пост слева или создайте новый. Стрелками рядом со
-              списком посты меняются местами — в этом же порядке они идут в
-              «Ленте» на сайте.
+              Выберите пост слева или создайте новый. Стрелками рядом со списком
+              посты меняются местами — в этом же порядке они идут в «Ленте» на
+              сайте.
             </p>
           )}
         </div>
@@ -1729,7 +1737,9 @@ function CatalogPane() {
     ids.length === 0
       ? "только «Все»"
       : ids
-          .map((id) => assignableCategories.find((c) => c.id === id)?.name ?? id)
+          .map(
+            (id) => assignableCategories.find((c) => c.id === id)?.name ?? id,
+          )
           .join(", ");
 
   return (
@@ -1777,9 +1787,9 @@ function CatalogPane() {
             />
           ) : (
             <p className={EMPTY}>
-              Выберите композицию слева или создайте новую. Любая карточка
-              сразу попадает в раздел «Все», а разделы можно не отмечать —
-              или отметить сразу несколько.
+              Выберите композицию слева или создайте новую. Любая карточка сразу
+              попадает в раздел «Все», а разделы можно не отмечать — или
+              отметить сразу несколько.
             </p>
           )}
         </div>
@@ -1927,9 +1937,9 @@ function PromosPane() {
             />
           ) : (
             <p className={EMPTY}>
-              Выберите акцию слева или создайте новую. Проценты, суммы и
-              условия правятся прямо здесь — плитка рядом с формой сразу
-              показывает, что получится.
+              Выберите акцию слева или создайте новую. Проценты, суммы и условия
+              правятся прямо здесь — плитка рядом с формой сразу показывает, что
+              получится.
             </p>
           )}
         </div>

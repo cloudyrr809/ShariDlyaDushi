@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { localWebp } from "./media";
 
 /* ────────────────────────────── УСЛУГИ ──────────────────────────────
 
@@ -88,7 +89,7 @@ const fromRow = (r: Row): Service => ({
   shortDesc: r.short_desc ?? "",
   paragraphs: r.paragraphs ?? [],
   includes: r.includes ?? [],
-  images: r.images ?? [],
+  images: (r.images ?? []).map(localWebp),
   sort: r.sort ?? 0,
   published: r.published,
 });

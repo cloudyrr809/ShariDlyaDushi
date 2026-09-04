@@ -17,7 +17,7 @@ import reel2 from "./assets/reel-2.mp4";
 import reel3 from "./assets/reel-3.mp4";
 import reel4 from "./assets/reel-4.mp4";
 import reel5 from "./assets/reel-5.mp4";
-import founderImg from "./assets/founder.jpg";
+import founderImg from "./assets/founder.webp";
 
 const reelsData = [
   { id: 0, title: "Создание гигантской арки", videoUrl: reel1 },
@@ -529,6 +529,7 @@ export default function About() {
           <div className="w-full md:w-[45%]">
             <div className="group overflow-hidden rounded-[2rem] bg-[#F8F4F9] shadow-[0_24px_60px_-20px_rgba(107,78,129,0.35)]">
               <img
+                decoding="async"
                 src={founderImg}
                 alt="Нина — основатель студии «Шары Для Души»"
                 className="aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -593,7 +594,7 @@ export default function About() {
 
           {/* ВТОРОЙ КАДР — логотип студии.
               logo.jpg лежит в public/assets, поэтому берём его строковым
-              путём "/assets/logo.jpg", а не импортом (импорт — только для
+              путём "/assets/logo.webp", а не импортом (импорт — только для
               файлов из src/assets).
 
               object-contain, а не cover: logo.jpg квадратный, а бокс 4:3 —
@@ -603,7 +604,8 @@ export default function About() {
           <div className="group order-1 w-full md:order-2 md:w-[45%]">
             <div className="overflow-hidden rounded-[2rem] bg-[#F0E5F5] shadow-[0_24px_60px_-20px_rgba(107,78,129,0.35)]">
               <img
-                src="/assets/logo.jpg"
+                decoding="async"
+                src="/assets/logo.webp"
                 alt="Логотип студии «Шары Для Души»"
                 loading="lazy"
                 className="aspect-[4/3] w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04]"
@@ -648,10 +650,10 @@ export default function About() {
           }}
         >
           <img
-            src="/assets/back1.jpg"
+            decoding="async"
+            src="/assets/back1-soft.webp"
             alt=""
             className="h-full w-full object-cover"
-            style={{ filter: "blur(7px) brightness(1.06) saturate(0.75)" }}
           />
           <div className="absolute inset-0 bg-[#FBF7FC]/86" />
         </div>

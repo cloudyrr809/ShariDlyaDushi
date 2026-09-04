@@ -266,7 +266,7 @@ export default function Catalog() {
         title="Каталог"
         lead="Выберите идеальную композицию или соберите свой уникальный сет для любого повода."
         photo={{
-          src: "/assets/catalog-hero-bg.jpg",
+          src: "/assets/catalog-hero-bg.webp",
           alt: "Композиции из воздушных шаров",
           position: "object-[50%_25%]",
         }}
@@ -336,9 +336,9 @@ export default function Catalog() {
             if (shown.length === 0) {
               return (
                 <p className="text-[17px] leading-relaxed font-medium text-[#5A4D66]">
-                  В этом разделе пока пусто — скоро добавим. А пока
-                  посмотрите вкладку «Все» или напишите нам: соберём
-                  композицию под ваш повод.
+                  В этом разделе пока пусто — скоро добавим. А пока посмотрите
+                  вкладку «Все» или напишите нам: соберём композицию под ваш
+                  повод.
                 </p>
               );
             }
@@ -347,10 +347,10 @@ export default function Catalog() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                 {shown.map((product) => (
                   <ProductCard
-                          key={product.id}
-                          product={product}
-                          onDetails={setDetails}
-                        />
+                    key={product.id}
+                    product={product}
+                    onDetails={setDetails}
+                  />
                 ))}
               </div>
             );

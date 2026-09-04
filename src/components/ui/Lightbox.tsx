@@ -119,7 +119,11 @@ export function Lightbox({
     if (!open) return;
     strip.current
       ?.querySelector('[data-active="true"]')
-      ?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      ?.scrollIntoView({
+        inline: "center",
+        block: "nearest",
+        behavior: "smooth",
+      });
   }, [open, index]);
 
   if (!open || index === null) return null;
@@ -226,6 +230,7 @@ export function Lightbox({
         )}
 
         <img
+          decoding="async"
           src={shot.src}
           alt={shot.caption ?? `Фотография ${index + 1} из ${total}`}
           onClick={stop}

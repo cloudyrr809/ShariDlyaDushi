@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Quote, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Expand,
+  Quote,
+  Star,
+} from "lucide-react";
 
 import { reviews } from "../../constants";
 import { Lightbox } from "./Lightbox";
@@ -49,10 +57,18 @@ export const Reviews = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => go(-1)} aria-label="Предыдущий отзыв" className={arrow}>
+          <button
+            onClick={() => go(-1)}
+            aria-label="Предыдущий отзыв"
+            className={arrow}
+          >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <button onClick={() => go(1)} aria-label="Следующий отзыв" className={arrow}>
+          <button
+            onClick={() => go(1)}
+            aria-label="Следующий отзыв"
+            className={arrow}
+          >
             <ArrowRight className="h-5 w-5" />
           </button>
         </div>
@@ -84,7 +100,9 @@ export const Reviews = () => {
             <h4 className="font-serif text-base font-semibold text-[#2D2433]">
               {review.author}
             </h4>
-            <p className="mt-0.5 text-sm font-medium text-[#7E6E8A]">{review.role}</p>
+            <p className="mt-0.5 text-sm font-medium text-[#7E6E8A]">
+              {review.role}
+            </p>
           </div>
         </div>
 
@@ -92,6 +110,7 @@ export const Reviews = () => {
         <div className="group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none">
           {review.photos.map((src, i) => (
             <img
+              decoding="async"
               key={src}
               src={src}
               alt={`Фото к отзыву — ${review.author}`}
@@ -150,7 +169,9 @@ export const Reviews = () => {
                     onClick={() => setPhoto(i)}
                     aria-label={`Фото ${i + 1}`}
                     className={`h-1.5 cursor-pointer rounded-full transition-all ${
-                      i === photo ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-white/80 hover:bg-white"
+                      i === photo
+                        ? "w-6 bg-[#6B4E81]"
+                        : "w-1.5 bg-white/80 hover:bg-white"
                     }`}
                   />
                 ))}
@@ -171,7 +192,9 @@ export const Reviews = () => {
             }}
             aria-label={`Отзыв ${i + 1}`}
             className={`h-1.5 cursor-pointer rounded-full transition-all ${
-              i === current ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4] hover:bg-[#B99BCB]"
+              i === current
+                ? "w-6 bg-[#6B4E81]"
+                : "w-1.5 bg-[#D9C6E4] hover:bg-[#B99BCB]"
             }`}
           />
         ))}

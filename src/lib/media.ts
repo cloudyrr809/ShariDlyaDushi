@@ -91,10 +91,13 @@ function prepare(file: File): Promise<Prepared> {
           if (!blob || (fits && blob.size >= file.size)) {
             resolve(asIs);
           } else {
-            resolve({ body: blob, w, h, ext: "jpg", type: "image/jpeg" });
+            resolve({ body: blob, w, h, ext: "webp", type: "image/webp" });
           }
         },
-        "image/jpeg",
+        // WebP, а не JPEG: при том же качестве весит вчетверо меньше и
+        // умеет прозрачность. Поддержан всеми браузерами с 2020 года —
+        // и теми же, в которых работает сам холст с toBlob.
+        "image/webp",
         QUALITY,
       );
     };
@@ -102,6 +105,15 @@ function prepare(file: File): Promise<Prepared> {
     img.src = url;
   });
 }
+
+/** Переводит СТАРЫЕ локальные пути на .webp.
+
+    Карточки, перенесённые в базу до конвертации, хранят пути вида
+    «/assets/num_1300.jpg» — файлов с такими именами больше нет. Адреса
+    хранилища (начинаются с http) не трогаем: там лежит то, что загрузили
+    через админку, и оно всегда актуально. */
+export const localWebp = (src: string): string =>
+  src.startsWith("/assets/") ? src.replace(/\.(jpe?g|png)$/i, ".webp") : src;
 
 /** Кладёт картинку в хранилище и возвращает кадр с адресом и размерами. */
 export async function uploadImage(file: File): Promise<Shot> {

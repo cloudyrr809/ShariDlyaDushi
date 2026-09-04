@@ -141,7 +141,7 @@ export const Header = () => {
        из самых заметных статей расхода, а выигрыш — полупрозрачность,
        которую на маленьком экране всё равно не разглядеть. Ниже lg полоса
        просто непрозрачная. */
-    <header className="sticky top-0 z-50 border-b border-[#E8DEEE]/80 bg-[#FDFBFD] px-6 py-4 lg:bg-[#FDFBFD]/90 lg:backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[#E8DEEE]/80 bg-[#FDFBFD] px-6 py-4 lg:bg-[#FDFBFD]/95">
       {/* max-w-[76rem] — единая сетка для всех страниц (главная, каталог,
           услуги): логотип слева и кнопка справа стоят ровно по краям
           контента страницы */}

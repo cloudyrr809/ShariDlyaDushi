@@ -15,10 +15,10 @@ export const Faq = () => {
       {/* Тот же снимок, что и на первом экране, только приглушённый */}
       <div className="pointer-events-none absolute inset-0">
         <img
-          src="/assets/back2.jpg"
+          decoding="async"
+          src="/assets/back2-faq.webp"
           alt=""
           className="h-full w-full object-cover"
-          style={{ filter: "blur(1.5px) brightness(0.7) saturate(0.8)" }}
         />
         <div className="absolute inset-0 bg-[#2B1B36]/58" />
       </div>

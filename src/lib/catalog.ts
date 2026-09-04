@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { localWebp } from "./media";
 import { catalogCategories, themeSubcategories, productsData } from "../constants";
 
 /* ─────────────────────────── ТОВАРЫ КАТАЛОГА ───────────────────────────
@@ -105,7 +106,7 @@ const fromRow = (r: Row): Product => ({
   title: r.title,
   price: r.price,
   oldPrice: r.old_price,
-  images: r.images ?? [],
+  images: (r.images ?? []).map(localWebp),
   description: r.description ?? "",
   composition: r.composition ?? [],
   specs: r.specs ?? [],
