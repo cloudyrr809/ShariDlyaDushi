@@ -312,7 +312,7 @@ export default function About() {
       {/* pt-0: отступ сверху даёт шапка страницы (pb-14/16). Свой заголовок
           у секции убран — он дублировал бы «О нас» из шапки; карусель
           начинается сразу, как и на других «обложках». */}
-      <section className="relative z-10 mx-auto max-w-[79rem] overflow-x-clip px-6 pt-0 pb-10 md:pb-12">
+      <section className="relative z-10 mx-auto max-w-[79rem] overflow-x-clip px-6 pt-0 pb-14 md:pb-16">
         {/* Сцена с карточками */}
         <div className="relative flex h-[588px] items-center justify-center md:h-[648px]">
           {/* СТРЕЛКИ.
@@ -520,7 +520,7 @@ export default function About() {
           опору, поэтому длинный рассказ не выглядит сплошной простынёй.
           Прежняя вёрстка с columns-2 убрана целиком: две колонки под
           одиночным фото разрывали блок на несвязанные куски. */}
-      <section className="relative z-10 mx-auto max-w-[79rem] px-6 pt-4 pb-10 md:pt-6 md:pb-10">
+      <section className="relative z-10 mx-auto max-w-[79rem] px-6 pt-10 pb-14 md:pt-14 md:pb-16">
         {/* ── СТРОКА 1: фото слева, текст справа ─────────────────────────
             items-center выравнивает текст по середине фотографии: колонки
             разной высоты, и без этого текст прилипал бы к верхнему краю,
@@ -576,7 +576,7 @@ export default function About() {
             каждого куска рассказа есть своя картинка сверху, и обе строки
             читаются по одному правилу. Без order фото второй строки уехало
             бы под текст и ритм сбился бы. */}
-        <div className="mt-10 flex flex-col items-center gap-8 md:mt-14 md:flex-row md:gap-12">
+        <div className="mt-12 flex flex-col items-center gap-8 md:mt-18 md:flex-row md:gap-12">
           <div className="order-2 w-full md:order-1 md:w-[55%]">
             <p className="text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
               {founderStory[2]}

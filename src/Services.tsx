@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
 import { TabStrip } from "./components/ui/TabStrip";
+import { Lightbox } from "./components/ui/Lightbox";
 import {
   ShoppingCart,
   Clock,
-  ChevronLeft,
-  ChevronRight,
   Check,
   Wallet,
-  Sparkles,
+  Compass,
+  PackageOpen,
+  Expand,
 } from "lucide-react";
 import { useCart } from "./CartContext";
 import { servicesData, type ServiceSeed } from "./lib/servicesData";
@@ -17,16 +18,70 @@ import { fetchServices, type Service } from "./lib/services";
 
 
 
-// --- КАРТОЧКА ОДНОЙ УСЛУГИ ---
-const ServiceCard = ({ service }: { service: Service }) => {
+/* ═══════════════════════ КАРТОЧКА ОДНОЙ УСЛУГИ ═══════════════════════
+
+   ЖУРНАЛЬНЫЙ РАЗВОРОТ, А НЕ КОРОБКА.
+
+   Было: белая плита 1216×1026 со скруглением 2rem, а внутри неё ещё три
+   вложенные коробки — блок «что входит» на своей подложке и три плитки
+   характеристик в белых рамках. Белое на белом в белом. При окне 900px
+   карточка не помещалась в экран с запасом в 126px, а под колонкой с
+   миниатюрами оставалась пустая полоса высотой в четверть карточки:
+   левый столбец кончался, правый продолжался.
+
+   Стало: плиты нет вовсе, содержимое лежит прямо на фоне страницы с её
+   цветными пятнами. Структуру держат волосяные линии #E8DEEE и типографика,
+   а не заливки. Вложенных рамок не осталось ни одной.
+
+   ВЫСОТА ЗАДАНА ЯВНО. Тело карточки на широком экране ровно 30rem, и
+   столбцы растягиваются на неё оба. Считается так: 73 шапка + 63 вкладки
+   оставляют 764px видимого экрана при окне 900. Заголовочный блок ~140,
+   строка характеристик ~76, зазор 28 — на тело остаётся 480 = 30rem.
+   Побочная выгода: все восемь услуг теперь одной высоты, и переключение
+   вкладок не дёргает страницу.
+
+   Длинное описание не растягивает карточку, а прокручивается внутри своей
+   колонки; над «что входит» стоит черта, поэтому свободное место под
+   коротким описанием читается как воздух колонки, а не как дыра.
+
+   ФОТОГРАФИИ — КОЛЛАЖ, А НЕ КАРУСЕЛЬ. Крупный кадр на две трети ширины и
+   два поменьше стопкой справа: разные размеры сами по себе интереснее, чем
+   один кадр и ряд одинаковых миниатюр под ним. Стрелки, точки и миниатюры
+   убраны — вместо них любой кадр открывается в общем просмотрщике, том же,
+   что в ленте и в отзывах. Четвёртый и далее кадры прячутся под плашку
+   «+N» на последней плитке, но в просмотрщике доступны все.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/** Как ложится плитка в коллаже 3×2. Первый кадр крупный — две трети
+    ширины на всю высоту, остальные стопкой в правой колонке. */
+const cellClass = (i: number, shown: number) => {
+  if (shown === 1) return "col-span-3 row-span-2";
+  if (i === 0) return "col-span-2 row-span-2";
+  if (shown === 2) return "col-start-3 row-span-2";
+  return i === 1 ? "col-start-3 row-start-1" : "col-start-3 row-start-2";
+};
+
+const ServiceCard = ({
+  service,
+  index,
+  count,
+}: {
+  service: Service;
+  /** Номер услуги в списке — для надстрочки «03 / 08». */
+  index: number;
+  count: number;
+}) => {
   const { addToCart } = useCart();
-  const [currentImage, setCurrentImage] = useState(0);
+  const [zoom, setZoom] = useState<number | null>(null);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
 
-  const total = service.images.length;
+  /* Просмотрщику нужны кадры в его формате. Размеры не знаем — он тогда
+     просто не станет растягивать снимок выше оригинала. */
+  const shots = service.images.map((src) => ({ src }));
 
-  const nextImage = () => setCurrentImage((p) => (p + 1) % total);
-  const prevImage = () => setCurrentImage((p) => (p - 1 + total) % total);
+  // В коллаж помещаются три кадра; остальные живут под плашкой «+N».
+  const shown = service.images.slice(0, 3);
+  const extra = service.images.length - shown.length;
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -74,209 +129,212 @@ const ServiceCard = ({ service }: { service: Service }) => {
     }
   };
 
+  /* Характеристики. Цена стоит первой и набрана крупнее остальных: это
+     единственное число, ради которого сюда и приходят. «Формат» получил
+     компас вместо звёздочек — все восемь значений отвечают на вопрос
+     «где и как» (студия / улица / дом, любая площадка, доставка по
+     городу), а звёздочки к тому же стояли здесь и над «что входит»
+     одновременно, одна иконка на два разных смысла. */
+  const meta = [
+    {
+      Icon: Wallet,
+      label: "Цена",
+      value: `от ${service.price.toLocaleString("ru-RU")} ₽`,
+      strong: true,
+    },
+    { Icon: Clock, label: "Длительность", value: service.time, strong: false },
+    { Icon: Compass, label: "Формат", value: service.format, strong: false },
+  ];
+
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-[2rem] p-5 md:p-10 border border-[#E8DEEE] shadow-[0_8px_30px_rgba(107,78,129,0.06)] w-full">
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-        {/* ===== ЛЕВАЯ ЧАСТЬ: КАРУСЕЛЬ ===== */}
-        <div className="w-full lg:w-[45%] shrink-0">
-          <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-gradient-to-br from-[#F8F4F9] via-[#F3E9F5] to-[#FFF0F3] group">
-            {service.images.map((src, i) => (
-              <img
-                key={`${service.id}-img-${i}`}
-                src={src}
-                alt={`${service.title} — фото ${i + 1}`}
-                loading="lazy"
-                onError={() => setImgErrors((prev) => ({ ...prev, [i]: true }))}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-                  imgErrors[i] ? "opacity-0" : ""
-                } ${
-                  i === currentImage
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-105"
-                }`}
-              />
-            ))}
+    <article className="relative">
+      {/* ═══ ЗАГОЛОВОЧНЫЙ БЛОК ═══
+          Название и подзаголовок стоят на ОДНОЙ базовой линии в разных
+          колонках — журнальная шапка вместо двух строк друг под другом.
+          Экономит 30px высоты и заодно занимает пустое место справа от
+          короткого названия. */}
+      <header className="border-b border-[#E8DEEE] pb-5">
+        <p className="text-[13px] font-bold tracking-[0.28em] text-[#A78BB8] uppercase">
+          {String(index + 1).padStart(2, "0")}
+          <span className="mx-2 text-[#D9C6E4]">/</span>
+          {String(count).padStart(2, "0")}
+        </p>
 
-            {imgErrors[currentImage] && (
-              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[13px] text-[#A093AB]">
-                Фото {currentImage + 1}
-              </span>
-            )}
-
-            {/* Плашка времени поверх фото */}
-            <span className="absolute top-4 left-4 z-20 text-[13px] md:text-sm uppercase tracking-widest font-semibold text-[#6B4E81] flex items-center gap-1.5 bg-white/85 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-              <Clock className="w-3 h-3 md:w-3.5 md:h-3.5" />
-              {service.time}
-            </span>
-
-            {total > 1 && (
-              <>
-                <button
-                  onClick={prevImage}
-                  aria-label="Предыдущее фото"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={nextImage}
-                  aria-label="Следующее фото"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#6B4E81] flex items-center justify-center shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white transition-all duration-300 cursor-pointer"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-                  {service.images.map((_, i) => (
-                    <button
-                      key={`${service.id}-dot-${i}`}
-                      onClick={() => setCurrentImage(i)}
-                      aria-label={`Фото ${i + 1}`}
-                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                        i === currentImage
-                          ? "w-6 bg-[#6B4E81]"
-                          : "w-1.5 bg-white/80 hover:bg-white"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Миниатюры */}
-          {total > 1 && (
-            <div className="hidden sm:flex gap-3 mt-4">
-              {service.images.map((src, i) => (
-                <button
-                  key={`${service.id}-thumb-${i}`}
-                  onClick={() => setCurrentImage(i)}
-                  className={`relative flex-1 aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 bg-[#F0E8F4] cursor-pointer ${
-                    i === currentImage
-                      ? "border-[#6B4E81] opacity-100"
-                      : "border-transparent opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.opacity = "0";
-                    }}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ===== ПРАВАЯ ЧАСТЬ: ОПИСАНИЕ ===== */}
-        <div className="w-full lg:w-[55%] flex flex-col">
-          <h3 className="font-serif text-3xl md:text-[2.6rem] font-bold text-[#2D2433] leading-tight uppercase mb-3">
+        <div className="mt-2.5 flex flex-wrap items-end justify-between gap-x-10 gap-y-3">
+          <h3 className="font-serif text-[2.1rem] leading-[0.95] font-bold tracking-[-0.02em] text-[#2D2433] uppercase md:text-[3.1rem]">
             {service.title}
           </h3>
 
-          <p className="text-base md:text-lg text-[#5A4D66] font-medium leading-relaxed mb-6">
+          <p className="max-w-md text-[15px] leading-snug font-medium text-[#7E6E8A] md:text-[17px]">
             {service.shortDesc}
           </p>
+        </div>
+      </header>
 
-          {/* Описание услуги. Если текста больше, чем помещается по высоте —
-              внутренняя прокрутка, чтобы карточка не растягивалась. */}
+      {/* ═══ ХАРАКТЕРИСТИКИ ═══
+          Строка с разделителями-волосинками вместо трёх белых плиток.
+          Плитки были рамкой в рамке и занимали 116px; строка занимает 76 и
+          читается как выходные данные под заголовком.
+
+          На телефоне делить строку на три негде: при 390px на колонку
+          осталось бы по 106px, и «Длительность» обрезалась бы на
+          «ДЛИТЕЛЬНОС». Поэтому там это список строк — подпись слева,
+          значение справа. */}
+      <dl className="grid border-b border-[#E8DEEE] sm:grid-cols-3">
+        {meta.map(({ Icon, label, value, strong }, i) => (
+          <div
+            key={label}
+            className={`flex items-center justify-between gap-3 py-3 sm:block sm:py-4 ${
+              i > 0
+                ? "border-t border-[#F0E6F3] sm:border-t-0 sm:border-l sm:pl-5"
+                : ""
+            } ${i < meta.length - 1 ? "sm:pr-5" : ""}`}
+          >
+            <dt className="flex items-center gap-2 text-[13px] font-bold tracking-[0.16em] text-[#7E6E8A] uppercase">
+              <Icon className="h-4 w-4 shrink-0 text-[#C46B8A]" />
+              {label}
+            </dt>
+            <dd
+              className={`text-right leading-tight sm:mt-1.5 sm:text-left ${
+                strong
+                  ? "font-serif text-[19px] font-bold text-[#6B4E81] md:text-[22px]"
+                  : "text-[15px] font-semibold text-[#2D2433] md:text-base"
+              }`}
+            >
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {/* ═══ ТЕЛО: КОЛЛАЖ + ТЕКСТ ═══
+          Высота задана явно (30rem), поэтому оба столбца ровно ей равны:
+          у коллажа нет собственных пропорций, он просто заполняет колонку,
+          а описание прокручивается внутри своей. Так карточка помещается в
+          экран целиком и не меняет высоту при переключении вкладок. */}
+      <div className="mt-7 grid gap-6 lg:h-[32rem] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:gap-10">
+        {/* ─── КОЛЛАЖ ───
+            Скругление на всей фигуре, а не на плитках: коллаж читается как
+            одна плита, разрезанная тонкими просветами, а не как три
+            отдельные карточки. */}
+        <figure className="grid aspect-[4/3] grid-cols-3 grid-rows-2 gap-1.5 overflow-hidden rounded-[1.75rem] sm:aspect-[16/11] lg:aspect-auto lg:h-full">
+          {shown.map((src, i) => (
+            <button
+              key={`${service.id}-shot-${i}`}
+              type="button"
+              onClick={() => setZoom(i)}
+              aria-label={`Открыть фото ${i + 1} во весь экран`}
+              className={`group relative cursor-zoom-in overflow-hidden bg-[#F3E9F5] ${cellClass(i, shown.length)}`}
+            >
+              <img
+                src={src}
+                alt={`${service.title} — фото ${i + 1}`}
+                loading="lazy"
+                onError={() => setImgErrors((p) => ({ ...p, [i]: true }))}
+                className={`h-full w-full object-cover transition duration-700 group-hover:scale-[1.04] ${
+                  imgErrors[i] ? "opacity-0" : ""
+                }`}
+              />
+
+              {/* Подсказка, что кадр открывается. Появляется только там, где
+                  есть курсор: на телефоне значок поверх фотографии — просто
+                  мусор, тап и так работает. */}
+              <span className="pointer-events-none absolute top-3 right-3 hidden h-9 w-9 items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-0 shadow-sm backdrop-blur-sm transition group-hover:opacity-100 md:flex">
+                <Expand className="h-4 w-4" />
+              </span>
+
+              {/* Скрытые кадры — на последней плитке */}
+              {extra > 0 && i === shown.length - 1 && (
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#2D2433]/45 font-serif text-2xl font-bold text-white">
+                  +{extra}
+                </span>
+              )}
+            </button>
+          ))}
+        </figure>
+
+        {/* ─── ТЕКСТ ─── */}
+        <div className="flex min-h-0 flex-col">
+          {/* Первый абзац — лид: крупнее остальных и тёмнее. Дальше текст
+              идёт ровным кеглем. Прокрутка своя, страницу она не уводит
+              (data-lenis-prevent). */}
           <div
             data-lenis-prevent
-            className="space-y-4 mb-8 lg:max-h-[360px] lg:overflow-y-auto lg:pr-4 [scrollbar-width:thin] [scrollbar-color:#C9B4D6_transparent]"
+            className="min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)] [scrollbar-color:#C9B4D6_transparent] [scrollbar-width:thin]"
           >
             {service.paragraphs.map((text, i) => (
               <p
                 key={i}
-                className="text-[15px] md:text-base font-medium text-[#5A4D66] leading-relaxed"
+                className={
+                  i === 0
+                    ? "text-[16px] leading-relaxed font-medium text-[#4A3A5C] md:text-[17px]"
+                    : "text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base"
+                }
               >
                 {text}
               </p>
             ))}
           </div>
 
-          {/* ЧТО ВХОДИТ */}
-          <div className="bg-[#F8F4F9]/70 rounded-[1.5rem] p-5 md:p-6 mb-6 border border-[#F0E6F3]">
-            <h4 className="text-sm uppercase tracking-[0.2em] font-semibold text-[#6B4E81] mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+          {/* ─── ЧТО ВХОДИТ ───
+              Без подложки и рамки: заголовок с чертой сверху и список в две
+              колонки. Черта заодно превращает свободное место над ней (у
+              коротких описаний) в осмысленный воздух колонки.
+
+              Иконка — раскрытая коробка вместо звёздочек: «что входит»
+              буквально про содержимое набора. Звёздочки к тому же стояли и
+              здесь, и над «форматом». */}
+          <div className="mt-5 shrink-0 border-t border-[#E8DEEE] pt-4">
+            <h4 className="flex items-center gap-2 text-[13px] font-bold tracking-[0.2em] text-[#6B4E81] uppercase">
+              <PackageOpen className="h-4 w-4" />
               Что входит
             </h4>
-            <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
+
+            <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {service.includes.map((item, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-2.5 text-[15px] font-medium text-[#5A4D66] leading-snug"
+                  className="flex items-start gap-2.5 text-[15px] leading-snug font-medium text-[#5A4D66]"
                 >
-                  <span className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-[#6B4E81]/10 flex items-center justify-center">
-                    <Check className="w-2.5 h-2.5 text-[#6B4E81]" />
-                  </span>
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C46B8A]" />
                   {item}
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* ИНФО-БЛОКИ.
-
-              Три колонки только с sm. На телефоне их не было куда делить:
-              при ширине экрана 390px на колонку оставалось по 106px, и в
-              них не влезало ни слово «Длительность» (обрезалось на
-              «ДЛИТЕЛЬНОС»), ни цена — «от 5 000» и «₽» разъезжались по
-              разным строкам.
-
-              Поэтому на узком экране это не три плитки, а три строки:
-              подпись слева, значение справа. Места нужно втрое меньше, и
-              ничего не переносится. */}
-          <div className="mb-8 grid gap-2 sm:grid-cols-3 sm:gap-3">
-            {[
-              {
-                Icon: Wallet,
-                label: "Цена",
-                value: `от ${service.price.toLocaleString("ru-RU")} ₽`,
-                accent: true,
-              },
-              { Icon: Clock, label: "Длительность", value: service.time },
-              { Icon: Sparkles, label: "Формат", value: service.format },
-            ].map(({ Icon, label, value, accent }) => (
-              <div
-                key={label}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-[#E8DEEE] bg-white px-4 py-3 sm:flex-col sm:justify-center sm:px-3 sm:py-4 sm:text-center"
-              >
-                <span className="flex shrink-0 items-center gap-2 text-[13px] font-semibold tracking-widest text-[#7E6E8A] uppercase sm:flex-col sm:gap-1.5">
-                  <Icon className="h-4 w-4 shrink-0 text-[#D4839A]" />
-                  {label}
-                </span>
-                <span
-                  className={`text-right leading-tight font-semibold sm:mt-1 sm:text-center ${
-                    accent
-                      ? "font-serif text-base font-bold text-[#6B4E81] md:text-lg"
-                      : "text-[15px] text-[#2D2433]"
-                  }`}
-                >
-                  {value}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* КНОПКА */}
-          <div className="mt-auto pt-5 border-t border-[#F0E6F3] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="font-serif font-bold text-2xl md:text-3xl text-[#6B4E81]">
-              {service.price.toLocaleString("ru-RU")} ₽
-            </span>
+          {/* ─── ЗАКАЗ ───
+              Цена отсюда ушла в строку характеристик: она стояла в двух
+              местах карточки разным кеглем. Осталась одна кнопка, и ей
+              больше не приходится делить строку с числом. */}
+          <div className="mt-5 flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <button
               onClick={handleAddToCart}
-              className="w-full sm:w-auto bg-[#6B4E81] text-white px-8 py-3.5 rounded-2xl text-sm font-semibold hover:bg-[#5A4D66] hover:scale-105 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer"
+              className="flex cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-[#6B4E81] px-8 py-3.5 text-[15px] font-semibold text-white shadow-md transition-all hover:bg-[#5A4D66] hover:shadow-lg"
             >
-              <ShoppingCart className="w-4 h-4" /> Заказать
+              <ShoppingCart className="h-4 w-4" />
+              Заказать — {service.price.toLocaleString("ru-RU")} ₽
             </button>
+
+            {/* Справа от кнопки оставалось полосой пустоты в треть
+                колонки. Заполняем её тем, что спрашивают сразу после цены, —
+                а не растягиваем кнопку на 600px. */}
+            <p className="text-[14px] leading-snug font-medium text-[#7E6E8A] sm:pl-1">
+              Предоплата 50%,
+              <br className="hidden sm:block" /> остальное при получении
+            </p>
           </div>
         </div>
       </div>
-    </div>
+
+      <Lightbox
+        shots={shots}
+        index={zoom}
+        title={service.title}
+        onClose={() => setZoom(null)}
+        onIndex={setZoom}
+      />
+    </article>
   );
 };
 
@@ -428,7 +486,11 @@ export default function Services() {
             key={current.key}
             className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both"
           >
-            <ServiceCard service={current} />
+            <ServiceCard
+              service={current}
+              index={list.findIndex((s) => s.key === current.key)}
+              count={list.length}
+            />
           </div>
         )}
       </div>

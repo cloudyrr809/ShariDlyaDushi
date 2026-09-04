@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Expand, Quote, Star } from "lucide-react";
 
 import { reviews } from "../../constants";
+import { Lightbox } from "./Lightbox";
 
 export const Reviews = () => {
   const [current, setCurrent] = useState(0);
   const [photo, setPhoto] = useState(0);
+  /** Открытый во весь экран кадр; null — просмотрщик закрыт. */
+  const [zoom, setZoom] = useState<number | null>(null);
 
   const review = reviews[current];
   const total = review.photos.length;
+
+  /* Просмотрщику нужны кадры в его формате. Размеров у нас нет — тогда он
+     просто не станет растягивать снимок выше его настоящего размера. */
+  const shots = review.photos.map((src) => ({ src }));
 
   const go = (dir: 1 | -1) => {
     setCurrent((p) => (p + dir + reviews.length) % reviews.length);
@@ -95,6 +102,30 @@ export const Reviews = () => {
             />
           ))}
 
+          {/* КЛИК ПО СНИМКУ ОТКРЫВАЕТ ЕГО ЦЕЛИКОМ.
+
+              Отдельная кнопка во всю площадь, а не обработчик на самом
+              блоке: так работает и клавиатура, и не приходится глушить
+              всплытие у стрелок с точками — они лежат выше по z-индексу и
+              забирают свои нажатия сами.
+
+              В карточке снимок обрезан по object-cover, то есть виден не
+              весь; просмотрщик показывает кадр по object-contain и целиком.
+              Он же общий с лентой и услугами — листание стрелками, свайпом
+              и полоской превью достаётся бесплатно. */}
+          <button
+            type="button"
+            onClick={() => setZoom(photo)}
+            aria-label="Открыть фотографию во весь экран"
+            className="absolute inset-0 cursor-zoom-in"
+          />
+
+          {/* Подсказка только там, где есть курсор: на телефоне значок
+              поверх фотографии — просто мусор, тап и так работает. */}
+          <span className="pointer-events-none absolute top-3 right-3 z-10 hidden h-9 w-9 items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-0 shadow-sm backdrop-blur-sm transition group-hover:opacity-100 md:flex">
+            <Expand className="h-4 w-4" />
+          </span>
+
           {total > 1 && (
             <>
               <button
@@ -145,6 +176,19 @@ export const Reviews = () => {
           />
         ))}
       </div>
+
+      <Lightbox
+        shots={shots}
+        index={zoom}
+        title={`Фото к отзыву — ${review.author}`}
+        onClose={() => setZoom(null)}
+        /* Листание в просмотрщике двигает и карточку: закрыв его, видишь
+           тот кадр, на котором остановился, а не тот, с которого начал. */
+        onIndex={(i) => {
+          setZoom(i);
+          setPhoto(i);
+        }}
+      />
     </section>
   );
 };
