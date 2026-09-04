@@ -76,6 +76,12 @@
     @apply bg-background text-foreground;
   }
 
+  /* user-select: none — заголовки и рукописные надстрочки не текст для
+     копирования, а элемент оформления. Без этого при наведении курсор
+     превращался в текстовый (скобку под выделение), будто там что-то
+     печатают, хотя кликнуть там нечего. Браузер сам меняет курсор
+     обратно на обычный, когда выделение запрещено — отдельно про cursor
+     заботиться не нужно. */
   h1,
   h2,
   h3,
@@ -85,11 +91,13 @@
     font-family: "Montserrat", sans-serif !important;
     font-optical-sizing: auto;
     font-variation-settings: normal;
+    user-select: none;
   }
 
   /* Исключения */
   .font-miana {
     font-family: "MyFont", cursive !important;
+    user-select: none;
   }
 
   html {
