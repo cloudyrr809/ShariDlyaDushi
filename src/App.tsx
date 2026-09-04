@@ -15,6 +15,54 @@ import comp7 from "./assets/composition-7.jpg";
 import comp1_1 from "./assets/composition1.1.jpg";
 import comp1_2 from "./assets/composition1.2.jpg";
 
+/* ─────────────────── ЗАКАЗ И ПОЛУЧЕНИЕ ───────────────────
+
+   Оформление то же, что у шагов «как получить скидку» на Акциях и «наш
+   подход» на Услугах: свой оттенок, один поджатый угол, своя тень, свой
+   вертикальный сдвиг и свой шарик над верхней кромкой. Три одинаковых
+   белых прямоугольника с номерами 01/02/03 читались как заготовка, а
+   номера ещё и обещали последовательность, которой тут нет.
+
+   Ритм свой, а не копия соседних страниц: поджатые углы в другом порядке,
+   оттенки переставлены, шарики другие. Одна манера, разный узор. */
+const orderSteps = [
+  {
+    title: "Как оформить заказ",
+    text: "Соберите корзину на сайте или пришлите свой референс. Уточним детали и назовём точную цену: на сайте она предварительная и зависит от размера, состава и даты.",
+    shape: "rounded-[2.5rem] rounded-tl-xl",
+    tint: "bg-white",
+    shadow:
+      "shadow-[0_10px_34px_-18px_rgba(45,36,56,0.28)] hover:shadow-[0_22px_50px_-20px_rgba(107,78,129,0.35)]",
+    // Сдвиг только на широком экране, где плитки стоят рядом. В колонку
+    // на телефоне он превратился бы в кривые отступы.
+    offset: "md:mt-8",
+    art: "/assets/ballon6.png",
+    artClass: "-top-9 right-7 w-[4.25rem] rotate-[13deg]",
+  },
+  {
+    title: "Доставка и сроки",
+    text: "Доставляем по Ярославлю и пригороду в защитном пакете ко времени, которое обсудим заранее. Возможен самовывоз — адрес уточняйте при заказе.",
+    shape: "rounded-[2.5rem] rounded-br-xl",
+    tint: "bg-[#FCF2F6]",
+    shadow:
+      "shadow-[0_12px_36px_-18px_rgba(196,107,138,0.38)] hover:shadow-[0_24px_54px_-20px_rgba(196,107,138,0.45)]",
+    offset: "md:mt-0",
+    art: "/assets/ballon2.png",
+    artClass: "-top-11 left-5 w-[4.75rem] -rotate-[11deg]",
+  },
+  {
+    title: "Оплата и возврат",
+    text: "Предоплата 50%, остаток при получении. Если шар сдулся или пришёл повреждённым — заменим или вернём деньги: напишите нам в день получения.",
+    shape: "rounded-[2.5rem] rounded-tr-xl",
+    tint: "bg-[#F6F0FA]",
+    shadow:
+      "shadow-[0_14px_40px_-20px_rgba(107,78,129,0.35)] hover:shadow-[0_26px_58px_-22px_rgba(107,78,129,0.42)]",
+    offset: "md:mt-6",
+    art: "/assets/ballon4.png",
+    artClass: "-top-8 right-8 w-[3.5rem] rotate-[17deg]",
+  },
+];
+
 /* ─────────────────────── НАШИ КОМПОЗИЦИИ ───────────────────────
 
    Один список на обе раскладки. Раньше снимки были рассыпаны прямо по
@@ -237,12 +285,36 @@ export default function App() {
         </div>
       </section>
 
-      {/* Условия заказа */}
-      <section id="order" className="relative overflow-hidden px-6 pt-14 pb-20">
-        {/* Фон приближен (шире контейнера в 1.5 раза), а object-position
-            подобран так, чтобы полоса с воздушными шарами легла в верхнюю
-            часть секции — над карточками, которые её не перекрывают. */}
+      {/* ═════════════════════ ЗАКАЗ И ПОЛУЧЕНИЕ ═════════════════════
+
+          Та же манера, что у «как получить скидку» на Акциях и «наш
+          подход» на Услугах: рукописная надстрочка, заголовок строчными,
+          плитки со своим оттенком, поджатым углом, тенью, вертикальным
+          сдвигом и шариком над верхней кромкой.
+
+          НОМЕРОВ 01/02/03 БОЛЬШЕ НЕТ. Три фиолетовых кружка в рамке были
+          самым тяжёлым пятном блока и обещали порядок действий, которого
+          тут нет: оплата и возврат — не третий шаг после доставки, а
+          отдельная тема.
+
+          ФОН ПОСВЕТЛЕЛ. Под фотографией стояла вуаль #2B1B36/58, и блок
+          читался тёмной полосой посреди светлой страницы — на неё пастельные
+          плитки не ложатся вовсе. Теперь вуаль светлая (#FDFBFD/88):
+          фотография осталась, но работает как чуть заметная фактура, а не
+          как заливка. Заголовок из-за этого стал тёмным, как во всех
+          остальных разделах.
+
+          Узор свой, не копия соседних страниц: поджатые углы идут в третьем
+          порядке, оттенки переставлены, шарики взяты те, что не заняты ни
+          на Акциях, ни на Услугах в этом же сочетании. */}
+      <section
+        id="order"
+        className="relative overflow-hidden px-6 pt-16 pb-24 md:pt-20 md:pb-28"
+      >
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Кадр вдвое шире исходника, поэтому по вертикали его режет;
+              object-position подобран так, чтобы полоса с шарами легла в
+              верхнюю часть секции — над плитками. */}
           <img
             src="/assets/back2.jpg"
             alt=""
@@ -250,61 +322,68 @@ export default function App() {
             style={{
               width: "158%",
               objectPosition: "50% 85%",
-              filter: "blur(2.5px) brightness(0.94) saturate(0.82)",
+              filter: "blur(3px) brightness(1.04) saturate(0.62)",
             }}
           />
-          {/* вуаль под белый текст */}
-          <div className="absolute inset-0 bg-[#2B1B36]/58" />
+          {/* Светлая вуаль вместо тёмной: фотография остаётся фактурой,
+              а не фоном под белый текст. */}
+          <div className="absolute inset-0 bg-[#FDFBFD]/88" />
         </div>
 
-        <div className="relative z-10 max-w-[76rem] mx-auto">
-          <h2 className="text-center font-serif text-3xl font-semibold text-white md:text-5xl">
-            Заказ и получение
-          </h2>
-          <p className="text-center text-base font-regular text-white mt-2">
-            Гарантия качества и доставка по Ярославлю
-          </p>
+        <div className="relative z-10 mx-auto w-full max-w-[79rem]">
+          <div className="text-center">
+            {/* У рукописного «д» росчерк уходит ниже базовой линии: при
+                leading-none он лёг бы на заголовок. pb-[0.5em] подкладывает
+                недостающее место, в em — чтобы работало и на мобильном
+                кегле. */}
+            <p className="font-miana pb-[0.5em] text-2xl leading-none text-[#A64D6C] md:text-3xl">
+              без сюрпризов
+            </p>
 
-          <div className="mt-16 grid gap-8 md:grid-cols-3 text-center">
-            <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
-              <div className="w-14 h-14 rounded-full border border-[#6B4E81] text-[#6B4E81] font-serif text-xl flex items-center justify-center font-medium transition duration-300 ease-out group-hover:bg-[#6B4E81] group-hover:text-white">
-                01
-              </div>
-              <h3 className="mt-6 font-serif text-xl font-semibold">
-                Как оформить заказ
-              </h3>
-              <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Соберите корзину на сайте или пришлите нам свой референс.
-                Быстро ответим, уточним детали и назовём точную стоимость.
-                Цены на сайте предварительные: итог зависит от размера, состава и даты.
-              </p>
-            </div>
-            <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
-              <div className="w-14 h-14 rounded-full border border-[#6B4E81] text-[#6B4E81] font-serif text-xl flex items-center justify-center font-medium transition duration-300 ease-out group-hover:bg-[#6B4E81] group-hover:text-white">
-                02
-              </div>
-              <h3 className="mt-6 font-serif text-xl font-semibold">
-                Доставка и сроки
-              </h3>
-              <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Доставляем по Ярославлю и пригороду в защитном пакете к удобному для вас времени, которое мы заранее обсуждаем в переписке.
-                Так же возможен самовывоз, адрес уточняйте при заказе.
-              </p>
-            </div>
-            <div className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-[#E8DEEE] transition duration-300 ease-out hover:-translate-y-1.5 hover:border-[#6B4E81]/40 hover:shadow-[0_20px_45px_-25px_rgba(107,78,129,0.5)]">
-              <div className="w-14 h-14 rounded-full border border-[#6B4E81] text-[#6B4E81] font-serif text-xl flex items-center justify-center font-medium transition duration-300 ease-out group-hover:bg-[#6B4E81] group-hover:text-white">
-                03
-              </div>
-              <h3 className="mt-6 font-serif text-xl font-semibold">
-                Оплата и возврат
-              </h3>
-              <p className="mt-3 text-[15px] font-medium text-[#5A4D66] leading-relaxed">
-                Предоплата 50%, остаток при получении. Если шар сдулся или пришёл повреждённым — заменим или
-                вернём деньги: напишите нам в день получения.
-              </p>
-            </div>
+            <h2 className="mx-auto max-w-3xl text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
+              Заказ и получение
+            </h2>
+
+            <p className="mx-auto mt-5 max-w-2xl text-base font-medium text-[#7E6E8A] md:text-[17px]">
+              Собираем, привозим и отвечаем за результат — по всему
+              Ярославлю и пригороду.
+            </p>
           </div>
 
+          {/* items-start, а не растянутые на общую высоту: у плиток разный
+              объём текста, и разная высота вместе со сдвигами по вертикали
+              и даёт ту асимметрию, ради которой блок переверстан. */}
+          <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-7">
+            {orderSteps.map((step) => (
+              <div
+                key={step.title}
+                /* Верхний внутренний отступ больше остальных: шарик свисает
+                   за кромку и заходит на плитку на 30-40px, заголовок
+                   должен начинаться ниже этой границы. */
+                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
+              >
+                <img
+                  src={step.art}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className={`pointer-events-none absolute select-none drop-shadow-[0_10px_18px_rgba(107,78,129,0.22)] ${step.artClass}`}
+                />
+
+                {/* Заголовок капсом вразрядку, описание тоном мягче —
+                    иерархия читается сразу, без линеек и значков. 15px, а
+                    не 14: текста под ним втрое больше, чем в плитках на
+                    Акциях, и заголовку нужно вести за собой не одну строку,
+                    а четыре. */}
+                <h3 className="text-[15px] font-bold tracking-[0.16em] text-[#2D2433] uppercase">
+                  {step.title}
+                </h3>
+                <p className="mt-3.5 text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base">
+                  {step.text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

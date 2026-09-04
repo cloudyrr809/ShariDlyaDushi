@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 /* Тип кадра живёт рядом с загрузчиком (lib/media): им пользуются и лента,
@@ -126,7 +127,19 @@ export function Lightbox({
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
-  return (
+  /* РИСУЕМ В <body>, А НЕ НА МЕСТЕ ВЫЗОВА.
+
+     position: fixed отмеряется от окна только до тех пор, пока НИ У ОДНОГО
+     предка нет transform, filter или backdrop-filter: любое из них делает
+     предка точкой отсчёта для fixed. На «Услугах» карточка обёрнута в
+     animate-in ... fill-mode-both — анимация оставляет на элементе
+     transform навсегда, — и просмотрщик прижимался к её контейнеру
+     max-w-[79rem]: тёмная подложка не доходила до краёв экрана, по бокам
+     оставались светлые полосы, а снимок сидел не по центру окна.
+
+     Портал в body уносит окно из-под любых таких предков разом, поэтому
+     чинит не только «Услуги», но и всякое следующее место вызова. */
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -277,6 +290,7 @@ export function Lightbox({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

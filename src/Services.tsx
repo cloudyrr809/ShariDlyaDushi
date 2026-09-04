@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
 import { TabStrip } from "./components/ui/TabStrip";
@@ -74,6 +74,29 @@ const ServiceCard = ({
   const { addToCart } = useCart();
   const [zoom, setZoom] = useState<number | null>(null);
   const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+
+  /* РАСТУШЁВКА НИЖНЕГО КРАЯ — ТОЛЬКО ПОКА ВНИЗУ ЕЩЁ ЕСТЬ ТЕКСТ.
+
+     Постоянная маска гасила последнюю строку и у того, кто домотал до
+     конца: фраза дочитывалась наполовину прозрачной и выглядела
+     обрезанной. Теперь маска — это признак «дальше есть ещё», и на
+     последнем экране прокрутки её нет. */
+  const textRef = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+
+  const checkMore = useCallback(() => {
+    const el = textRef.current;
+    if (!el) return;
+    setMore(el.scrollHeight - el.clientHeight - el.scrollTop > 4);
+  }, []);
+
+  // Пересчитываем при смене услуги и при изменении ширины окна: от неё
+  // зависит и число строк в абзацах, и высота самой колонки.
+  useEffect(() => {
+    checkMore();
+    window.addEventListener("resize", checkMore);
+    return () => window.removeEventListener("resize", checkMore);
+  }, [checkMore, service.id]);
 
   /* Просмотрщику нужны кадры в его формате. Размеры не знаем — он тогда
      просто не станет растягивать снимок выше оригинала. */
@@ -259,8 +282,14 @@ const ServiceCard = ({
               идёт ровным кеглем. Прокрутка своя, страницу она не уводит
               (data-lenis-prevent). */}
           <div
+            ref={textRef}
+            onScroll={checkMore}
             data-lenis-prevent
-            className="min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)] [scrollbar-color:#C9B4D6_transparent] [scrollbar-width:thin]"
+            className={`min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 [scrollbar-color:#C9B4D6_transparent] [scrollbar-width:thin] ${
+              more
+                ? "lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)]"
+                : ""
+            }`}
           >
             {service.paragraphs.map((text, i) => (
               <p

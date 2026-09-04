@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Phone } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Phone } from "lucide-react";
 
 /**
  * Логотип ВК нарисован внутри кадра 24×24, но сам занимает только полосу
@@ -1136,14 +1137,25 @@ export const Hero = () => {
               </span>
             </h1>
 
-            {/* Подзаголовок — Montserrat Regular (400), обычный регистр.
-                Капс оставлен только заголовку и угловым плашкам.
-                Контраст 800 против 400 держит иерархию сам, без разницы
-                в цвете и без декора. */}
-            <p className="pointer-events-auto mx-auto mt-7 max-w-sm text-[15px] leading-relaxed font-normal text-white/85 md:text-base lg:mx-0 lg:mt-9 lg:max-w-md">
-              Создаём уникальные композиции из воздушных шариков для любых
-              событий
-            </p>
+            {/* ГЛАВНОЕ ДЕЙСТВИЕ ВМЕСТО ОПИСАНИЯ.
+
+                Здесь стояла строка «Создаём уникальные композиции…» — она
+                повторяла плашку в верхнем углу («Студия шаров и праздников»)
+                другими словами и не давала никакого хода дальше: на первом
+                экране нажать было не на что, кроме шапки.
+
+                Ссылка текстом, а не кнопка с заливкой: плашка рядом с
+                десятисантиметровым «ДУША В ШАРАХ» смотрелась бы чужой наклейкой,
+                да и в шапке уже есть одна залитая кнопка. Черта стоит сразу, а не
+                появляется на наведении: она и есть признак, что сюда можно
+                нажать, а именно этого на первом экране и не хватало. */}
+            <Link
+              to="/catalog"
+              className="group/cta pointer-events-auto mt-8 inline-flex items-center gap-2.5 border-b border-white/50 pb-1.5 text-[17px] font-semibold text-white transition-colors hover:border-white lg:mt-10 lg:text-[19px]"
+            >
+              Посмотреть каталог
+              <ArrowRight className="h-[1.15em] w-[1.15em] transition-transform duration-300 ease-out group-hover/cta:translate-x-1.5" />
+            </Link>
           </div>
         </div>
       </div>

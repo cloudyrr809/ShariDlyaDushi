@@ -354,7 +354,7 @@ export const Footer = () => {
             </p>
           </div>
 
-          <div className="shrink-0 md:text-right">
+          <div className="shrink-0 md:text-right -translate-y-10">
             {/* Места под росчерк тут нарочно НЕТ. У «р», «у» и «Д» хвост
                 уходит на 0.667em ниже базовой линии, и здесь он должен
                 ложиться на строку снизу: рукописная подпись и слоган

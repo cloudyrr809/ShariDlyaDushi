@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 import { careCards } from "../../constants";
 
@@ -84,14 +86,20 @@ type Img = {
 type Card = (typeof careCards)[number];
 
 /** Картинка, обрезанная по своему содержимому: прозрачные поля уходят за
-    край обёртки, а сама обёртка и есть видимый шар. */
-const Cropped = ({ img }: { img: Img }) => (
+    край обёртки, а сама обёртка и есть видимый шар.
+
+    shade — собственная тень по силуэту. Нужна светлым картинкам на
+    светлой подложке; на наведении её перебивает более плотная тень из
+    index.css (правило там специфичнее утилиты). */
+const Cropped = ({ img, shade }: { img: Img; shade?: boolean }) => (
   <img
     src={img.src}
     alt=""
     aria-hidden="true"
     loading="lazy"
-    className="absolute max-w-none select-none"
+    className={`absolute max-w-none select-none ${
+      shade ? "drop-shadow-[0_1px_2px_rgba(107,78,129,0.35)]" : ""
+    }`}
     style={{
       width: `${100 / img.fw}%`,
       height: `${100 / img.fh}%`,
@@ -99,6 +107,48 @@ const Cropped = ({ img }: { img: Img }) => (
       top: `${(-img.fy / img.fh) * 100}%`,
     }}
   />
+);
+
+/** СЦЕНА: несколько картинок, расставленных по коробке абсолютом.
+
+    Нужна там, где значок — не один предмет, а маленькая композиция:
+    у «перепадов» это шар посередине, снежинка слева снизу и солнце
+    справа сверху. Обычный Art выстраивает картинки В РЯД и для такого
+    не годится.
+
+    Координаты — доли коробки в процентах, высота считается из пропорций
+    содержимого. Каждый элемент получает memo-figure, поэтому вся сцена
+    оживает на наведении разом, как и одиночные значки. */
+const Scene = ({
+  scene,
+}: {
+  scene: readonly {
+    img: Img;
+    left: number;
+    top: number;
+    w: number;
+    shade?: boolean;
+  }[];
+}) => (
+  /* self-stretch: коробка значка выстроена по нижнему краю (items-end), и
+     без него сцена схлопнулась бы в ноль — все её элементы лежат
+     абсолютом и своей высоты не дают. */
+  <div className="relative w-full self-stretch">
+    {scene.map(({ img, left, top, w, shade }, i) => (
+      <div
+        key={`${img.src}-${i}`}
+        className="memo-figure absolute"
+        style={{
+          left: `${left}%`,
+          top: `${top}%`,
+          width: `${w}%`,
+          aspectRatio: `${img.ar}`,
+        }}
+      >
+        <Cropped img={img} shade={shade} />
+      </div>
+    ))}
+  </div>
 );
 
 /** Ряд картинок карточки, вписанных в отведённый габарит.
@@ -258,7 +308,7 @@ export const CareCards = () => {
             текст на строки поровну, а узкая мера не даёт ему выстроиться
             в одну длинную. */}
         <p className="mx-auto mt-2.5 max-w-[34ch] text-center text-base leading-relaxed font-medium text-balance text-[#5A4D66] md:text-[17px]">
-          Несколько простых правил — и шарики будут летать очень долго!
+          Несколько простых правил и шарики будут летать очень долго!
         </p>
 
         {/* СЕТКА.
@@ -396,6 +446,24 @@ export const CareCards = () => {
                       >
                         {card.description}
                       </p>
+
+                      {/* ВЫХОД ИЗ ПАМЯТКИ В КАТАЛОГ.
+                          Ссылка текстом, без плашки: рядом с описанием
+                          правила кнопка с заливкой читалась бы как
+                          «согласен», а не как переход.
+
+                          Черта под текстом стоит СРАЗУ, а не появляется на
+                          наведении: она и есть признак, что это ссылка, а
+                          не просто подпись. На наведении темнеет и уезжает
+                          стрелка. */}
+                      <Link
+                        to="/catalog"
+                        className="group/link mt-5 inline-flex w-fit items-center gap-2 border-b border-[#6B4E81]/40 pb-0.5 text-[15px] font-bold text-[#6B4E81] transition-colors hover:border-[#513A6B] hover:text-[#513A6B] md:text-base"
+                        style={layer(idx, LAYER_MS * 4, "translateY(8px)")}
+                      >
+                        Посмотреть каталог
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover/link:translate-x-1" />
+                      </Link>
                     </div>
                   </article>
                 ) : (
@@ -418,9 +486,23 @@ export const CareCards = () => {
                         разъезжались по вертикали на полсотни пикселей.
                         Теперь она занимает пустой угол справа от значка и
                         на поток не влияет вовсе. */}
+                    {/* НА ТЕЛЕФОНЕ ПЛАШКА В ПОТОКЕ, А НЕ В УГЛУ.
+
+                        Угол работает, пока карточка широкая: при 289px
+                        значок занимает 24..96, плашка 183..265 — они не
+                        встречаются. На 390px карточка сужается до 163, и
+                        «ВАЖНО» (82px) начинается с 61-го пикселя, прямо
+                        поверх значка: солнце в сцене «перепадов» стоит на
+                        62..87 и уходило под плашку. Ни подвинуть значок,
+                        ни ужать надпись некуда — 72 + 82 + отступы это уже
+                        194px при ширине карточки 163.
+
+                        Поэтому на узком экране плашка становится обычной
+                        строкой сверху, а в угол уходит с sm, где место для
+                        неё появляется. */}
                     {tag && (
                       <span
-                        className={`absolute top-4 right-4 rounded-full border px-2.5 py-0.5 text-[13px] font-bold tracking-[0.08em] uppercase ${
+                        className={`w-fit rounded-full border px-2.5 py-0.5 text-[13px] font-bold tracking-[0.08em] uppercase sm:absolute sm:top-4 sm:right-4 ${
                           accent
                             ? "border-[#D9C2EA] bg-white/70 text-[#513A6B]"
                             : "border-[#EFD4E0] bg-white/70 text-[#A64D6C]"
@@ -443,10 +525,14 @@ export const CareCards = () => {
                         "translateY(8px) scale(0.92)",
                       )}
                     >
-                      <Art
-                        card={card}
-                        box={card.images.length > 1 ? PAIR : SOLO}
-                      />
+                      {"scene" in card && card.scene ? (
+                        <Scene scene={card.scene} />
+                      ) : (
+                        <Art
+                          card={card}
+                          box={card.images.length > 1 ? PAIR : SOLO}
+                        />
+                      )}
                     </div>
 
                     <div>
