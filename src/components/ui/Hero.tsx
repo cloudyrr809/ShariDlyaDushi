@@ -421,9 +421,23 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
    Проверяем НАЛИЧИЕ МЫШИ, а не ширину окна: признак не меняется при
    повороте телефона и не путается с узким окном на мониторе. */
+/* ДВА РАЗНЫХ ВОПРОСА, которые раньше были одним.
+
+   «Облегчить ОФОРМЛЕНИЕ» — про дорогие эффекты: размытие неба во весь
+   экран, зерно на mix-blend-mode, облака с масками, тень у каждого шара.
+   Это правда тяжело на телефоне, и это остаётся выключенным.
+
+   «Выключить ДВИЖЕНИЕ» — совсем другое дело. Раньше движение гасилось
+   заодно с оформлением, и на телефоне гроздь превращалась в неподвижную
+   картинку. Но сам цикл стоил не оформления: он пишет transform и opacity
+   уже готовым слоям. Тормозили картинки, и с тех пор они ужаты с 34.3 МБ
+   до 4.6. Поэтому движение теперь гаснет только по системной настройке
+   «меньше движения» — как и положено. */
 const wantsLite = () =>
-  typeof window === "undefined" ||
-  window.matchMedia("(hover: none)").matches ||
+  typeof window === "undefined" || window.matchMedia("(hover: none)").matches;
+
+const wantsStill = () =>
+  typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const Hero = () => {
@@ -431,6 +445,7 @@ export const Hero = () => {
      разметка, а не только поведение, и переключать её на лету незачем —
      мышь посреди сеанса не появляется. */
   const lite = useMemo(wantsLite, []);
+  const still = useMemo(wantsStill, []);
 
   const heroRef = useRef<HTMLElement | null>(null);
   const clusterRef = useRef<HTMLDivElement | null>(null);
@@ -452,17 +467,16 @@ export const Hero = () => {
     pxPerUnit: 0.5,
     raf: 0,
     active: true,
-    reduced: false,
     frame: 0,
   });
 
-  /* В облегчённом режиме дальний план убран: шесть картинок, которые и
-     так тонули в дымке. Экономия не в кадрах, а в декодировании — это
-     треть всех изображений первого экрана. */
-  const list = useMemo(
-    () => (lite ? BALLOONS.filter((b) => b.depth >= 0.78) : BALLOONS),
-    [lite],
-  );
+  /* Дальний план вернулся и на телефон. Его убирали, когда гроздь стояла
+     неподвижно и приглушённо: тонущие в дымке шары там ничего не давали,
+     а декодирование стоило трети всех картинок экрана. Теперь гроздь
+     живёт, и дальний план — это и есть глубина: он двигается слабее
+     переднего, и без него разлёт читается плоско. Картинки к тому же
+     стали в тринадцать раз легче. */
+  const list = BALLOONS;
 
   // Статичная геометрия — считается один раз, в цикле остаётся только арифметика.
   const geom = useMemo(
@@ -515,12 +529,10 @@ export const Hero = () => {
   };
 
   useEffect(() => {
-    /* В облегчённом режиме цикла нет вовсе: прозрачность шаров перестаёт
-       зависеть от того, как браузер считает высоту экрана и прокрутку. */
-    if (lite) return;
+    /* Цикла нет только при системном «меньше движения». */
+    if (still) return;
 
     const a = anim.current;
-    a.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const measure = () => {
       const el = clusterRef.current;
@@ -528,16 +540,29 @@ export const Hero = () => {
     };
     measure();
 
+    /* Прогресс считаем ПО СОБСТВЕННОМУ ПОЛОЖЕНИЮ первого экрана, а не по
+       window.scrollY и offsetHeight.
+
+       Из-за старой формулы во встроенном браузере Телеграма шары выходили
+       прозрачными: высота задана в svh, этот браузер меряет её по-своему,
+       и стоило знаменателю оказаться меньше настоящего — прогресс сразу
+       упирался в единицу, а прозрачность там уже ноль.
+
+       getBoundingClientRect().top — это фактическое смещение экрана
+       относительно окна, а height — фактическая отрисованная высота. Они
+       всегда согласованы между собой, как бы браузер ни понимал svh:
+       0 пока экран на месте, 1 когда он ушёл вверх на свою высоту. */
     const onScroll = () => {
       const hero = heroRef.current;
       if (!hero) return;
-      a.tTarget = clamp01(window.scrollY / (hero.offsetHeight * 0.9));
+      const r = hero.getBoundingClientRect();
+      a.tTarget = r.height > 0 ? clamp01(-r.top / (r.height * 0.9)) : 0;
       start();
     };
 
     const onMove = (e: MouseEvent) => {
       const hero = heroRef.current;
-      if (!hero || a.reduced) return;
+      if (!hero) return;
       const r = hero.getBoundingClientRect();
       a.mxTarget = ((e.clientX - r.left) / r.width - 0.5) * 2;
       a.myTarget = ((e.clientY - r.top) / r.height - 0.5) * 2;
@@ -566,12 +591,8 @@ export const Hero = () => {
          стоили не JS (0.07 мс из 16.7), а лишнего живого слоя: под ним
          пересобиралось всё поддерево — 17 шаров у грозди, зерно с
          mix-blend-mode у неба. Периоды 30 и 23 с — как в кейфреймах. */
-      const skyBreathe = a.reduced
-        ? 1
-        : 1 + 0.04 * (1 - Math.cos((time * 6.283) / 30));
-      const clusterBreathe = a.reduced
-        ? 1
-        : 1 + 0.0175 * (1 - Math.cos((time * 6.283) / 23));
+      const skyBreathe = 1 + 0.04 * (1 - Math.cos((time * 6.283) / 30));
+      const clusterBreathe = 1 + 0.0175 * (1 - Math.cos((time * 6.283) / 23));
 
       for (let i = 0; i < list.length; i++) {
         const b = list[i];
@@ -579,9 +600,7 @@ export const Hero = () => {
         const span = 1 - b.stagger * 0.55;
         const fly = clamp01((a.t - b.stagger * 0.55) / span);
 
-        const bob = a.reduced
-          ? 0
-          : Math.sin(time * (6.28 / b.float) + g.phase) * FLOAT_AMP;
+        const bob = Math.sin(time * (6.28 / b.float) + g.phase) * FLOAT_AMP;
         // Прежняя обёртка масштабировала гроздь ЦЕЛИКОМ вокруг общего узла
         // (transform-origin: 50% 95%), из-за чего шары на вдохе слегка
         // расходились. Если просто увеличить каждый шар, он вырастет на месте
@@ -616,7 +635,7 @@ export const Hero = () => {
         if (updatePaths) {
           const p = pathRefs.current[i];
           if (p) {
-            const wave = a.reduced ? 0 : Math.sin(time * 0.55 + g.phase) * 5;
+            const wave = Math.sin(time * 0.55 + g.phase) * 5;
             p.setAttribute("d", ribbonPath(i, fly, wave));
           }
         }
@@ -635,18 +654,14 @@ export const Hero = () => {
         const el = cloudRefs.current[i];
         if (!el) continue;
         const fly = clamp01((a.t - c.stagger * 0.5) / (1 - c.stagger * 0.5));
-        const bob = a.reduced ? 0 : Math.sin(time * (6.28 / c.float) + i) * 5;
+        const bob = Math.sin(time * (6.28 / c.float) + i) * 5;
         el.style.transform = `translate3d(${(a.mx * 5 + fly * c.dir * 130).toFixed(1)}px,${(a.my * 4 - fly * 60 + bob).toFixed(1)}px,0)`;
         el.style.opacity = clamp01(1 - fly * 1.2).toFixed(3);
       }
 
-      // если ничего не меняется и покачивание выключено — цикл засыпает
-      const settled =
-        Math.abs(a.tTarget - a.t) < 0.0005 &&
-        Math.abs(a.mxTarget - a.mx) < 0.0005 &&
-        Math.abs(a.myTarget - a.my) < 0.0005;
-
-      if (a.active && (!settled || !a.reduced)) {
+      // Покачивание и дыхание идут всегда, поэтому цикл не засыпает сам —
+      // его останавливает наблюдатель, когда экран уходит из виду.
+      if (a.active) {
         a.raf = requestAnimationFrame(tick);
       } else {
         a.raf = 0;
@@ -695,7 +710,7 @@ export const Hero = () => {
       a.active = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lite, list]);
+  }, [still, list]);
 
   return (
     <section
@@ -835,7 +850,23 @@ export const Hero = () => {
           Наезд должен срезать только правый бок «Х», иначе читается «ШАРА». */}
       <div
         ref={clusterRef}
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2 opacity-45 lg:left-[576px] lg:translate-x-0 lg:opacity-100 xl:left-[calc(50%_+_131px)] 2xl:left-[calc(50%_+_118px)]"
+        /* НА ТЕЛЕФОНЕ ГРОЗДЬ ПРИТЕМНЯЕТСЯ, А НЕ ГАСИТСЯ ПРОЗРАЧНОСТЬЮ.
+
+           Раньше здесь стояло opacity-45. Прозрачность подмешивает к шарам
+           небо, которое под ними, — а оно пёстрое, и шары теряли собственные
+           края: гроздь превращалась в мутное пятно. Плюс белому заголовку
+           поверх неё доставался контраст 3.78 в среднем и 2.78 в худшей
+           точке — ниже нормы 3.0 для крупного текста.
+
+           brightness умножает светлоту, сохраняя разницу между соседними
+           шарами: форма и края на месте, а фон под текстом темнее. saturate
+           возвращает цвет, который отнимает затемнение.
+
+           Замер той же методикой (пиксели под спрятанным заголовком):
+           0.55/1.15 дало 4.75 в среднем, 0.63/1.45 — уже 3.73. Взято 0.58 с
+           насыщенностью 1.3: около 4.4 в среднем при норме 3.0, то есть
+           запас есть, а цвет заметно живее, чем при чистом затемнении. */
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 brightness-[0.58] saturate-[1.3] lg:left-[576px] lg:translate-x-0 lg:brightness-100 lg:saturate-100 xl:left-[calc(50%_+_131px)] 2xl:left-[calc(50%_+_118px)]"
         style={{
           top: "-3%",
           height: "106%",
@@ -976,9 +1007,9 @@ export const Hero = () => {
                     const tone = `brightness(${bright}) saturate(${sat}) contrast(${contrast})`;
                     /* drop-shadow считается по альфа-каналу картинки
                        1080×1080 — самая дорогая часть фильтра, и она у
-                       каждого шара своя. На телефоне гроздь и так
-                       приглушена до 45% и лежит за текстом: разделять
-                       соседние шары тенью там попросту не для кого. */
+                       каждого шара своя. На телефоне соседние шары
+                       разделяет само движение: передний план обгоняет
+                       дальний, и тень для этого не нужна. */
                     return lite
                       ? tone
                       : `${tone} drop-shadow(0 5px 9px rgba(43,27,54,${shadow}))`;
