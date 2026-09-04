@@ -137,19 +137,51 @@ export default function App() {
     }
   };
 
+  /* Активный снимок — тот, чья середина ближе к середине ленты.
+
+     Раньше индекс считался как scrollLeft / (scrollWidth / количество). Это
+     работало, пока лента начиналась вплотную к левому краю. Теперь у неё по
+     краям поля, которые дают первому и последнему снимку встать в центр, —
+     и деление общей ширины на количество перестало попадать в снимок.
+
+     Меряем по экранным координатам: они не зависят от того, какой предок
+     позиционирован, и одинаково верны для любого снимка. */
+  const rafId = useRef(0);
+
   const onStripScroll = () => {
-    const el = strip.current;
-    if (!el) return;
-    const step = el.scrollWidth / COMPOSITIONS.length;
-    const i = Math.round(el.scrollLeft / step);
-    setShot(Math.min(COMPOSITIONS.length - 1, Math.max(0, i)));
+    // Прокрутка сыплет событиями чаще, чем браузер рисует кадры: считаем раз в кадр
+    if (rafId.current) return;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = 0;
+      const el = strip.current;
+      if (!el) return;
+      const box = el.getBoundingClientRect();
+      const mid = box.left + box.width / 2;
+
+      let best = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < el.children.length; i++) {
+        const r = el.children[i].getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - mid);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      }
+      setShot(best);
+    });
   };
 
   const goToShot = (i: number) => {
     const el = strip.current;
-    if (!el) return;
-    el.scrollTo({
-      left: (el.scrollWidth / COMPOSITIONS.length) * i,
+    const slide = el?.children[i] as HTMLElement | undefined;
+    if (!el || !slide) return;
+    const box = el.getBoundingClientRect();
+    const r = slide.getBoundingClientRect();
+    // Сдвигаем на разницу середин, а не в абсолютную позицию: поля по краям
+    // и просветы между снимками при этом считать не нужно.
+    el.scrollBy({
+      left: r.left + r.width / 2 - (box.left + box.width / 2),
       behavior: "smooth",
     });
   };
@@ -173,20 +205,27 @@ export default function App() {
           </h2>
 
           {/* ── ТЕЛЕФОН: лента с прокруткой вбок ──
-              -mx-6 + px-6 выводят ленту под самые края экрана, оставляя
-              первый снимок на сетке страницы. Ширина слайда 78%, поэтому
-              справа всегда торчит край следующего — это и есть подсказка,
-              что ленту можно листать, без единой надписи об этом. */}
+              -mx-6 выводит ленту под самые края экрана.
+
+              Снимок ЦЕНТРИРУЕТСЯ, а не прижимается влево: 78vw ширины плюс
+              поля по 11vw с каждой стороны дают ровно 100vw, поэтому и
+              первый снимок, и последний могут встать серединой в середину
+              экрана. Края соседних снимков при этом видны с обеих сторон —
+              подсказка, что ленту листают, теперь симметричная.
+
+              Единицы vw, а не проценты: лента здесь во всю ширину экрана
+              (-mx-6 гасит поля секции), так что vw и есть её ширина, и
+              арифметика полей сходится без подгонки. */}
           <div className="md:hidden">
             <div
               ref={strip}
               onScroll={onStripScroll}
-              className="scrollbar-hide -mx-6 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6"
+              className="scrollbar-hide -mx-6 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[11vw]"
             >
               {COMPOSITIONS.map((c, i) => (
                 <div
                   key={c.alt}
-                  className="aspect-[3/4] w-[78%] shrink-0 snap-start overflow-hidden rounded-3xl bg-[#F0E8F4]"
+                  className="aspect-[3/4] w-[78vw] shrink-0 snap-center overflow-hidden rounded-3xl bg-[#F0E8F4]"
                 >
                   <img
                     src={c.src}
