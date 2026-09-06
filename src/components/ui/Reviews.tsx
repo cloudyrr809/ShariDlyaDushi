@@ -10,48 +10,15 @@ import {
 } from "lucide-react";
 
 import { reviews } from "../../constants";
+import { useSwipe } from "../../lib/swipe";
 import { Lightbox } from "./Lightbox";
-
-/** Насколько далеко надо провести пальцем, чтобы это засчиталось за
-    листание, а не за дрожание руки при обычном тапе. Порог тот же, что в
-    просмотрщике фотографий. */
-const SWIPE = 48;
-
-/**
- * Горизонтальный свайп по блоку.
- *
- * Вертикальное движение намеренно пропускаем мимо: карточка отзыва
- * высокая, и палец по ней чаще ведут, чтобы прокрутить страницу, — если
- * считать листанием любое движение, отзыв будет перескакивать на каждой
- * попытке прокрутки.
- *
- * Слушателей вешаем без оглядки на ширину экрана: touch-события приходят
- * только с сенсорного ввода, поэтому на десктопе этот код молчит сам, и
- * отдельного брейкпоинта ему не нужно.
- */
-function useSwipe(onSwipe: (dir: 1 | -1) => void) {
-  const from = useRef<{ x: number; y: number } | null>(null);
-
-  return {
-    onTouchStart: (e: React.TouchEvent) => {
-      const t = e.touches[0];
-      from.current = { x: t.clientX, y: t.clientY };
-    },
-    onTouchEnd: (e: React.TouchEvent) => {
-      const start = from.current;
-      from.current = null;
-      if (!start) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - start.x;
-      const dy = t.clientY - start.y;
-      if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy)) return;
-      onSwipe(dx < 0 ? 1 : -1);
-    },
-  };
-}
 
 export const Reviews = () => {
   const [current, setCurrent] = useState(0);
+  /** С какой стороны въезжает новый отзыв: 1 — справа (листаем вперёд),
+      −1 — слева. Уходит в CSS переменной --rv-from, см. review-swap в
+      index.css. */
+  const [dir, setDir] = useState<1 | -1>(1);
   const [photo, setPhoto] = useState(0);
   /** Открытый во весь экран кадр; null — просмотрщик закрыт. */
   const [zoom, setZoom] = useState<number | null>(null);
@@ -63,10 +30,26 @@ export const Reviews = () => {
      просто не станет растягивать снимок выше его настоящего размера. */
   const shots = review.photos.map((src) => ({ src }));
 
-  const go = (dir: 1 | -1) => {
-    setCurrent((p) => (p + dir + reviews.length) % reviews.length);
+  const go = (d: 1 | -1) => {
+    setDir(d);
+    setCurrent((p) => (p + d + reviews.length) % reviews.length);
     setPhoto(0); // у нового отзыва свои фотографии — начинаем с первой
   };
+
+  /** Прыжок к отзыву по точке. Направление берём по кратчайшей стороне —
+      иначе переход «с последнего на первый» ехал бы против движения. */
+  const goTo = (i: number) => {
+    setDir(i >= current ? 1 : -1);
+    setCurrent(i);
+    setPhoto(0);
+  };
+
+  /** Обёртка колонки карточки: key заставляет React пересоздать узел на
+      каждой смене, а значит анимация проигрывается заново. */
+  const swap = (extra: string) => ({
+    className: `review-swap ${extra}`,
+    style: { "--rv-from": `${dir * 28}px` } as React.CSSProperties,
+  });
 
   /* ДВЕ КАРУСЕЛИ — ДВА СВАЙПА.
      По снимку листаются фотографии отзыва, по остальной карточке — сами
@@ -91,13 +74,6 @@ export const Reviews = () => {
   // секциями и шапкой (у них padding вне max-w-контейнера)
   return (
     <section id="reviews" className="mx-auto max-w-[79rem] px-6 py-20">
-      <style>{`
-        .review-scroll { scrollbar-width: thin; scrollbar-color: #C9B4D6 transparent; }
-        .review-scroll::-webkit-scrollbar { width: 6px; }
-        .review-scroll::-webkit-scrollbar-thumb { background: #C9B4D6; border-radius: 999px; }
-        .review-scroll::-webkit-scrollbar-track { background: transparent; }
-      `}</style>
-
       {/* Шапка блока */}
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
@@ -137,7 +113,7 @@ export const Reviews = () => {
         className="mt-10 grid h-[620px] grid-rows-[210px_minmax(0,1fr)] gap-5 overflow-hidden rounded-3xl border border-[#E8DEEE] bg-[#F8F4F9] p-5 md:h-[460px] md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] md:gap-8 md:p-8"
       >
         {/* Текст */}
-        <div className="flex min-h-0 flex-col">
+        <div key={`text-${current}`} {...swap("flex min-h-0 flex-col")}>
           <div className="flex gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} className="h-5 w-5 fill-[#E9A23B] text-[#E9A23B]" />
@@ -146,10 +122,13 @@ export const Reviews = () => {
 
           <Quote className="mt-4 h-7 w-7 shrink-0 fill-[#D9C6E4] text-[#D9C6E4]" />
 
-          {/* Длинный отзыв не растягивает блок — появляется прокрутка */}
+          {/* Длинный отзыв не растягивает блок — появляется прокрутка.
+              scroll-hint (index.css) показывает, что текст не кончился:
+              полосой там, где браузер её рисует, и растворением у нижней
+              кромки везде. Фон подсказки равен фону карточки. */}
           <div
             data-lenis-prevent
-            className="review-scroll mt-3 min-h-0 flex-1 overflow-y-auto pr-3"
+            className="scroll-hint mt-3 min-h-0 flex-1 overflow-y-auto pr-3 [--sh-bg:#F8F4F9]"
           >
             <p className="text-[15px] font-medium leading-relaxed whitespace-pre-line text-[#5A4D66] md:text-base">
               {review.text}
@@ -168,6 +147,7 @@ export const Reviews = () => {
 
         {/* Фотографии отзыва */}
         <div
+          key={`photo-${current}`}
           /* Касания снимка НЕ доходят до карточки: здесь своя карусель, и
              без остановки всплытия одно движение пальцем листало бы разом
              и фотографии, и отзывы. */
@@ -179,7 +159,9 @@ export const Reviews = () => {
             e.stopPropagation();
             photoSwipe.onTouchEnd(e);
           }}
-          className="group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none"
+          {...swap(
+            "group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none",
+          )}
         >
           {review.photos.map((src, i) => (
             <img
@@ -278,10 +260,7 @@ export const Reviews = () => {
         {reviews.map((_, i) => (
           <button
             key={i}
-            onClick={() => {
-              setCurrent(i);
-              setPhoto(0);
-            }}
+            onClick={() => goTo(i)}
             aria-label={`Отзыв ${i + 1}`}
             className="flex h-11 w-7 cursor-pointer items-center justify-center"
           >
