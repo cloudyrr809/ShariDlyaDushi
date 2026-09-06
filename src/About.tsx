@@ -10,6 +10,7 @@ import {
 
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
+import { useSwipe } from "./lib/swipe";
 
 // Импортируем видео и фото
 import reel1 from "./assets/reel-1.mp4";
@@ -200,6 +201,12 @@ export default function About() {
     setActiveIndex((prev) => (prev - 1 + reelsData.length) % reelsData.length);
   };
 
+  /* Листание пальцем — тем же приёмом, что в отзывах на главной
+     (lib/swipe.ts). Обработчики висят на всей сцене, поэтому вести можно
+     и по активному ролику, и по соседним. Нажатие по карточке при этом
+     не ломается: короткое движение свайпом не считается. */
+  const reelSwipe = useSwipe((d) => (d === 1 ? handleNext() : handlePrev()));
+
   const handleTimeUpdate = (idx: number) => {
     if (idx === activeIndex && videoRefs.current[idx]) {
       const current = videoRefs.current[idx]!.currentTime;
@@ -296,19 +303,28 @@ export default function About() {
           у секции убран — он дублировал бы «О нас» из шапки; карусель
           начинается сразу, как и на других «обложках». */}
       <section className="relative z-10 mx-auto max-w-[79rem] overflow-x-clip px-6 pt-0 pb-14 md:pb-16">
-        {/* Сцена с карточками */}
-        <div className="relative flex h-[588px] items-center justify-center md:h-[648px]">
-          {/* СТРЕЛКИ. На десктопе отсчитываются от центра сцены через ml, а
-              не translate: так обе стоят на ±208 от середины, с учётом
-              своей ширины. На 390px отсчёт от центра уводил левую кнопку за
-              край экрана на 24px, поэтому до md они прижаты к краям сцены. */}
+        {/* Сцена с карточками.
+
+            Свайп — основной способ листать на телефоне; стрелки ниже
+            спрятаны. Обработчики висят на всей сцене, поэтому вести палец
+            можно и по активному ролику, и по соседним. */}
+        <div
+          {...reelSwipe}
+          className="relative flex h-[588px] items-center justify-center md:h-[648px]"
+        >
+          {/* СТРЕЛКИ — ТОЛЬКО ТАМ, ГДЕ ЕСТЬ КУРСОР.
+
+              На телефоне два круга по 56px висели прямо поверх ролика,
+              закрывая его по краям, а листают там пальцем. На десктопе
+              отсчитываются от центра сцены через ml, а не translate: так
+              обе стоят на ±208 от середины, с учётом своей ширины. */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handlePrev();
             }}
             aria-label="Предыдущее видео"
-            className="absolute left-2 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-[#E8DEEE] bg-white/85 text-[#6B4E81] shadow-[0_10px_25px_rgba(45,36,51,0.12)] backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white active:scale-95 md:left-1/2 md:-ml-[257px] md:h-16 md:w-16"
+            className="absolute left-2 z-40 hidden h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-[#E8DEEE] bg-white/85 text-[#6B4E81] shadow-[0_10px_25px_rgba(45,36,51,0.12)] backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white active:scale-95 md:left-1/2 md:-ml-[257px] md:flex md:h-16 md:w-16"
           >
             <ChevronLeft className="h-7 w-7 md:h-8 md:w-8" />
           </button>
@@ -319,7 +335,7 @@ export default function About() {
               handleNext();
             }}
             aria-label="Следующее видео"
-            className="absolute right-2 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-[#E8DEEE] bg-white/85 text-[#6B4E81] shadow-[0_10px_25px_rgba(45,36,51,0.12)] backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white active:scale-95 md:right-auto md:left-1/2 md:ml-[193px] md:h-16 md:w-16"
+            className="absolute right-2 z-40 hidden h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-[#E8DEEE] bg-white/85 text-[#6B4E81] shadow-[0_10px_25px_rgba(45,36,51,0.12)] backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white active:scale-95 md:right-auto md:left-1/2 md:ml-[193px] md:flex md:h-16 md:w-16"
           >
             <ChevronRight className="h-7 w-7 md:h-8 md:w-8" />
           </button>
@@ -350,12 +366,24 @@ export default function About() {
                 ? [0, 250, 440]
                 : tier === "mid"
                   ? [0, 200]
-                  : [0, 150];
+                  : [0, 168];
             const SCALE = [1.1, 0.88, 0.72];
-            // Плотность вуали цвета фона поверх неактивных карточек. Подняли
-            // выше прежних 0.5/0.72: боковые ролики должны заметно уходить в
-            // фон, а не читаться как полноценные кадры рядом с активным.
-            const VEIL = [0, 0.66, 0.85];
+            /* Плотность вуали цвета фона поверх неактивных карточек.
+
+               НА ТЕЛЕФОНЕ ВУАЛЬ СИЛЬНО ЛЕГЧЕ, И ЭТО ГЛАВНОЕ.
+
+               На широком экране от соседней карточки видно 66px — этого
+               хватает, чтобы понять, что рядом лежат ещё ролики, и вуаль
+               в 0.66 их просто уводит назад. На телефоне активная
+               карточка занимает 317px из 390, соседней достаётся полоска
+               в три-четыре десятка пикселей — и та же вуаль стирала её
+               почти начисто: со стороны выглядело так, будто ролик один,
+               а листать нечего.
+
+               0.3 оставляет полоску отчётливо видимой, но не спорящей с
+               активным кадром. Шаг заодно увеличен со 150 до 168, чтобы
+               из-под активной карточки выглядывало больше. */
+            const VEIL = tier === "mobile" ? [0, 0.3] : [0, 0.66, 0.85];
 
             const depth = Math.abs(offset);
             const translateX = Math.sign(offset) * STEP[depth];
@@ -457,6 +485,33 @@ export default function About() {
               </div>
             );
           })}
+        </div>
+
+        {/* ТОЧКИ — сколько роликов и который сейчас.
+
+            На телефоне стрелок больше нет, и без точек по неподвижному
+            кадру нельзя понять ни что роликов пять, ни что их вообще
+            можно листать. Те же точки и в том же цвете, что под отзывами
+            на главной, — один приём на весь сайт.
+
+            Точка 6×6 пальцем не берётся, поэтому нажимается обёртка
+            44×28 вокруг неё; сама точка не изменилась. */}
+        <div className="mt-6 flex items-center justify-center gap-1">
+          {reelsData.map((reel, i) => (
+            <button
+              key={reel.id}
+              onClick={() => setActiveIndex(i)}
+              aria-label={`Ролик ${i + 1}: ${reel.title}`}
+              aria-current={i === activeIndex}
+              className="flex h-11 w-7 cursor-pointer items-center justify-center"
+            >
+              <span
+                className={`block h-1.5 rounded-full transition-all ${
+                  i === activeIndex ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4]"
+                }`}
+              />
+            </button>
+          ))}
         </div>
       </section>
 
