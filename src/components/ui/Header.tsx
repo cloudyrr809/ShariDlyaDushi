@@ -69,12 +69,43 @@ const MOBILE_LABEL =
   "text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase";
 
 /** Разделы сайта — ровно те же и в том же порядке, что в строке меню на
-    десктопе. Списки категорий и услуг идут НИЖЕ, как их содержимое: сами
-    «Каталог» и «Услуги» — тоже страницы, и открыть их целиком должно быть
-    так же просто, как выбрать один раздел внутри. */
-const MAIN_LINKS = [
-  { to: "/catalog", name: "Каталог" },
-  { to: "/services", name: "Услуги" },
+    десктопе.
+
+    У «Каталога» и «Услуг» есть вложенный список, и он РАСКРЫВАЕТСЯ ПО
+    НАЖАТИЮ, а не лежит в меню всегда. Раньше обе простыни — девять
+    категорий и восемь услуг — стояли ниже пяти разделов постоянно: меню
+    открывалось на три экрана, и «Лента», «Акции», «О нас» терялись где-то
+    над ними, хотя это разделы того же уровня.
+
+    Первым пунктом внутри — ссылка на сам раздел целиком: «Каталог» и
+    «Услуги» это тоже страницы, и попасть на них должно быть так же
+    просто, как выбрать одну категорию внутри. У каталога такая ссылка уже
+    есть в самом списке («Все»), услугам её добавляем здесь. */
+const MAIN_LINKS: {
+  to: string;
+  name: string;
+  /** Подпись над раскрытым списком */
+  subLabel?: string;
+  sub?: { to: string; name: string }[];
+}[] = [
+  {
+    to: "/catalog",
+    name: "Каталог",
+    subLabel: "Разделы каталога",
+    sub: categoriesWithAll.map((c) => ({
+      to: `/catalog#${c.id}`,
+      name: c.name,
+    })),
+  },
+  {
+    to: "/services",
+    name: "Услуги",
+    subLabel: "Что мы делаем",
+    sub: [
+      { to: "/services", name: "Все услуги" },
+      ...serviceItems.map((s) => ({ to: `/services#${s.key}`, name: s.name })),
+    ],
+  },
   { to: "/feed", name: "Лента" },
   { to: "/promotions", name: "Акции" },
   { to: "/about", name: "О нас" },
@@ -82,6 +113,10 @@ const MAIN_LINKS = [
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  /** Какой раздел меню раскрыт сейчас; null — все свёрнуты. Раскрытым
+      держим ровно один: два развёрнутых списка разом — это те же три
+      экрана прокрутки, от которых мы и уходим. */
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const { cart, setIsCartOpen } = useCart();
 
   const totalItems = cart.reduce(
@@ -98,6 +133,9 @@ export const Header = () => {
      обработать все такие случаи по одному значит однажды забыть один. */
   useEffect(() => {
     setMobileMenuOpen(false);
+    // Раскрытый раздел сворачиваем вместе с меню: иначе в следующий раз
+    // оно открывалось бы уже развёрнутым и снова длинным.
+    setOpenSection(null);
   }, [location.pathname, location.hash]);
 
   /* Пока открыто меню, страница под ним не прокручивается. Без этого палец
@@ -410,64 +448,87 @@ export const Header = () => {
             data-lenis-prevent
             className="flex-1 overflow-y-auto overscroll-contain px-6 py-5"
           >
-            {/* ПЯТЬ РАЗДЕЛОВ САЙТА — то же, что в строке меню на десктопе */}
-            <ul className="border-b border-[#E8DEEE] pb-4">
+            {/* ПЯТЬ РАЗДЕЛОВ САЙТА — то же, что в строке меню на десктопе.
+                У «Каталога» и «Услуг» строка не ссылка, а кнопка: она
+                раскрывает вложенный список. На саму страницу ведёт первый
+                пункт внутри («Все» / «Все услуги») — см. MAIN_LINKS. */}
+            <ul>
               {MAIN_LINKS.map((item) => {
                 const active =
                   item.to === "/"
                     ? location.pathname === "/"
                     : location.pathname.startsWith(item.to);
+                const open = openSection === item.to;
+                const rowClass = `flex w-full items-center justify-between py-3.5 text-left text-[19px] font-semibold transition ${
+                  active ? "text-[#6B4E81]" : "text-[#2D2433]"
+                }`;
+
                 return (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to}
-                      className={`flex items-center justify-between py-3.5 text-[19px] font-semibold transition ${
-                        active ? "text-[#6B4E81]" : "text-[#2D2433]"
-                      }`}
-                    >
-                      {item.name}
-                      <ChevronDown className="h-5 w-5 -rotate-90 text-[#C9B4D6]" />
-                    </Link>
+                  <li key={item.to} className="border-b border-[#E8DEEE]">
+                    {item.sub ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenSection(open ? null : item.to)
+                          }
+                          aria-expanded={open}
+                          aria-controls={`menu-${item.to.slice(1)}`}
+                          className={`${rowClass} cursor-pointer`}
+                        >
+                          {item.name}
+                          <ChevronDown
+                            className={`h-5 w-5 text-[#C9B4D6] transition-transform duration-300 ${
+                              open ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+
+                        {open && (
+                          <div
+                            id={`menu-${item.to.slice(1)}`}
+                            className="pb-4"
+                          >
+                            <div className={`${MOBILE_LABEL} mb-1`}>
+                              {item.subLabel}
+                            </div>
+                            {/* Каталог — в две колонки с 360px: на 320px в
+                                колонку остаётся 110px под подпись, и самые
+                                длинные названия туда не помещаются даже с
+                                переносом. Услуги — всегда в одну: их
+                                названия длиннее («Съемки в детсадах и
+                                школах»), и в две колонки почти каждое
+                                ломалось на две строки. */}
+                            <div
+                              className={`-mx-3.5 grid ${
+                                item.to === "/catalog"
+                                  ? "grid-cols-1 min-[360px]:grid-cols-2"
+                                  : "grid-cols-1"
+                              }`}
+                            >
+                              {item.sub.map((sub) => (
+                                <Link
+                                  key={sub.to}
+                                  to={sub.to}
+                                  className={MOBILE_ROW}
+                                >
+                                  {sub.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Link to={item.to} className={rowClass}>
+                        {item.name}
+                        <ChevronDown className="h-5 w-5 -rotate-90 text-[#C9B4D6]" />
+                      </Link>
+                    )}
                   </li>
                 );
               })}
             </ul>
-
-            <div className="pt-5">
-              <div className={`${MOBILE_LABEL} mb-2`}>Разделы каталога</div>
-              {/* Две колонки только с 360px: на 320px в колонку остаётся
-                  110px под подпись, и самые длинные названия туда не
-                  помещаются даже с переносом. */}
-              <div className="-mx-3.5 grid grid-cols-1 min-[360px]:grid-cols-2">
-                {categoriesWithAll.map((item) => (
-                  <Link
-                    key={item.id}
-                    to={`/catalog#${item.id}`}
-                    className={MOBILE_ROW}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5 border-t border-[#E8DEEE] pt-5">
-              <div className={`${MOBILE_LABEL} mb-2`}>Что мы делаем</div>
-              {/* Одна колонка: названия услуг длиннее категорий каталога
-                  («Съемки в детсадах и школах»), и в две колонки почти
-                  каждое ломалось на две строки. */}
-              <div className="-mx-3.5 grid">
-                {serviceItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    to={`/services#${item.key}`}
-                    className={MOBILE_ROW}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
           </nav>
 
           {/* Связь — закреплена внизу экрана, а не в конце длинного списка.
