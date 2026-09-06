@@ -6,6 +6,7 @@ import { ProductDialog } from "./components/ui/ProductDialog";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { useCart } from "./CartContext";
 import { themeSubcategories } from "./constants";
+import { useSwipe } from "./lib/swipe";
 import {
   ALL_ID,
   categoriesWithAll,
@@ -30,10 +31,16 @@ const ProductCard = ({
   const imagesCount = images.length;
   const hasMultiple = imagesCount > 1;
 
-  /* Чем нажали в последний раз — мышью или пальцем. Нужно зонам листания
-     фотографий: событие click про способ ввода уже не знает, а
-     pointerdown знает, и приходит он раньше. */
-  const lastPointer = useRef<string>("mouse");
+  /* Кадры карточки листаются пальцем — тем же приёмом, что отзывы и
+     ролики (lib/swipe.ts). Свайп заканчивается обычным click, а click по
+     карточке открывает «Подробнее», поэтому листание поднимает флаг и
+     ближайшее открытие пропускается. */
+  const swiped = useRef(false);
+  const photoSwipe = useSwipe<HTMLDivElement>((d) => {
+    if (!hasMultiple) return;
+    swiped.current = true;
+    setActiveIndex((i) => (i + d + imagesCount) % imagesCount);
+  });
 
   // АНИМАЦИЯ ПОЛЕТА В КОРЗИНУ
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -83,10 +90,20 @@ const ProductCard = ({
        окно. Курсор-указатель по всей площади показывает, что она
        нажимается целиком. */
     <div
-      onClick={() => onDetails(product)}
+      onClick={() => {
+        // Клик, которым закончился свайп по фотографиям, окно не открывает
+        if (swiped.current) {
+          swiped.current = false;
+          return;
+        }
+        onDetails(product);
+      }}
       className="group relative flex cursor-pointer flex-col rounded-3xl border border-[#E8DEEE] bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:p-4"
     >
-      <div className="relative mb-4 flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl bg-[#F0E8F4]">
+      <div
+        ref={photoSwipe}
+        className="relative mb-4 flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl bg-[#F0E8F4]"
+      >
         {imagesCount > 0 ? (
           <img
             src={images[activeIndex]}
@@ -120,31 +137,25 @@ const ProductCard = ({
             палец приходят в один и тот же обработчик, и различить их
             надёжнее, чем угадывать по ширине экрана — на ноутбуке с
             сенсорным экраном работают оба способа. */}
+        {/* ЗОНЫ НАВЕДЕНИЯ — ТОЛЬКО ДЛЯ МЫШИ.
+
+            Раньше эти же зоны работали и на палец: тап листал кадр и
+            глушил всплытие, чтобы одно движение не делало двух дел. Но
+            зоны накрывают ВСЮ фотографию, то есть бо́льшую часть карточки —
+            и получалось, что у товара с несколькими фото «Подробнее» с
+            телефона не открывалось вовсе. Попасть мимо зон можно было
+            только по цене или названию.
+
+            Теперь на телефоне как и везде на сайте: тап открывает, а кадры
+            листаются свайпом (ниже). pointer-events только для мыши —
+            палец сквозь них проходит к самой карточке. */}
         {hasMultiple && (
-          <div className="absolute inset-0 flex">
+          <div className="pointer-events-none absolute inset-0 hidden md:flex">
             {images.map((_, idx: number) => (
               <div
                 key={idx}
-                className="z-10 h-full flex-1"
+                className="pointer-events-auto z-10 h-full flex-1"
                 onMouseEnter={() => setActiveIndex(idx)}
-                onPointerDown={(e) => {
-                  lastPointer.current = e.pointerType;
-                  if (e.pointerType === "mouse") return;
-                  setActiveIndex((i) => (i + 1) % imagesCount);
-                }}
-                /* Нажатие ПАЛЬЦЕМ листает кадры и дальше не идёт: тап уже
-                   отработал, и открывать им же окно значило бы делать два
-                   дела одним движением.
-
-                   Нажатие МЫШЬЮ должно дойти до карточки и открыть
-                   «Подробнее». Раньше клик глушился здесь для любого
-                   устройства — а зоны листания накрывают всю фотографию,
-                   то есть бо́льшую часть карточки. Из-за этого у карточек
-                   с несколькими фото окно не открывалось вообще: нажать
-                   мимо зон можно было только по цене или названию. */
-                onClick={(e) => {
-                  if (lastPointer.current !== "mouse") e.stopPropagation();
-                }}
               />
             ))}
           </div>

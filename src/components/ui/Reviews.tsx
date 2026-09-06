@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,9 +9,10 @@ import {
   Star,
 } from "lucide-react";
 
-import { reviews } from "../../constants";
+import { fetchReviews, fallbackReviews, type Review } from "../../lib/reviews";
 import { useSwipe } from "../../lib/swipe";
 import { Lightbox } from "./Lightbox";
+import { ScrollThumb } from "./ScrollThumb";
 
 export const Reviews = () => {
   const [current, setCurrent] = useState(0);
@@ -23,7 +24,27 @@ export const Reviews = () => {
   /** Открытый во весь экран кадр; null — просмотрщик закрыт. */
   const [zoom, setZoom] = useState<number | null>(null);
 
-  const review = reviews[current];
+  /* Отзывы приходят из базы, а до ответа показываем список из кода.
+     Пустой ответ НЕ применяем: блок отзывов без отзывов читается как
+     поломка, а не как «сейчас ничего нет». Правятся они в админке. */
+  const [reviews, setReviews] = useState<Review[]>(fallbackReviews);
+
+  useEffect(() => {
+    let alive = true;
+    fetchReviews()
+      .then((r) => {
+        if (alive && r && r.length > 0) setReviews(r);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  /* Список мог смениться на более короткий, пока человек листал —
+     тогда текущий номер выходит за его пределы. */
+  const idx = Math.min(current, reviews.length - 1);
+  const review = reviews[idx];
   const total = review.photos.length;
 
   /* Просмотрщику нужны кадры в его формате. Размеров у нас нет — тогда он
@@ -44,6 +65,11 @@ export const Reviews = () => {
     setPhoto(0);
   };
 
+  /** Прокручиваемый текст отзыва — по нему ползунок считает своё
+      положение. Колонка пересоздаётся на каждой смене (key ниже), так что
+      ref переприцепляется сам. */
+  const textRef = useRef<HTMLDivElement | null>(null);
+
   /** Обёртка колонки карточки: key заставляет React пересоздать узел на
       каждой смене, а значит анимация проигрывается заново. */
   const swap = (extra: string) => ({
@@ -56,16 +82,16 @@ export const Reviews = () => {
      отзывы. Снимок лежит ВНУТРИ карточки, поэтому его касания гасим на
      месте (stopPropagation ниже): иначе одно движение пальцем сработало
      бы сразу в обеих каруселях. */
-  const reviewSwipe = useSwipe(go);
+  const reviewSwipe = useSwipe<HTMLDivElement>(go);
 
   /* Свайп заканчивается обычным click по снимку, а click по снимку
      открывает просмотрщик — без этого флага каждое листание пальцем тут
      же распахивало бы фотографию во весь экран. */
   const swiped = useRef(false);
-  const photoSwipe = useSwipe((dir) => {
+  const photoSwipe = useSwipe<HTMLDivElement>((dir) => {
     swiped.current = true;
     setPhoto((p) => (p + dir + total) % total);
-  });
+  }, true);
 
   const arrow =
     "flex h-12 w-12 items-center justify-center rounded-full border border-[#6B4E81] text-[#6B4E81] transition hover:bg-[#6B4E81] hover:text-white cursor-pointer";
@@ -76,12 +102,13 @@ export const Reviews = () => {
     <section id="reviews" className="mx-auto max-w-[79rem] px-6 py-20">
       {/* Шапка блока */}
       <div className="flex flex-wrap items-end justify-between gap-6">
+        {/* Плашки «отзывы» над заголовком больше нет: она слово в слово
+            повторяла «Впечатления наших клиентов» под собой, только капсом
+            и мельче. Два раза сказать одно и то же — это не иерархия, это
+            шум. Убрана на всех ширинах, включая десктоп: дублирование от
+            размера экрана не зависит. */}
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#E8DEEE] bg-white px-4 py-1.5 text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
-            <span className="h-px w-4 bg-[#6B4E81]" />
-            Отзывы
-          </span>
-          <h2 className="mt-4 font-serif text-3xl font-semibold text-[#2D2433] md:text-5xl">
+          <h2 className="font-serif text-3xl font-semibold text-[#2D2433] md:text-5xl">
             Впечатления наших клиентов
           </h2>
         </div>
@@ -109,11 +136,11 @@ export const Reviews = () => {
 
       {/* Карточка. Высота фиксированная, поэтому длина отзыва не меняет вёрстку. */}
       <div
-        {...reviewSwipe}
+        ref={reviewSwipe}
         className="mt-10 grid h-[620px] grid-rows-[210px_minmax(0,1fr)] gap-5 overflow-hidden rounded-3xl border border-[#E8DEEE] bg-[#F8F4F9] p-5 md:h-[460px] md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] md:gap-8 md:p-8"
       >
         {/* Текст */}
-        <div key={`text-${current}`} {...swap("flex min-h-0 flex-col")}>
+        <div key={`text-${idx}`} {...swap("flex min-h-0 flex-col")}>
           <div className="flex gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} className="h-5 w-5 fill-[#E9A23B] text-[#E9A23B]" />
@@ -123,16 +150,24 @@ export const Reviews = () => {
           <Quote className="mt-4 h-7 w-7 shrink-0 fill-[#D9C6E4] text-[#D9C6E4]" />
 
           {/* Длинный отзыв не растягивает блок — появляется прокрутка.
-              scroll-hint (index.css) показывает, что текст не кончился:
-              полосой там, где браузер её рисует, и растворением у нижней
-              кромки везде. Фон подсказки равен фону карточки. */}
-          <div
-            data-lenis-prevent
-            className="scroll-hint mt-3 min-h-0 flex-1 overflow-y-auto pr-3 [--sh-bg:#F8F4F9]"
-          >
-            <p className="text-[15px] font-medium leading-relaxed whitespace-pre-line text-[#5A4D66] md:text-base">
-              {review.text}
-            </p>
+
+              О том, что текст не кончился, говорят сразу двое:
+              scroll-hint растворяет кромку (index.css), а ScrollThumb
+              рисует всегда видный ползунок — на телефоне настоящий
+              накладной ползунок тает через полсекунды, и неподвижный блок
+              выглядел дочитанным. pr-4, а не pr-3: полоска ползунка
+              занимает свои четыре пикселя у правого края. */}
+          <div className="relative mt-3 min-h-0 flex-1">
+            <div
+              ref={textRef}
+              data-lenis-prevent
+              className="scroll-hint h-full overflow-y-auto pr-4 [--sh-bg:#F8F4F9]"
+            >
+              <p className="text-[15px] font-medium leading-relaxed whitespace-pre-line text-[#5A4D66] md:text-base">
+                {review.text}
+              </p>
+            </div>
+            <ScrollThumb target={textRef} />
           </div>
 
           <div className="mt-5 shrink-0 border-t border-[#E8DEEE] pt-4">
@@ -147,18 +182,11 @@ export const Reviews = () => {
 
         {/* Фотографии отзыва */}
         <div
-          key={`photo-${current}`}
+          key={`photo-${idx}`}
           /* Касания снимка НЕ доходят до карточки: здесь своя карусель, и
              без остановки всплытия одно движение пальцем листало бы разом
-             и фотографии, и отзывы. */
-          onTouchStart={(e) => {
-            e.stopPropagation();
-            photoSwipe.onTouchStart(e);
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            photoSwipe.onTouchEnd(e);
-          }}
+             и фотографии, и отзывы. Гасит их сам хук — вторым доводом. */
+          ref={photoSwipe}
           {...swap(
             "group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none",
           )}
@@ -266,7 +294,7 @@ export const Reviews = () => {
           >
             <span
               className={`block h-1.5 rounded-full transition-all ${
-                i === current ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4]"
+                i === idx ? "w-6 bg-[#6B4E81]" : "w-1.5 bg-[#D9C6E4]"
               }`}
             />
           </button>

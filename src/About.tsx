@@ -18,14 +18,29 @@ import reel2 from "./assets/reel-2.mp4";
 import reel3 from "./assets/reel-3.mp4";
 import reel4 from "./assets/reel-4.mp4";
 import reel5 from "./assets/reel-5.mp4";
+/* ПЕРВЫЙ КАДР КАЖДОГО РОЛИКА КАРТИНКОЙ.
+
+   Соседние ролики намеренно не подгружаются заранее (preload ниже) — все
+   пять весят 45 МБ. Но у <video> без постера и без данных нечего рисовать,
+   и вместо соседнего ролика в веере зияла пустая плашка: со стороны это
+   читалось как поломка, а не как «рядом лежит ещё видео».
+
+   Постер весит десять-двадцать килобайт, показывается сразу и заменяется
+   самим роликом, когда тот доходит до активного места. Файлы собраны из
+   первых кадров: ffmpeg -ss 0.3 -i reel-N.mp4 -frames:v 1 -vf scale=480:-2 */
+import poster1 from "./assets/reel-1-poster.webp";
+import poster2 from "./assets/reel-2-poster.webp";
+import poster3 from "./assets/reel-3-poster.webp";
+import poster4 from "./assets/reel-4-poster.webp";
+import poster5 from "./assets/reel-5-poster.webp";
 import founderImg from "./assets/founder.webp";
 
 const reelsData = [
-  { id: 0, title: "Создание гигантской арки", videoUrl: reel1 },
-  { id: 1, title: "Атмосфера на детском празднике", videoUrl: reel2 },
-  { id: 2, title: "Сборка композиции с цифрой", videoUrl: reel3 },
-  { id: 3, title: "Декор для фотосессии", videoUrl: reel4 },
-  { id: 4, title: "Праздничная фотозона", videoUrl: reel5 },
+  { id: 0, title: "Создание гигантской арки", videoUrl: reel1, poster: poster1 },
+  { id: 1, title: "Атмосфера на детском празднике", videoUrl: reel2, poster: poster2 },
+  { id: 2, title: "Сборка композиции с цифрой", videoUrl: reel3, poster: poster3 },
+  { id: 3, title: "Декор для фотосессии", videoUrl: reel4, poster: poster4 },
+  { id: 4, title: "Праздничная фотозона", videoUrl: reel5, poster: poster5 },
 ];
 
 /* Рассказ Нины. Раньше это были четыре карточки со своими заголовками и
@@ -205,7 +220,9 @@ export default function About() {
      (lib/swipe.ts). Обработчики висят на всей сцене, поэтому вести можно
      и по активному ролику, и по соседним. Нажатие по карточке при этом
      не ломается: короткое движение свайпом не считается. */
-  const reelSwipe = useSwipe((d) => (d === 1 ? handleNext() : handlePrev()));
+  const reelSwipe = useSwipe<HTMLDivElement>((d) =>
+    d === 1 ? handleNext() : handlePrev(),
+  );
 
   const handleTimeUpdate = (idx: number) => {
     if (idx === activeIndex && videoRefs.current[idx]) {
@@ -309,7 +326,7 @@ export default function About() {
             спрятаны. Обработчики висят на всей сцене, поэтому вести палец
             можно и по активному ролику, и по соседним. */}
         <div
-          {...reelSwipe}
+          ref={reelSwipe}
           className="relative flex h-[588px] items-center justify-center md:h-[648px]"
         >
           {/* СТРЕЛКИ — ТОЛЬКО ТАМ, ГДЕ ЕСТЬ КУРСОР.
@@ -413,6 +430,10 @@ export default function About() {
                     videoRefs.current[idx] = el;
                   }}
                   src={reel.videoUrl}
+                  /* Постер закрывает главную дыру веера: пока соседний
+                     ролик не загружен, <video> рисовать нечем, и вместо
+                     кадра была пустая плашка. */
+                  poster={reel.poster}
                   muted={isMuted}
                   playsInline
                   /* Неактивные ролики не подгружаем заранее: их пять, и

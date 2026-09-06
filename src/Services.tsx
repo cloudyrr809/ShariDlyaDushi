@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { WorkHeader } from "./components/ui/PageHeader";
 import { TabStrip } from "./components/ui/TabStrip";
 import { Lightbox } from "./components/ui/Lightbox";
+import { ScrollThumb } from "./components/ui/ScrollThumb";
 import {
   ShoppingCart,
   Clock,
@@ -256,28 +257,34 @@ const ServiceCard = ({
           {/* Первый абзац — лид: крупнее остальных и тёмнее. Дальше текст
               идёт ровным кеглем. Прокрутка своя, страницу она не уводит
               (data-lenis-prevent). */}
-          <div
-            ref={textRef}
-            onScroll={checkMore}
-            data-lenis-prevent
-            className={`scroll-hint min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 [--sh-bg:#FDFBFD] ${
-              more
-                ? "lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)]"
-                : ""
-            }`}
-          >
-            {service.paragraphs.map((text, i) => (
-              <p
-                key={i}
-                className={
-                  i === 0
-                    ? "text-[16px] leading-relaxed font-medium text-[#4A3A5C] md:text-[17px]"
-                    : "text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base"
-                }
-              >
-                {text}
-              </p>
-            ))}
+          {/* Обёртка только ради ползунка: он встаёт по правому краю
+              прокручиваемого блока, а значит тому нужен предок с
+              position: relative. */}
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <div
+              ref={textRef}
+              onScroll={checkMore}
+              data-lenis-prevent
+              className={`scroll-hint min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-4 [--sh-bg:#FDFBFD] ${
+                more
+                  ? "lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)]"
+                  : ""
+              }`}
+            >
+              {service.paragraphs.map((text, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? "text-[16px] leading-relaxed font-medium text-[#4A3A5C] md:text-[17px]"
+                      : "text-[15px] leading-relaxed font-medium text-[#5A4D66] md:text-base"
+                  }
+                >
+                  {text}
+                </p>
+              ))}
+            </div>
+            <ScrollThumb target={textRef} />
           </div>
 
           {/* Без подложки и рамки: черта сверху заодно превращает свободное
