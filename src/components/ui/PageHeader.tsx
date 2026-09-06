@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment } from "react";
 import { Link } from "react-router-dom";
 
 /* ══════════════════════ ШАПКИ СТРАНИЦ ══════════════════════
@@ -50,56 +50,30 @@ const BOX = "mx-auto w-full max-w-[79rem] px-6";
  * text-center ставит по центру ПРЯМОУГОЛЬНИК строки, а глаз считает
  * центром середину видимых чернил. У обычного шрифта это одно и то же, у
  * рукописного — нет: росчерки вылезают за начало и конец строки на разную
- * длину.
+ * длину, и надпись читается сдвинутой.
  *
- * Замерено на «О нас»: у слова «знакомьтесь» росчерк буквы «з» уходит на
- * 28px левее начала строки, тогда как справа запас всего 8px. Чернила
- * оказываются на 10px левее середины — и надпись читается сдвинутой влево.
- * Для сравнения, у «выгодно и приятно» перекос 1px, там всё ровно.
+ * Надстрочек на сайте ровно три (Акции, Лента, О нас), и меняются они не
+ * из админки, а здесь в коде. Поэтому поправку не считаем в рантайме, а
+ * держим готовой таблицей: короче, без работы canvas на каждом монтаже и
+ * без гонки с загрузкой шрифта.
  *
- * Поэтому меряем сами: canvas умеет отдать настоящие границы чернил
- * (actualBoundingBox) для любой строки любым шрифтом. Сдвиг храним в em,
- * а не в пикселях, — тогда он сам масштабируется вместе с кеглем на
- * мобильном, и пересчитывать при смене размера окна не нужно.
+ * Значение — на сколько сдвинуть строку, в em; плюс — вправо. Замерено
+ * canvas-ом на загруженном MiamaNueva (measureText → actualBoundingBox):
+ *   shift = (advanceWidth / 2 − inkCenter) / fontSize
+ * В em, а не в px, — чтобы поправка масштабировалась вместе с кеглем на
+ * мобильном.
  *
- * Замер откладываем до загрузки шрифта: до неё браузер считает метрики
- * запасного шрифта, и поправка вышла бы не та.
+ *   «знакомьтесь»       росчерк «з» уходит на 28px левее строки, справа
+ *                       запас 8px → чернила на 10px левее центра
+ *   «жизнь студии»      чернила на 6px правее центра
+ *   «выгодно и приятно» перекос меньше пикселя — в таблице не нужна
+ *
+ * Новую надстрочку без замера просто оставит по геометрическому центру.
  */
-function useOpticalCenter(text: string) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const [shiftEm, setShiftEm] = useState(0);
-
-  useEffect(() => {
-    let alive = true;
-
-    const measure = () => {
-      const el = ref.current;
-      if (!alive || !el) return;
-      const cs = getComputedStyle(el);
-      const ctx = document.createElement("canvas").getContext("2d");
-      if (!ctx) return;
-
-      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-      const m = ctx.measureText(text);
-      const size = parseFloat(cs.fontSize);
-      if (!m.width || !size) return;
-
-      const inkCenter =
-        (-m.actualBoundingBoxLeft + m.actualBoundingBoxRight) / 2;
-      const shift = (m.width / 2 - inkCenter) / size;
-
-      // Меньше сотой em глазу не видно — не трогаем разметку зря
-      setShiftEm(Math.abs(shift) < 0.01 ? 0 : shift);
-    };
-
-    document.fonts?.ready.then(measure).catch(() => measure());
-    return () => {
-      alive = false;
-    };
-  }, [text]);
-
-  return { ref, shiftEm };
-}
+const EYEBROW_OPTICAL_SHIFT_EM: Record<string, number> = {
+  знакомьтесь: 0.213,
+  "жизнь студии": -0.123,
+};
 
 export type Crumb = {
   label: string;
@@ -232,7 +206,7 @@ export function CoverHeader({
   title: string;
   lead?: string;
 }) {
-  const optical = useOpticalCenter(eyebrow);
+  const shiftEm = EYEBROW_OPTICAL_SHIFT_EM[eyebrow] ?? 0;
 
   return (
     <header
@@ -247,14 +221,12 @@ export function CoverHeader({
           поверх фотофона, где светлый розовый давал 2.5:1 при норме 3.0.
           Один цвет на все обложки — чтобы не держать в голове, где какой.
 
-          translateX — поправка на росчерки, см. useOpticalCenter выше. */}
+          translateX — оптическая поправка на росчерки, см.
+          EYEBROW_OPTICAL_SHIFT_EM выше. */}
       <p
-        ref={optical.ref}
         className="font-miana pb-[0.5em] text-3xl leading-none text-[#A64D6C] md:text-5xl"
         style={
-          optical.shiftEm
-            ? { transform: `translateX(${optical.shiftEm.toFixed(3)}em)` }
-            : undefined
+          shiftEm ? { transform: `translateX(${shiftEm}em)` } : undefined
         }
       >
         {eyebrow}
