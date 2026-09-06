@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,6 +11,44 @@ import {
 
 import { reviews } from "../../constants";
 import { Lightbox } from "./Lightbox";
+
+/** Насколько далеко надо провести пальцем, чтобы это засчиталось за
+    листание, а не за дрожание руки при обычном тапе. Порог тот же, что в
+    просмотрщике фотографий. */
+const SWIPE = 48;
+
+/**
+ * Горизонтальный свайп по блоку.
+ *
+ * Вертикальное движение намеренно пропускаем мимо: карточка отзыва
+ * высокая, и палец по ней чаще ведут, чтобы прокрутить страницу, — если
+ * считать листанием любое движение, отзыв будет перескакивать на каждой
+ * попытке прокрутки.
+ *
+ * Слушателей вешаем без оглядки на ширину экрана: touch-события приходят
+ * только с сенсорного ввода, поэтому на десктопе этот код молчит сам, и
+ * отдельного брейкпоинта ему не нужно.
+ */
+function useSwipe(onSwipe: (dir: 1 | -1) => void) {
+  const from = useRef<{ x: number; y: number } | null>(null);
+
+  return {
+    onTouchStart: (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      from.current = { x: t.clientX, y: t.clientY };
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      const start = from.current;
+      from.current = null;
+      if (!start) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - start.x;
+      const dy = t.clientY - start.y;
+      if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy)) return;
+      onSwipe(dx < 0 ? 1 : -1);
+    },
+  };
+}
 
 export const Reviews = () => {
   const [current, setCurrent] = useState(0);
@@ -29,6 +67,22 @@ export const Reviews = () => {
     setCurrent((p) => (p + dir + reviews.length) % reviews.length);
     setPhoto(0); // у нового отзыва свои фотографии — начинаем с первой
   };
+
+  /* ДВЕ КАРУСЕЛИ — ДВА СВАЙПА.
+     По снимку листаются фотографии отзыва, по остальной карточке — сами
+     отзывы. Снимок лежит ВНУТРИ карточки, поэтому его касания гасим на
+     месте (stopPropagation ниже): иначе одно движение пальцем сработало
+     бы сразу в обеих каруселях. */
+  const reviewSwipe = useSwipe(go);
+
+  /* Свайп заканчивается обычным click по снимку, а click по снимку
+     открывает просмотрщик — без этого флага каждое листание пальцем тут
+     же распахивало бы фотографию во весь экран. */
+  const swiped = useRef(false);
+  const photoSwipe = useSwipe((dir) => {
+    swiped.current = true;
+    setPhoto((p) => (p + dir + total) % total);
+  });
 
   const arrow =
     "flex h-12 w-12 items-center justify-center rounded-full border border-[#6B4E81] text-[#6B4E81] transition hover:bg-[#6B4E81] hover:text-white cursor-pointer";
@@ -56,7 +110,10 @@ export const Reviews = () => {
           </h2>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Стрелки — только там, где есть курсор. На телефоне отзывы
+            листают свайпом по карточке, а пара кружков по 48px в шапке
+            блока там лишь занимала место. */}
+        <div className="hidden items-center gap-3 md:flex">
           <button
             onClick={() => go(-1)}
             aria-label="Предыдущий отзыв"
@@ -75,7 +132,10 @@ export const Reviews = () => {
       </div>
 
       {/* Карточка. Высота фиксированная, поэтому длина отзыва не меняет вёрстку. */}
-      <div className="mt-10 grid h-[620px] grid-rows-[210px_minmax(0,1fr)] gap-5 overflow-hidden rounded-3xl border border-[#E8DEEE] bg-[#F8F4F9] p-5 md:h-[460px] md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] md:gap-8 md:p-8">
+      <div
+        {...reviewSwipe}
+        className="mt-10 grid h-[620px] grid-rows-[210px_minmax(0,1fr)] gap-5 overflow-hidden rounded-3xl border border-[#E8DEEE] bg-[#F8F4F9] p-5 md:h-[460px] md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] md:gap-8 md:p-8"
+      >
         {/* Текст */}
         <div className="flex min-h-0 flex-col">
           <div className="flex gap-1">
@@ -107,7 +167,20 @@ export const Reviews = () => {
         </div>
 
         {/* Фотографии отзыва */}
-        <div className="group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none">
+        <div
+          /* Касания снимка НЕ доходят до карточки: здесь своя карусель, и
+             без остановки всплытия одно движение пальцем листало бы разом
+             и фотографии, и отзывы. */
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            photoSwipe.onTouchStart(e);
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            photoSwipe.onTouchEnd(e);
+          }}
+          className="group relative order-first min-h-0 overflow-hidden rounded-2xl bg-[#EFE6F2] md:order-none"
+        >
           {review.photos.map((src, i) => (
             <img
               decoding="async"
@@ -134,7 +207,14 @@ export const Reviews = () => {
               и полоской превью достаётся бесплатно. */}
           <button
             type="button"
-            onClick={() => setZoom(photo)}
+            onClick={() => {
+              // Клик, которым закончился свайп, открывать снимок не должен
+              if (swiped.current) {
+                swiped.current = false;
+                return;
+              }
+              setZoom(photo);
+            }}
             aria-label="Открыть фотографию во весь экран"
             className="absolute inset-0 cursor-zoom-in"
           />
@@ -147,17 +227,21 @@ export const Reviews = () => {
 
           {total > 1 && (
             <>
+              {/* Стрелки на снимке — тоже только под курсор: на телефоне
+                  фотографии листают свайпом по самому снимку, а два кружка
+                  поверх кадра закрывали его край. Точки под снимком
+                  остаются — они показывают, сколько ещё фотографий. */}
               <button
                 onClick={() => setPhoto((p) => (p - 1 + total) % total)}
                 aria-label="Предыдущее фото"
-                className="absolute top-1/2 left-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-100 shadow-md transition md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
+                className="absolute top-1/2 left-3 z-10 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] shadow-md transition md:flex md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setPhoto((p) => (p + 1) % total)}
                 aria-label="Следующее фото"
-                className="absolute top-1/2 right-3 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] opacity-100 shadow-md transition md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
+                className="absolute top-1/2 right-3 z-10 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/85 text-[#6B4E81] shadow-md transition md:flex md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
