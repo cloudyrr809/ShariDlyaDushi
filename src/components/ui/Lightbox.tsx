@@ -205,7 +205,7 @@ export function Lightbox({
                 go(-1);
               }}
               aria-label="Предыдущая фотография"
-              className="group absolute inset-y-0 left-0 z-10 flex w-1/3 cursor-pointer items-center justify-start pl-2 md:pl-6"
+              className="group absolute inset-y-0 left-0 z-10 hidden w-1/3 cursor-pointer items-center justify-start pl-2 md:flex md:pl-6"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-white/25">
                 <ChevronLeft className="h-7 w-7" />
@@ -218,7 +218,7 @@ export function Lightbox({
                 go(1);
               }}
               aria-label="Следующая фотография"
-              className="group absolute inset-y-0 right-0 z-10 flex w-1/3 cursor-pointer items-center justify-end pr-2 md:pr-6"
+              className="group absolute inset-y-0 right-0 z-10 hidden w-1/3 cursor-pointer items-center justify-end pr-2 md:flex md:pr-6"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/12 text-white transition group-hover:bg-white/25">
                 <ChevronRight className="h-7 w-7" />
@@ -232,15 +232,22 @@ export function Lightbox({
           src={shot.src}
           alt={shot.caption ?? `Фотография ${index + 1} из ${total}`}
           onClick={stop}
-          className="relative z-20 max-h-full rounded-lg object-contain shadow-2xl"
+          /* Поля по бокам держим переменной, а не числом в стиле: на
+             телефоне их 1.5rem, с md — прежние 8rem.
+
+             8rem на телефоне съедали 128px из 390: снимку оставалось 262,
+             и фотография открывалась мельче, чем в самой карточке. Эти
+             поля были нужны под кнопки-половинки для листания, а на
+             телефоне их больше нет — там листают свайпом (см. onTouchEnd
+             выше), и отдавать им две трети ширины незачем. */
+          className="relative z-20 max-h-full rounded-lg object-contain shadow-2xl [--lb-gutter:1.5rem] md:[--lb-gutter:8rem]"
           /* Не крупнее оригинала, но и не шире экрана: min из двух. Просто
              maxWidth: shot.w перебивал бы max-w-full, и на телефоне снимок
-             вылезал бы за края. Поля в vw — чтобы по бокам всегда осталась
-             полоса для листания, даже у широкого кадра. */
+             вылезал бы за края. */
           style={{
             maxWidth: shot.w
-              ? `min(calc(100% - 8rem), ${shot.w}px)`
-              : "calc(100% - 8rem)",
+              ? `min(calc(100% - var(--lb-gutter)), ${shot.w}px)`
+              : "calc(100% - var(--lb-gutter))",
           }}
         />
       </div>
