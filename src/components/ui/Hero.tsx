@@ -481,6 +481,9 @@ export const Hero = () => {
 
      На десктопе остаётся прежний SVG — там этой беды нет, а десктоп не
      трогаем. */
+  /** Последняя записанная прозрачность каждого шара — чтобы не писать
+      в стиль одно и то же значение каждый кадр (см. цикл ниже). */
+  const lastOp = useRef<string[]>([]);
   const ribbonCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const ribbonCtx = useRef<CanvasRenderingContext2D | null>(null);
   const ribbonGrads = useRef<(CanvasGradient | null)[]>([]);
@@ -772,7 +775,21 @@ export const Hero = () => {
         const el = balloonRefs.current[i];
         if (el) {
           el.style.transform = `translate3d(${(ux * ppu).toFixed(2)}px,${(uy * ppu).toFixed(2)}px,0) scale(${sc.toFixed(3)})`;
-          el.style.opacity = op.toFixed(3);
+
+          /* ПРОЗРАЧНОСТЬ ПИШЕМ, ТОЛЬКО ЕСЛИ ОНА ИЗМЕНИЛАСЬ.
+
+             Она зависит ТОЛЬКО от прокрутки (op = 1 − fly), а на
+             неподвижной странице fly равен нулю. То есть в покое мы
+             двадцать четыре раза за кадр присваивали одно и то же
+             значение — и каждое присваивание всё равно помечает стиль
+             элемента недействительным, даже когда строка совпадает
+             посимвольно. Позиция — другое дело: её каждый кадр меняет
+             покачивание, там сравнивать нечего. */
+          const next = op.toFixed(3);
+          if (lastOp.current[i] !== next) {
+            el.style.opacity = next;
+            lastOp.current[i] = next;
+          }
         }
 
         if (rb) {
