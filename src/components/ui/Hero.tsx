@@ -455,6 +455,36 @@ export const Hero = () => {
   const cloudRefs = useRef<(HTMLDivElement | null)[]>([]);
   const skyRef = useRef<HTMLDivElement | null>(null);
 
+  /* ЛЕНТОЧКИ НА ТЕЛЕФОНЕ — CANVAS, А НЕ SVG.
+
+     Замер на телефонной ветке с десятикратно прижатым процессором (в
+     кадре только первый экран, чтобы мерить его собственную работу):
+     как есть 31 кадр при медиане 33 мс, а стоит СПРЯТАТЬ SVG с
+     ленточками — 65 кадров при медиане 16.7.
+
+     Причём дело не в том, что мы этот SVG обновляем. Пробовали по
+     отдельности: не переписывать форму лент — 22.7 против 21; не трогать
+     их вовсе — 19.7; вынести SVG в свой композитный слой — 29.5; убрать
+     vector-effect и градиентную обводку — 31.7; спрятать половину лент —
+     30.7. Ни одна из этих правок не даёт ничего. Разница строго
+     двоичная: SVG есть — половина кадров, SVG нет — все.
+
+     Причина в композиции слоёв. SVG лежит по z-индексу МЕЖДУ шарами
+     (у него 1, у шаров 2 и выше) и сам рисуется процессором. Пока он там,
+     композитор не может развести движущиеся шары по отдельным слоям — вся
+     гроздь растрируется заново каждый кадр.
+
+     Canvas — один элемент и один слой: семнадцать кривых рисуются в него
+     дёшево, а шары над ним снова композитятся сами по себе. Вид при этом
+     тот же: та же геометрия (ribbonPoints), та же толщина (ribbonWidth),
+     тот же градиент (ribbonGrad).
+
+     На десктопе остаётся прежний SVG — там этой беды нет, а десктоп не
+     трогаем. */
+  const ribbonCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ribbonCtx = useRef<CanvasRenderingContext2D | null>(null);
+  const ribbonGrads = useRef<(CanvasGradient | null)[]>([]);
+
   // Всё живое считается в одном rAF-цикле: так шарик и его ленточка
   // всегда двигаются синхронно, а браузер получает ровно один пакет записей на кадр.
   const anim = useRef({
@@ -515,30 +545,147 @@ export const Hero = () => {
     [list],
   );
 
-  const ribbonPath = (i: number, straighten: number, wave: number) => {
+  /** Контрольные точки ленты — числами. SVG собирает из них строку d,
+      canvas рисует их напрямую; геометрия у обеих раскладок одна. */
+  const ribbonPoints = (i: number, straighten: number, wave: number) => {
     const g = geom[i];
     const k = 1 - straighten;
     // по мере отрыва контрольные точки переезжают с дуги на прямую,
     // и лёгкая волна затухает вместе с изгибом
     const w = wave * k;
-    const c1x = g.c1x * k + g.s1x * straighten + w;
-    const c1y = g.c1y * k + g.s1y * straighten;
-    const c2x = g.c2x * k + g.s2x * straighten - w * 0.6;
-    const c2y = g.c2y * k + g.s2y * straighten;
-    return `M${g.knotX.toFixed(1)} ${g.knotY.toFixed(1)}C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${KNOT_X} ${KNOT_Y}`;
+    return {
+      c1x: g.c1x * k + g.s1x * straighten + w,
+      c1y: g.c1y * k + g.s1y * straighten,
+      c2x: g.c2x * k + g.s2x * straighten - w * 0.6,
+      c2y: g.c2y * k + g.s2y * straighten,
+    };
+  };
+
+  const ribbonPath = (i: number, straighten: number, wave: number) => {
+    const g = geom[i];
+    const p = ribbonPoints(i, straighten, wave);
+    return `M${g.knotX.toFixed(1)} ${g.knotY.toFixed(1)}C${p.c1x.toFixed(1)} ${p.c1y.toFixed(1)} ${p.c2x.toFixed(1)} ${p.c2y.toFixed(1)} ${KNOT_X} ${KNOT_Y}`;
+  };
+
+  /** Толщина ленты — одна формула на SVG и на canvas. */
+  const ribbonWidth = (i: number) => 1.15 + ((i * 7) % 5) * 0.12;
+
+  /* Градиент вдоль ленты. На canvas он создаётся один раз на ленту и
+     переживает все кадры: пересоздавать его каждый кадр дороже, чем сама
+     отрисовка. Координаты заданы в системе viewBox, поэтому он едет и
+     тянется вместе с лентой — ровно как gradientUnits="userSpaceOnUse"
+     внутри трансформированной <g> в SVG-варианте. */
+  const ribbonGrad = (ctx: CanvasRenderingContext2D, i: number) => {
+    let g = ribbonGrads.current[i];
+    if (!g) {
+      const gm = geom[i];
+      g = ctx.createLinearGradient(gm.knotX, gm.knotY, KNOT_X, KNOT_Y);
+      g.addColorStop(0, "rgba(255,255,255,0.92)");
+      g.addColorStop(0.28, "rgba(255,230,240,0.68)");
+      g.addColorStop(0.62, "rgba(228,203,240,0.42)");
+      g.addColorStop(1, "rgba(201,169,223,0.14)");
+      ribbonGrads.current[i] = g;
+    }
+    return g;
   };
 
   useEffect(() => {
-    /* Цикла нет только при системном «меньше движения». */
-    if (still) return;
-
     const a = anim.current;
 
     const measure = () => {
       const el = clusterRef.current;
       if (el) a.pxPerUnit = el.clientWidth / VW;
+
+      /* Холст под ленточки держим в РЕАЛЬНЫХ пикселях устройства, иначе
+         тонкая лента будет мылить. Плотность выше двух не берём: на
+         трёхкратных экранах это вчетверо больше точек ради разницы,
+         которой на ленте в один пиксель уже не видно. */
+      const cv = ribbonCanvasRef.current;
+      if (cv && el) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = Math.round(el.clientWidth * dpr);
+        const h = Math.round(el.clientHeight * dpr);
+        if (w > 0 && h > 0 && (cv.width !== w || cv.height !== h)) {
+          cv.width = w;
+          cv.height = h;
+          // Смена размера обнуляет контекст вместе с градиентами
+          ribbonCtx.current = cv.getContext("2d");
+          ribbonGrads.current = [];
+        }
+      }
     };
     measure();
+
+    /** Готовит холст к кадру и отдаёт множитель «CSS-пиксель → единица
+        viewBox» для толщины обводки. null — рисовать не на чем. */
+    const beginRibbons = () => {
+      const cv = ribbonCanvasRef.current;
+      const ctx = ribbonCtx.current;
+      if (!cv || !ctx || !cv.width) return null;
+      const sx = cv.width / VW;
+      const sy = cv.height / VH;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      // preserveAspectRatio="none" у SVG — значит по осям масштаб разный
+      ctx.setTransform(sx, 0, 0, sy, 0, 0);
+      ctx.lineCap = "round";
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      return { ctx, strokeK: (dpr * 2) / (sx + sy) };
+    };
+
+    /** Одна лента на холсте. Порядок преобразований тот же, что был у
+        <g> в SVG: масштаб вокруг узелка, затем сдвиг. */
+    const drawRibbon = (
+      ctx: CanvasRenderingContext2D,
+      strokeK: number,
+      i: number,
+      ux: number,
+      uy: number,
+      sc: number,
+      fly: number,
+      wave: number,
+    ) => {
+      const g = geom[i];
+      const p = ribbonPoints(i, fly, wave);
+      ctx.save();
+      ctx.translate(ux, uy);
+      ctx.translate(g.knotX, g.knotY);
+      ctx.scale(sc, sc);
+      ctx.translate(-g.knotX, -g.knotY);
+      ctx.globalAlpha = clamp01(1 - fly * 1.2);
+      ctx.lineWidth = ribbonWidth(i) * strokeK;
+      ctx.strokeStyle = ribbonGrad(ctx, i);
+      ctx.beginPath();
+      ctx.moveTo(g.knotX, g.knotY);
+      ctx.bezierCurveTo(p.c1x, p.c1y, p.c2x, p.c2y, KNOT_X, KNOT_Y);
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    /* «МЕНЬШЕ ДВИЖЕНИЯ»: цикла нет, но ленточки нарисовать всё равно надо.
+
+       В SVG-варианте они рисовались сами — разметкой, с d={ribbonPath(i,0,0)}.
+       Холст пустой, пока в него не нарисуют, поэтому здесь один
+       статический кадр: покой, без полёта и без курсора. Уходим только
+       после него. */
+    if (still) {
+      const rb = beginRibbons();
+      if (rb) {
+        for (let i = 0; i < list.length; i++) {
+          drawRibbon(rb.ctx, rb.strokeK, i, 0, 0, 1, 0, 0);
+        }
+      }
+      const onResizeStill = () => {
+        measure();
+        const again = beginRibbons();
+        if (!again) return;
+        for (let i = 0; i < list.length; i++) {
+          drawRibbon(again.ctx, again.strokeK, i, 0, 0, 1, 0, 0);
+        }
+      };
+      window.addEventListener("resize", onResizeStill);
+      return () => window.removeEventListener("resize", onResizeStill);
+    }
 
     /* Прогресс считаем ПО СОБСТВЕННОМУ ПОЛОЖЕНИЮ первого экрана, а не по
        window.scrollY и offsetHeight.
@@ -594,6 +741,11 @@ export const Hero = () => {
       const skyBreathe = 1 + 0.04 * (1 - Math.cos((time * 6.283) / 30));
       const clusterBreathe = 1 + 0.0175 * (1 - Math.cos((time * 6.283) / 23));
 
+      /* Холст чистим один раз на кадр, до цикла: ленты рисуются поверх
+         пустого, а не поверх прошлого кадра. На десктопе rb === null и
+         вся ветка ниже не выполняется — там по-прежнему живой SVG. */
+      const rb = beginRibbons();
+
       for (let i = 0; i < list.length; i++) {
         const b = list[i];
         const g = geom[i];
@@ -623,20 +775,29 @@ export const Hero = () => {
           el.style.opacity = op.toFixed(3);
         }
 
-        const rg = ribbonRefs.current[i];
-        if (rg) {
-          rg.setAttribute(
-            "transform",
-            `translate(${ux.toFixed(1)} ${uy.toFixed(1)}) translate(${g.knotX.toFixed(1)} ${g.knotY.toFixed(1)}) scale(${sc.toFixed(3)}) translate(${(-g.knotX).toFixed(1)} ${(-g.knotY).toFixed(1)})`,
-          );
-          rg.style.opacity = clamp01(1 - fly * 1.2).toFixed(3);
-        }
+        if (rb) {
+          /* Волну считаем каждый кадр, а не через один: холст мы и так
+             перерисовываем целиком, экономить тут не на чем — это просто
+             один синус. Через кадр обновлялась ФОРМА в SVG, потому что
+             там каждая перезапись d стоила пересчёта пути. */
+          const wave = Math.sin(time * 0.55 + g.phase) * 5;
+          drawRibbon(rb.ctx, rb.strokeK, i, ux, uy, sc, fly, wave);
+        } else {
+          const rg = ribbonRefs.current[i];
+          if (rg) {
+            rg.setAttribute(
+              "transform",
+              `translate(${ux.toFixed(1)} ${uy.toFixed(1)}) translate(${g.knotX.toFixed(1)} ${g.knotY.toFixed(1)}) scale(${sc.toFixed(3)}) translate(${(-g.knotX).toFixed(1)} ${(-g.knotY).toFixed(1)})`,
+            );
+            rg.style.opacity = clamp01(1 - fly * 1.2).toFixed(3);
+          }
 
-        if (updatePaths) {
-          const p = pathRefs.current[i];
-          if (p) {
-            const wave = Math.sin(time * 0.55 + g.phase) * 5;
-            p.setAttribute("d", ribbonPath(i, fly, wave));
+          if (updatePaths) {
+            const p = pathRefs.current[i];
+            if (p) {
+              const wave = Math.sin(time * 0.55 + g.phase) * 5;
+              p.setAttribute("d", ribbonPath(i, fly, wave));
+            }
           }
         }
       }
@@ -894,7 +1055,24 @@ export const Hero = () => {
           }}
         />
 
-        {/* Все ленточки — в одном SVG под шариками: одна отрисовка вместо семнадцати */}
+        {/* НА ТЕЛЕФОНЕ ЛЕНТОЧКИ РИСУЮТСЯ НА ХОЛСТЕ — почему именно так,
+            подробно расписано у ribbonCanvasRef выше. Коротко: SVG лежит по
+            z-индексу между движущимися шарами и не даёт композитору
+            развести их по слоям, из-за чего гроздь растрируется заново
+            каждый кадр. Замер: 31 кадр против 65. Холст — один слой, и
+            шары над ним снова композитятся сами.
+
+            Размер задаётся в measure() в пикселях устройства; рисует
+            drawRibbon() из того же цикла, что двигает шары. */}
+        {lite ? (
+          <canvas
+            ref={ribbonCanvasRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            style={{ zIndex: 1 }}
+          />
+        ) : (
+        /* Все ленточки — в одном SVG под шариками: одна отрисовка вместо семнадцати */
         <svg
           viewBox={`0 0 ${VW} ${VH}`}
           preserveAspectRatio="none"
@@ -933,13 +1111,14 @@ export const Hero = () => {
                 d={ribbonPath(i, 0, 0)}
                 fill="none"
                 stroke={`url(#ribbon-grad-${i})`}
-                strokeWidth={1.15 + ((i * 7) % 5) * 0.12}
+                strokeWidth={ribbonWidth(i)}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
               />
             </g>
           ))}
         </svg>
+        )}
 
         {list.map((b, i) => {
           const g = geom[i];
