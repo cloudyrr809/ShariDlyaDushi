@@ -56,10 +56,22 @@ function ScrollToTop() {
     // и переход между страницами дёргали бы позицию каждый по-своему.
     const lenis = getLenis();
 
+    /* force: true — обязательно.
+
+       На телефоне между страницами ходят через бургер-меню, а оно на время
+       своего показа замораживает плавную прокрутку (pauseSmoothScroll →
+       lenis.stop()). Остановленный Lenis молча игнорирует scrollTo, и
+       порядок выходил такой: сменился адрес → мы «прокрутили» в никуда →
+       меню закрылось и сделало lenis.start(), возобновив СТАРУЮ позицию.
+       Со дна каталога человек попадал на середину следующей страницы.
+
+       Полагаться на то, что меню разморозит прокрутку раньше нас, нельзя:
+       ScrollToTop стоит в дереве выше Header, и его эффект срабатывает
+       первым. force снимает зависимость от этого порядка вовсе. */
     if (!hash) {
       if (lenis) {
         markOwnScroll();
-        lenis.scrollTo(0, { immediate: true });
+        lenis.scrollTo(0, { immediate: true, force: true });
       } else window.scrollTo(0, 0);
     } else {
       setTimeout(() => {
@@ -67,7 +79,7 @@ function ScrollToTop() {
         if (!element) return;
         if (lenis) {
           markOwnScroll();
-          lenis.scrollTo(element, { offset: -100 });
+          lenis.scrollTo(element, { offset: -100, force: true });
         } else {
           const y = element.getBoundingClientRect().top + window.scrollY - 100;
           window.scrollTo({ top: y, behavior: "smooth" });
