@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCart } from "./CartContext";
 import { servicesData, type ServiceSeed } from "./lib/servicesData";
+import { stepTileZigzag } from "./lib/stepTiles";
 import { fetchServices, type Service } from "./lib/services";
 
 /* КАРТОЧКА УСЛУГИ — журнальный разворот, а не коробка. Плиты нет,
@@ -519,13 +520,13 @@ export default function Services() {
               увеличен: шарики выступают за кромку и им нужно место, иначе
               они лезли бы на заголовок. */}
           <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-3 md:gap-7">
-            {approachCards.map((card) => (
+            {approachCards.map((card, i) => (
               <div
                 key={card.title}
                 /* Верхний внутренний отступ больше остальных: шарик свисает
                    за кромку и заходит на карточку на 30-40px, заголовок
                    должен начинаться ниже этой границы. */
-                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${card.shape} ${card.tint} ${card.shadow} ${card.offset}`}
+                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-9 md:pt-14 md:pb-9 ${stepTileZigzag(i)} ${card.shape} ${card.tint} ${card.shadow} ${card.offset}`}
               >
                 <img
                   decoding="async"

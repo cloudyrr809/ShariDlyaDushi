@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CoverHeader } from "./components/ui/PageHeader";
 import { SkyBackdrop } from "./components/ui/SkyBackdrop";
+import { stepTileZigzag } from "./lib/stepTiles";
 import {
   PROMO_ICONS,
   fallbackPromos,
@@ -344,7 +345,7 @@ export default function Promotions() {
         {/* Просвет на планшете уже: три колонки остаются, но каждой
             достаётся больше ширины. Как в «Заказе и получении» на главной. */}
         <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-4 lg:gap-7">
-          {steps.map((step) => (
+          {steps.map((step, i) => (
             <div
               key={step.title}
               /* Верхний отступ больше остальных: шарик свисает за кромку
@@ -352,7 +353,7 @@ export default function Promotions() {
                  начинаться ниже этой границы. */
               /* Поля на планшете поджаты: при md:px-9 тексту оставалось
                  144px, по три слова в строке. */
-              className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
+              className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${stepTileZigzag(i)} ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
             >
               {/* Шарик свисает над верхней кромкой и заходит на плитку
                   только нижней частью — так он читается как привязанный

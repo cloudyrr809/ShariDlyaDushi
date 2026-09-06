@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 import { getLenis, markOwnScroll } from "./lib/smoothScroll";
+import { stepTileZigzag } from "./lib/stepTiles";
 import { ChevronDown } from "lucide-react";
 
 import { Hero } from "./components/ui/Hero";
@@ -399,7 +400,7 @@ export default function App() {
               колонки остаются, но каждой достаётся больше ширины. При
               md:gap-7 карточке доставалось 216px, при gap-4 — 224px. */}
           <div className="mt-16 grid grid-cols-1 items-start gap-8 md:mt-20 md:grid-cols-3 md:gap-4 lg:gap-7">
-            {orderSteps.map((step) => (
+            {orderSteps.map((step, i) => (
               <div
                 key={step.title}
                 /* Верхний внутренний отступ больше остальных: шарик свисает
@@ -409,7 +410,7 @@ export default function App() {
                    плитки тексту оставалось 144, то есть по три слова в
                    строке. С md:px-5 и более узким просветом — 184px. С lg
                    возвращаются прежние. */
-                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
+                className={`relative px-8 pt-12 pb-8 text-center transition-all duration-500 hover:-translate-y-1.5 md:px-5 md:pt-12 md:pb-8 lg:px-9 lg:pt-14 lg:pb-9 ${stepTileZigzag(i)} ${step.shape} ${step.tint} ${step.shadow} ${step.offset}`}
               >
                 <img
                   decoding="async"
