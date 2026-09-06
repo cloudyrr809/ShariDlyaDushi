@@ -250,11 +250,28 @@ export const CareCards = () => {
        до верха экрана. */
     <section className="relative flex flex-col justify-center overflow-hidden bg-[#F8F4F9] px-6 pt-[5.25rem] pb-12 md:min-h-[85dvh] md:pb-10">
       {/* Цветные пятна: без них полупрозрачные карточки поверх ровной
-          заливки — это просто белый прямоугольник. */}
+          заливки — это просто белый прямоугольник.
+
+          НА ТЕЛЕФОНЕ ТЕ ЖЕ ПЯТНА РИСУЕМ ГРАДИЕНТОМ, А НЕ РАЗМЫТИЕМ.
+
+          blur(130px) по квадрату 520×520 — это свёртка с ядром в 130
+          пикселей, и это была самая дорогая операция кадра на всей
+          странице. Замер на телефонной ширине с шестикратно прижатым
+          процессором: если убрать со страницы все размытия, первый экран
+          идёт 44.4 кадра вместо 37.4. Причём сам первый экран ни при чём —
+          он от этих пятен и страдал: с ними 39.5 кадра, без всего, что
+          ниже него, — 52.9.
+
+          Радиальный градиент даёт ту же мягкую кляксу без фильтра вовсе.
+          Спад у него линейный, а не гауссов, но на пятне в полтысячи
+          пикселей под полупрозрачными карточками разницы не видно.
+
+          С md остаётся прежнее размытие: там оно ничего не стоит, а
+          десктоп мы не трогаем. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -left-20 h-[460px] w-[460px] rounded-full bg-[#D9A7C0]/28 blur-[110px]" />
-        <div className="absolute top-1/4 -right-24 h-[520px] w-[520px] rounded-full bg-[#6B4E81]/18 blur-[130px]" />
-        <div className="absolute -bottom-28 left-1/4 h-[440px] w-[440px] rounded-full bg-[#C9A6E0]/24 blur-[120px]" />
+        <div className="absolute -top-24 -left-20 h-[460px] w-[460px] rounded-full bg-[#D9A7C0]/28 blur-[110px] max-md:bg-[radial-gradient(closest-side,rgba(217,167,192,0.28),transparent)] max-md:bg-transparent max-md:blur-none" />
+        <div className="absolute top-1/4 -right-24 h-[520px] w-[520px] rounded-full bg-[#6B4E81]/18 blur-[130px] max-md:bg-[radial-gradient(closest-side,rgba(107,78,129,0.18),transparent)] max-md:bg-transparent max-md:blur-none" />
+        <div className="absolute -bottom-28 left-1/4 h-[440px] w-[440px] rounded-full bg-[#C9A6E0]/24 blur-[120px] max-md:bg-[radial-gradient(closest-side,rgba(201,166,224,0.24),transparent)] max-md:bg-transparent max-md:blur-none" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[76rem]">
@@ -380,13 +397,20 @@ export const CareCards = () => {
                   <article
                     className={`${CARD} ${tone} relative gap-5 p-5 md:p-6`}
                   >
-                    {/* Плашка в углу — только с sm. При ширине карточки
-                        163px значок занимает 20..92, а «ВАЖНО» начинается с
-                        61-го пикселя: 72 + 82 + отступы в 163 не помещаются
-                        никак, и на телефоне плашка идёт обычной строкой. */}
+                    {/* Плашка в углу — только с sm, на телефоне её нет вовсе.
+                        В угол она там не встаёт: при ширине карточки 163px
+                        значок занимает 20..92, а «ВАЖНО» начинается с 61-го
+                        пикселя. Прежде поэтому она шла обычной строкой над
+                        значком — и ломала карточке весь порядок: у двух
+                        карточек из пяти содержимое начиналось со строки,
+                        которой у остальных трёх нет, и ряд переставал
+                        читаться как ряд однотипных правил.
+
+                        Смысл плашки при этом не теряется: карточки с ней
+                        по-прежнему выделены розовой подложкой (tone выше). */}
                     {tag && (
                       <span
-                        className={`w-fit rounded-full border px-2.5 py-0.5 text-[13px] font-bold tracking-[0.08em] uppercase sm:absolute sm:top-4 sm:right-4 ${
+                        className={`hidden w-fit rounded-full border px-2.5 py-0.5 text-[13px] font-bold tracking-[0.08em] uppercase sm:absolute sm:top-4 sm:right-4 sm:block ${
                           accent
                             ? "border-[#D9C2EA] bg-white/70 text-[#513A6B]"
                             : "border-[#EFD4E0] bg-white/70 text-[#A64D6C]"
