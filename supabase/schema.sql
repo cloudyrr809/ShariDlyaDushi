@@ -151,6 +151,25 @@ create table if not exists public.promotions (
   created_at  timestamptz not null default now()
 );
 
+-- ─────────────────────────── ОТЗЫВЫ ───────────────────────────
+--
+-- Приходят чаще всего остального: человек написал во ВКонтакте — его надо
+-- перенести на сайт в тот же день. Держать их в коде значило бы звать
+-- разработчика на каждый отзыв.
+--
+-- photos — массив адресов, а не одна строка: у отзыва их бывает
+-- несколько, и карточка листает их своей каруселью.
+create table if not exists public.reviews (
+  id          uuid primary key default gen_random_uuid(),
+  text        text not null default '',
+  author      text not null default '',
+  role        text not null default 'Клиент студии',
+  photos      jsonb not null default '[]'::jsonb,
+  sort        integer not null default 0,
+  published   boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
 -- Условия работы студии: доставка, оплата, возврат, памятка по уходу.
 -- ОДНА строка с постоянным ключом 'main' — это правила студии, а не
 -- свойство отдельного товара. Каждое поле — массив абзацев.
@@ -185,7 +204,7 @@ create policy "админ правит условия"
 do $$
 declare t text;
 begin
-  foreach t in array array['products', 'services', 'promotions'] loop
+  foreach t in array array['products', 'services', 'promotions', 'reviews'] loop
     execute format('alter table public.%I enable row level security', t);
 
     execute format('drop policy if exists "видно всем" on public.%I', t);

@@ -51,6 +51,15 @@ import {
   type Promo,
   type PromoIconKey,
 } from "./lib/promotions";
+import {
+  blankReview,
+  deleteReview,
+  fallbackReviews,
+  fetchReviews,
+  saveReview,
+  seedReviews,
+  type Review,
+} from "./lib/reviews";
 
 import {
   defaultSettings,
@@ -92,12 +101,13 @@ const PRIMARY = `${BTN} bg-[#6B4E81] text-white hover:bg-[#513A6B]`;
 const GHOST = `${BTN} border border-[#E8DEEE] bg-white text-[#6B4E81] hover:bg-[#F8F4F9]`;
 const DANGER = `${BTN} inline-flex items-center gap-2 border border-[#E8C4CF] bg-white text-[#A64D6C] hover:bg-[#FBEEF2]`;
 
-type Tab = "feed" | "catalog" | "services" | "promos" | "terms";
+type Tab = "feed" | "catalog" | "services" | "promos" | "reviews" | "terms";
 const TABS: { id: Tab; name: string }[] = [
   { id: "feed", name: "Лента" },
   { id: "catalog", name: "Каталог" },
   { id: "services", name: "Услуги" },
   { id: "promos", name: "Акции" },
+  { id: "reviews", name: "Отзывы" },
   { id: "terms", name: "Условия" },
 ];
 
@@ -1951,6 +1961,249 @@ function PromosPane() {
   );
 }
 
+/* ────────────────────────── ОТЗЫВЫ ──────────────────────────
+
+   Приходят чаще всего остального: человек написал во ВКонтакте — его
+   надо перенести на сайт в тот же день. Пока отзывы лежали в коде, на
+   каждый из них нужен был разработчик.
+
+   Формы предпросмотра здесь нет намеренно, в отличие от акций: у отзыва
+   нет своего плаката, это текст, имя и снимки. Как он встанет в карточку,
+   видно на самой странице. */
+
+const SECTION_REVIEWS = "Отзывы";
+
+function ReviewEditor({
+  review,
+  onSaved,
+  onDeleted,
+  onCancel,
+}: {
+  review: Review;
+  onSaved: () => void;
+  onDeleted: () => void;
+  onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState<Review>(review);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const set = <K extends keyof Review>(k: K, v: Review[K]) =>
+    setDraft((d) => ({ ...d, [k]: v }));
+
+  const save = async () => {
+    setBusy(true);
+    setErr("");
+    try {
+      await saveReview(draft);
+      onSaved();
+    } catch (e) {
+      setErr(explain(e, SECTION_REVIEWS));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm(`Удалить отзыв «${draft.author}»? Это навсегда.`)) return;
+    setBusy(true);
+    try {
+      await deleteReview(draft.id);
+      onDeleted();
+    } catch (e) {
+      setErr(explain(e, SECTION_REVIEWS));
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {err && <Err text={err} />}
+
+      <div>
+        <label className={LABEL} htmlFor="rv-author">
+          Имя
+        </label>
+        <input
+          id="rv-author"
+          className={FIELD}
+          value={draft.author}
+          onChange={(e) => set("author", e.target.value)}
+          placeholder="Карина Фролова"
+        />
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="rv-role">
+          Подпись под именем
+        </label>
+        <input
+          id="rv-role"
+          className={FIELD}
+          value={draft.role}
+          onChange={(e) => set("role", e.target.value)}
+          placeholder="Клиент студии"
+        />
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="rv-text">
+          Текст отзыва
+        </label>
+        {/* Пустая строка между абзацами сохраняется: карточка выводит
+            текст с whitespace-pre-line. Длина не ограничена — карточка
+            фиксированной высоты, длинный отзыв в ней прокручивается. */}
+        <textarea
+          id="rv-text"
+          rows={12}
+          className={`${FIELD} resize-y leading-relaxed`}
+          value={draft.text}
+          onChange={(e) => set("text", e.target.value)}
+          placeholder="Что написал клиент. Абзацы разделяйте пустой строкой."
+        />
+      </div>
+
+      <div>
+        <span className={LABEL}>Фотографии</span>
+        {/* Тот же загрузчик, что у товаров и услуг: снимки уходят в общую
+            папку хранилища, первый показывается в карточке, остальные
+            листаются. */}
+        <Gallery
+          images={draft.photos}
+          onChange={(next) => set("photos", next)}
+        />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label className={LABEL} htmlFor="rv-sort">
+            Порядок
+          </label>
+          <input
+            id="rv-sort"
+            type="number"
+            className={FIELD}
+            value={draft.sort}
+            onChange={(e) => set("sort", Number(e.target.value) || 0)}
+          />
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            Меньше число — раньше в ленте отзывов.
+          </p>
+        </div>
+
+        <div>
+          <span className={LABEL}>Показывать на сайте</span>
+          <label className="inline-flex cursor-pointer items-center gap-3 text-[15px] font-medium text-[#2D2433]">
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-[#6B4E81]"
+              checked={draft.published}
+              onChange={(e) => set("published", e.target.checked)}
+            />
+            Отзыв виден посетителям
+          </label>
+          <p className="mt-2 text-sm font-medium text-[#7E6E8A]">
+            Снимите галочку, чтобы отложить отзыв, не удаляя его.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          className={PRIMARY}
+          onClick={save}
+          disabled={busy || !draft.author.trim() || !draft.text.trim()}
+        >
+          {busy ? "Сохраняем…" : "Сохранить"}
+        </button>
+        <button className={GHOST} onClick={onCancel} disabled={busy}>
+          Отмена
+        </button>
+        {draft.id && (
+          <button className={DANGER} onClick={remove} disabled={busy}>
+            <Trash2 className="h-4 w-4" />
+            Удалить
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReviewsPane() {
+  const [items, setItems] = useState<Review[] | null>(null);
+  const [current, setCurrent] = useState<Review | null>(null);
+  const [err, setErr] = useState("");
+
+  const reload = useCallback(async () => {
+    try {
+      setItems(await fetchReviews(true));
+    } catch (e) {
+      setErr(explain(e, SECTION_REVIEWS));
+      setItems([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return (
+    <>
+      {err && <div className="mb-6">{<Err text={err} />}</div>}
+      <div className={PANE}>
+        <ListPane
+          items={items}
+          currentId={current?.id}
+          newLabel="Новый отзыв"
+          onNew={() => setCurrent(blankReview())}
+          onPick={setCurrent}
+          render={(r) => ({
+            title: r.author || "Без имени",
+            note: `${r.photos.length} фото${r.published ? "" : " · скрыт"}`,
+          })}
+          extra={
+            items?.length === 0 ? (
+              <SeedButton
+                what="Отзывы"
+                count={fallbackReviews.length}
+                onSeed={async () => {
+                  const n = await seedReviews(fallbackReviews);
+                  await reload();
+                  return n;
+                }}
+              />
+            ) : undefined
+          }
+        />
+        <div>
+          {current ? (
+            <ReviewEditor
+              key={current.id || "new"}
+              review={current}
+              onSaved={() => {
+                setCurrent(null);
+                reload();
+              }}
+              onDeleted={() => {
+                setCurrent(null);
+                reload();
+              }}
+              onCancel={() => setCurrent(null)}
+            />
+          ) : (
+            <p className={EMPTY}>
+              Выберите отзыв слева или создайте новый. Текст, имя и снимки
+              правятся прямо здесь — на главной странице они появятся сразу
+              после сохранения.
+            </p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ────────────────── УСЛОВИЯ РАБОТЫ СТУДИИ ──────────────────
 
    Доставка, оплата, возврат и памятка по уходу. Один набор текстов на
@@ -2095,6 +2348,7 @@ export default function Admin() {
       {tab === "catalog" && <CatalogPane />}
       {tab === "services" && <ServicesPane />}
       {tab === "promos" && <PromosPane />}
+      {tab === "reviews" && <ReviewsPane />}
       {tab === "terms" && <TermsPane />}
     </Shell>
   );
