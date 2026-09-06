@@ -160,7 +160,7 @@ function PostCard({
         {post.text && (
           <div
             data-lenis-prevent
-            className="mt-3 min-h-0 lg:max-h-[38dvh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5 lg:[scrollbar-color:#D9C6E4_transparent] lg:[scrollbar-width:thin]"
+            className="scroll-hint mt-3 min-h-0 [--sh-bg:#FFFFFF] [--sh-thumb:#D9C6E4] lg:max-h-[38dvh] lg:overflow-y-auto lg:pr-3 lg:pb-1.5"
           >
             <p className="text-[17px] leading-relaxed font-medium whitespace-pre-line text-[#5A4D66]">
               {post.text}

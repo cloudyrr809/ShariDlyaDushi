@@ -83,7 +83,7 @@ export const CartDrawer = () => {
           <>
             <div
               data-lenis-prevent
-              className="flex-1 overflow-y-auto p-6 space-y-6"
+              className="scroll-hint flex-1 overflow-y-auto p-6 space-y-6"
             >
               {cart.map((item: CartItem) => (
                 <div key={item.id} className="flex gap-4 items-center">

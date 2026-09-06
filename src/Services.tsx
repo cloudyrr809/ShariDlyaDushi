@@ -260,7 +260,7 @@ const ServiceCard = ({
             ref={textRef}
             onScroll={checkMore}
             data-lenis-prevent
-            className={`min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 [scrollbar-color:#C9B4D6_transparent] [scrollbar-width:thin] ${
+            className={`scroll-hint min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-3 [--sh-bg:#FDFBFD] ${
               more
                 ? "lg:[mask-image:linear-gradient(to_bottom,#000_calc(100%-2rem),transparent)]"
                 : ""
