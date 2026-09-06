@@ -20,14 +20,13 @@ import reel4 from "./assets/reel-4.mp4";
 import reel5 from "./assets/reel-5.mp4";
 /* ПЕРВЫЙ КАДР КАЖДОГО РОЛИКА КАРТИНКОЙ.
 
-   Соседние ролики намеренно не подгружаются заранее (preload ниже) — все
-   пять весят 45 МБ. Но у <video> без постера и без данных нечего рисовать,
-   и вместо соседнего ролика в веере зияла пустая плашка: со стороны это
-   читалось как поломка, а не как «рядом лежит ещё видео».
+   Неактивные карточки веера — это и есть эти картинки: тега <video> у них
+   нет вовсе (см. разметку ниже, там же почему). Постер весит десять-двадцать
+   килобайт против мегабайтов потока, показывается сразу и заменяется
+   настоящим проигрывателем, когда карточка становится активной.
 
-   Постер весит десять-двадцать килобайт, показывается сразу и заменяется
-   самим роликом, когда тот доходит до активного места. Файлы собраны из
-   первых кадров: ffmpeg -ss 0.3 -i reel-N.mp4 -frames:v 1 -vf scale=480:-2 */
+   Файлы собраны из первых кадров:
+   ffmpeg -ss 0.3 -i reel-N.mp4 -frames:v 1 -vf scale=480:-2 reel-N-poster.webp */
 import poster1 from "./assets/reel-1-poster.webp";
 import poster2 from "./assets/reel-2-poster.webp";
 import poster3 from "./assets/reel-3-poster.webp";
@@ -84,14 +83,30 @@ function useCountUp(target: number, duration = 1600) {
       if (started) return;
       started = true;
 
+      /* ЧИСЛО ПИШЕМ ПРЯМО В УЗЕЛ, А НЕ ЧЕРЕЗ СОСТОЯНИЕ REACT.
+
+         Здесь был setValue на каждом кадре — то есть шестьдесят раз в
+         секунду полторы секунды подряд перерисовывалась ВСЯ страница «О
+         нас»: 1783 узла, карусель роликов и теги video. Причём счётчиков
+         два, значит и перерисовок по две на кадр.
+
+         Отсюда шли обе жалобы разом: и что сами цифры «лагают», и что в
+         эти секунды виснет всё остальное на странице, включая листание
+         роликов. Тот же приём уже применён к полосе прогресса ролика по
+         той же причине.
+
+         React про эти правки не знает и знать не должен: значение в
+         состоянии остаётся итоговым (нужно для статичной отрисовки), а
+         анимацию ведёт узел. */
       const from = performance.now();
       const tick = (now: number) => {
         const t = Math.min(1, (now - from) / duration);
         const eased = 1 - Math.pow(1 - t, 3);
-        setValue(Math.round(target * eased));
+        const v = String(Math.round(target * eased));
+        if (node.textContent !== v) node.textContent = v;
         if (t < 1) raf = requestAnimationFrame(tick);
       };
-      setValue(0); // отсчёт всегда виден от нуля — но только когда реально идёт
+      node.textContent = "0"; // отсчёт виден от нуля — но только когда реально идёт
       raf = requestAnimationFrame(tick);
     };
 
@@ -124,6 +139,13 @@ function useCountUp(target: number, duration = 1600) {
 
 export default function About() {
   const [activeIndex, setActiveIndex] = useState(2);
+  /* КАКОЙ РОЛИК СЕЙЧАС ЖИВОЙ ТЕГ <video>, А НЕ ПРОСТО ПОСТЕР.
+
+     Отстаёт от activeIndex на 220 мс — см. эффект ниже. Пока палец
+     листает, на странице вообще нет ни одного проигрывателя: все пять
+     карточек это картинки-постеры. Проигрыватель появляется, когда
+     человек остановился. */
+  const [playingIndex, setPlayingIndex] = useState(2);
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   /* Полоса воспроизведения двигается ЧЕРЕЗ REF, а не через состояние:
@@ -214,20 +236,18 @@ export default function About() {
     setProgress(0);
     setIsPaused(false);
 
-    const t = window.setTimeout(() => {
-      videoRefs.current.forEach((video, idx) => {
-        if (!video) return;
-        if (idx === activeIndex) {
-          video.currentTime = 0;
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      });
-    }, 220);
-
+    const t = window.setTimeout(() => setPlayingIndex(activeIndex), 220);
     return () => window.clearTimeout(t);
   }, [activeIndex]);
+
+  /* Живой ролик в разметке ровно один, и меняется он здесь. Прошлый
+     размонтируется сам — вместе со своим декодером. */
+  useEffect(() => {
+    const video = videoRefs.current[playingIndex];
+    if (!video) return;
+    video.currentTime = 0;
+    video.play().catch(() => {});
+  }, [playingIndex]);
 
   const handleNext = () => {
     setActiveIndex((prev) => (prev + 1) % reelsData.length);
@@ -246,7 +266,7 @@ export default function About() {
   );
 
   const handleTimeUpdate = (idx: number) => {
-    if (idx === activeIndex && videoRefs.current[idx]) {
+    if (idx === playingIndex && videoRefs.current[idx]) {
       const current = videoRefs.current[idx]!.currentTime;
       const total = videoRefs.current[idx]!.duration || 1;
       setProgress((current / total) * 100);
@@ -255,7 +275,7 @@ export default function About() {
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    const activeVideo = videoRefs.current[activeIndex];
+    const activeVideo = videoRefs.current[playingIndex];
     if (activeVideo) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -446,31 +466,51 @@ export default function About() {
                     : "cursor-pointer shadow-none"
                 }`}
               >
-                <video
-                  ref={(el) => {
-                    videoRefs.current[idx] = el;
-                  }}
-                  src={reel.videoUrl}
-                  /* Постер закрывает главную дыру веера: пока соседний
-                     ролик не загружен, <video> рисовать нечем, и вместо
-                     кадра была пустая плашка. */
-                  poster={reel.poster}
-                  muted={isMuted}
-                  playsInline
-                  /* Грузим ТОЛЬКО активный ролик, соседям — ничего.
+                {/* ЖИВОЙ ПРОИГРЫВАТЕЛЬ НА СТРАНИЦЕ РОВНО ОДИН.
 
-                     Раньше соседям ставили "metadata", чтобы переключение
-                     не мигало пустотой. Теперь пустоты нет: у каждого
-                     ролика есть постер, он показывается сразу и весит
-                     десять-двадцать килобайт против мегабайтов потока. То
-                     есть повод грузить соседей отпал, а расход остался бы:
-                     на LTE это лишний канал ровно в тот момент, когда
-                     человек листает. */
-                  preload={idx === activeIndex ? "auto" : "none"}
-                  onEnded={handleNext}
-                  onTimeUpdate={() => handleTimeUpdate(idx)}
-                  className="pointer-events-none h-full w-full object-cover"
-                />
+                    Раньше здесь стояло пять тегов <video> сразу — по
+                    одному на карточку веера. На iOS это тяжёлая ошибка:
+                    каждый <video> занимает слот аппаратного декодера, а их
+                    у устройства всего несколько. Сверх этого числа Safari
+                    сваливается на программное декодирование и начинает
+                    ощутимо стоять — отсюда и «оооочень виснут видео при
+                    свайпах», и то, что вместе с ними лагало всё остальное
+                    на странице.
+
+                    Замер подтверждал это ещё до объяснения: если заменить
+                    теги <video> на их же постеры, провалов кадра при
+                    листании становится 1 вместо 11.
+
+                    Теперь проигрыватель есть только у playingIndex, а
+                    остальные карточки — обычные картинки-постеры. Разницы
+                    не видно: соседние ролики и так притемнены вуалью и
+                    показывают первый кадр. Пока палец листает, живого
+                    проигрывателя нет вовсе (playingIndex отстаёт на 220 мс),
+                    так что декодер не трогают вообще. */}
+                {idx === playingIndex ? (
+                  <video
+                    ref={(el) => {
+                      videoRefs.current[idx] = el;
+                    }}
+                    src={reel.videoUrl}
+                    poster={reel.poster}
+                    muted={isMuted}
+                    playsInline
+                    preload="auto"
+                    onEnded={handleNext}
+                    onTimeUpdate={() => handleTimeUpdate(idx)}
+                    className="pointer-events-none h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={reel.poster}
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                    loading="lazy"
+                    className="pointer-events-none h-full w-full object-cover"
+                  />
+                )}
 
                 {!isActive && (
                   <div
