@@ -77,10 +77,11 @@ const MOBILE_LABEL =
     открывалось на три экрана, и «Лента», «Акции», «О нас» терялись где-то
     над ними, хотя это разделы того же уровня.
 
-    Первым пунктом внутри — ссылка на сам раздел целиком: «Каталог» и
-    «Услуги» это тоже страницы, и попасть на них должно быть так же
-    просто, как выбрать одну категорию внутри. У каталога такая ссылка уже
-    есть в самом списке («Все»), услугам её добавляем здесь. */
+    На сам раздел ведёт его подпись — она осталась обычной ссылкой, а
+    раскрывает список только стрелка справа (см. разметку ниже). Поэтому
+    отдельного пункта «все услуги» внутри списка нет: он повторял бы
+    нажатие по заголовку. «Все» у каталога — другое дело, это настоящая
+    категория, одна из вкладок страницы. */
 const MAIN_LINKS: {
   to: string;
   name: string;
@@ -101,10 +102,7 @@ const MAIN_LINKS: {
     to: "/services",
     name: "Услуги",
     subLabel: "Что мы делаем",
-    sub: [
-      { to: "/services", name: "Все услуги" },
-      ...serviceItems.map((s) => ({ to: `/services#${s.key}`, name: s.name })),
-    ],
+    sub: serviceItems.map((s) => ({ to: `/services#${s.key}`, name: s.name })),
   },
   { to: "/feed", name: "Лента" },
   { to: "/promotions", name: "Акции" },
@@ -446,7 +444,7 @@ export const Header = () => {
 
           <nav
             data-lenis-prevent
-            className="flex-1 overflow-y-auto overscroll-contain px-6 py-5"
+            className="scroll-hint flex-1 overflow-y-auto overscroll-contain px-6 py-5 [--sh-bg:#FDFBFD]"
           >
             {/* ПЯТЬ РАЗДЕЛОВ САЙТА — то же, что в строке меню на десктопе.
                 У «Каталога» и «Услуг» строка не ссылка, а кнопка: она
@@ -467,22 +465,42 @@ export const Header = () => {
                   <li key={item.to} className="border-b border-[#E8DEEE]">
                     {item.sub ? (
                       <>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenSection(open ? null : item.to)
-                          }
-                          aria-expanded={open}
-                          aria-controls={`menu-${item.to.slice(1)}`}
-                          className={`${rowClass} cursor-pointer`}
-                        >
-                          {item.name}
-                          <ChevronDown
-                            className={`h-5 w-5 text-[#C9B4D6] transition-transform duration-300 ${
-                              open ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
+                        {/* СТРОКА ДЕЛИТСЯ НА ДВЕ ЦЕЛИ.
+
+                            Подпись — обычная ссылка на сам раздел: «Каталог»
+                            и «Услуги» это прежде всего страницы, и попасть на
+                            них должно быть одно нажатие, а не «раскрой список
+                            и найди там пункт про всё сразу».
+
+                            Стрелка справа — отдельная кнопка, и только она
+                            раскрывает вложенный список. Поля вокруг значка
+                            доводят её до 44px: значок 20px пальцем не берётся,
+                            а промах по нему увёл бы на другую страницу. */}
+                        <div className="flex items-center">
+                          <Link to={item.to} className={`${rowClass} flex-1`}>
+                            {item.name}
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenSection(open ? null : item.to)
+                            }
+                            aria-expanded={open}
+                            aria-controls={`menu-${item.to.slice(1)}`}
+                            aria-label={
+                              open
+                                ? `Свернуть разделы: ${item.name}`
+                                : `Показать разделы: ${item.name}`
+                            }
+                            className="-mr-3 shrink-0 cursor-pointer p-3"
+                          >
+                            <ChevronDown
+                              className={`h-5 w-5 text-[#C9B4D6] transition-transform duration-300 ${
+                                open ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                        </div>
 
                         {open && (
                           <div
