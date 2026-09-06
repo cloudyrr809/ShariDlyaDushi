@@ -478,7 +478,13 @@ export default function About() {
             разной высоты, и без этого текст прилипал бы к верхнему краю,
             оставляя под собой пустоту. */}
         <div className="flex flex-col items-center gap-8 md:flex-row md:gap-12">
-          <div className="w-full md:w-[45%]">
+          {/* ФОТО. На телефоне встаёт ПОД заголовок (order-2): рассказ
+              должен начинаться с того, о чём он. Прежде «Знакомство» и
+              «Добро пожаловать» лежали ниже портрета, и блок открывался
+              большим квадратом фотографии без единой подписи — понять, что
+              это начало рассказа основателя, можно было только доскроллив
+              до конца снимка. */}
+          <div className="order-2 w-full md:order-none md:w-[45%]">
             <div className="group overflow-hidden rounded-[2rem] bg-[#F8F4F9] shadow-[0_24px_60px_-20px_rgba(107,78,129,0.35)]">
               <img
                 decoding="async"
@@ -489,34 +495,53 @@ export default function About() {
             </div>
           </div>
 
-          <div className="w-full md:w-[55%]">
-            <p className="text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
-              Знакомство
-            </p>
+          {/* ПРАВАЯ КОЛОНКА.
 
-            {/* Строчными, а не капсом, и вес 600 вместо 800: набранная
-                капслоком фраза читается как окрик, а тут нужен спокойный
-                тон. Заодно капс лишает слова привычного силуэта — строчные
-                с выносными элементами узнаются быстрее.
-                tracking почти нейтральный: сжимать имеет смысл капс, у
-                строчных от этого только слипаются буквы. */}
-            <h2 className="mt-3 text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
-              Добро пожаловать в «Шары&nbsp;Для&nbsp;Души»
-            </h2>
+              display: contents на телефоне растворяет саму колонку, и
+              заголовок с абзацами становятся прямыми детьми ряда. Только
+              так их можно развести по РАЗНЫЕ стороны фотографии одним
+              лишь order — иначе заголовок пришлось бы писать вторым тегом
+              под md:hidden, то есть держать в разметке два одинаковых h2.
 
-            {/* ЛИД — крупнее остальных абзацев и фирменным фиолетовым.
+              С md колонка снова обычный блок в 55%, и раскладка десктопа
+              не меняется вовсе. */}
+          <div className="contents md:block md:w-[55%]">
+            <div className="order-1 w-full">
+              <p className="text-[13px] font-semibold tracking-widest text-[#6B4E81] uppercase">
+                Знакомство
+              </p>
 
-                ⚠️ Курсив здесь синтетический: курсивного начертания
-                Montserrat в проекте нет, браузер наклоняет буквы скосом.
-                Настоящий курсив = montserrat-*-wght-italic.woff2 в
-                public/fonts плюс @font-face с font-style: italic. */}
-            <p className="mt-5 text-lg leading-[1.7] font-medium text-[#6B4E81] italic md:text-xl">
-              {founderStory[0]}
-            </p>
+              {/* Строчными, а не капсом, и вес 600 вместо 800: набранная
+                  капслоком фраза читается как окрик, а тут нужен спокойный
+                  тон. Заодно капс лишает слова привычного силуэта —
+                  строчные с выносными элементами узнаются быстрее.
+                  tracking почти нейтральный: сжимать имеет смысл капс, у
+                  строчных от этого только слипаются буквы. */}
+              <h2 className="mt-3 text-[1.9rem] leading-[1.15] font-semibold tracking-[-0.01em] text-[#2D2433] md:text-[2.6rem] md:leading-[1.12]">
+                Добро пожаловать в «Шары&nbsp;Для&nbsp;Души»
+              </h2>
+            </div>
 
-            <p className="mt-4 text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
-              {founderStory[1]}
-            </p>
+            <div className="order-3 w-full">
+              {/* ЛИД — крупнее остальных абзацев и фирменным фиолетовым.
+
+                  ⚠️ Курсив здесь синтетический: курсивного начертания
+                  Montserrat в проекте нет, браузер наклоняет буквы скосом.
+                  Настоящий курсив = montserrat-*-wght-italic.woff2 в
+                  public/fonts плюс @font-face с font-style: italic.
+
+                  max-md:mt-0 — на телефоне лид отделён от фотографии зазором
+                  самого ряда (gap-8), и прежние 20px сверху складывались бы
+                  с ним в 52. На десктопе отступ отделяет лид от заголовка и
+                  остаётся прежним. */}
+              <p className="mt-5 text-lg leading-[1.7] font-medium text-[#6B4E81] italic max-md:mt-0 md:text-xl">
+                {founderStory[0]}
+              </p>
+
+              <p className="mt-4 text-base leading-relaxed font-medium text-[#5A4D66] md:text-[17px]">
+                {founderStory[1]}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -601,6 +626,20 @@ export default function About() {
             пяти): они здесь и есть картинка блока, и мельчить их — значит
             снова получить набор одинаковых плашек. */}
         <div className="relative mx-auto max-w-[79rem] px-6">
+          {/* ЯВНАЯ ГРАНИЦА СЕКЦИИ — только на телефоне.
+
+              На широком экране блок отделяет фоновый снимок: он заметен, и
+              смена подложки сама говорит, что начался новый раздел. На
+              телефоне маска гасит тот же кадр почти в ноль, и рукописная
+              «наша философия» оказывалась сразу под рукописной подписью
+              «С теплом, Нина» — тот же шрифт MiamaNueva, тот же розовый,
+              разница только в кегле. Две строки читались как одна мысль, и
+              конец письма от начала новой секции было не отличить. */}
+          <div
+            aria-hidden="true"
+            className="mb-12 h-px bg-[#E2D3EC] md:hidden"
+          />
+
           <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-12 md:gap-12">
             <div className="md:col-span-5">
               {/* Рукописная надстрочка тем же шрифтом, что логотип, — она
